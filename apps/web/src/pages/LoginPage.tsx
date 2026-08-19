@@ -1,6 +1,6 @@
 import { FormEvent, useRef, useState } from 'react'
 import { ArrowRight, Eye, EyeOff, KeyRound, LoaderCircle, LockKeyhole, UserRound } from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { createTemporarySession } from '../services/temporary-auth'
 
 type FormErrors = { username?: string; password?: string }
@@ -91,7 +91,6 @@ export function LoginPage() {
 
           <div className="form-options">
             <label className="remember" title="Mantiene tu sesión iniciada por más tiempo en este dispositivo."><input name="remember" type="checkbox" disabled={isSubmitting} /> <span>Recordarme</span></label>
-            <Link to="/recuperar-contrasena">¿Olvidaste tu contraseña?</Link>
           </div>
           <button className="primary-button" type="submit" disabled={isSubmitting}>
             {isSubmitting ? <LoadingLabel>Iniciando sesión…</LoadingLabel> : 'Iniciar sesión'}

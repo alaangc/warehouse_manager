@@ -1,5 +1,4 @@
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
-import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
 import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
 import { ActiveDeliveryPage } from './pages/ActiveDeliveryPage'
@@ -16,7 +15,6 @@ export function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/iniciar-sesion" element={<LoginPage />} />
-        <Route path="/recuperar-contrasena" element={<ForgotPasswordPage />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/inicio" element={<HomePage />} />
           <Route path="/repartos/:deliveryId" element={<ActiveDeliveryPage />} />
