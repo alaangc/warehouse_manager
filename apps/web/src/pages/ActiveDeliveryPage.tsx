@@ -1,18 +1,40 @@
-import { ArrowLeft, BarChart3, Box, Check, ChevronRight, Circle, Home, Menu, Package, Printer, ShoppingBag, ShoppingCart, Store, Truck } from 'lucide-react'
+import { ArrowLeft, BarChart3, Box, Check, ChevronDown, ChevronRight, Circle, Home, Menu, Package, Pencil, Printer, ShoppingBag, ShoppingCart, Store, Truck } from 'lucide-react'
 import { useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { sampleDeliveries } from '../data/sample-deliveries'
+import { getVisitedCustomerIds, setCustomerVisitStatus } from '../services/delivery-visits'
 
 export function ActiveDeliveryPage() {
   const { deliveryId } = useParams()
   const navigate = useNavigate()
   const delivery = sampleDeliveries.find(({ id }) => id === deliveryId)
   const [finished, setFinished] = useState(false)
+  const [visitedCustomerIds, setVisitedCustomerIds] = useState(() => getVisitedCustomerIds(delivery?.customers.filter(({ status }) => status === 'visited').map(({ id }) => id)))
+  const [openCustomerMenuId, setOpenCustomerMenuId] = useState<string | null>(null)
 
   if (!delivery) return <Navigate to="/inicio" replace />
 
   function finishDelivery() {
     if (window.confirm('¿Deseas finalizar este reparto? Esta acción cerrará el reparto de muestra.')) setFinished(true)
+  }
+
+  function markAsVisited(customerId: string) {
+    setVisitedCustomerIds((currentIds) => {
+      const nextIds = new Set(currentIds).add(customerId)
+      setCustomerVisitStatus(customerId, true)
+      return nextIds
+    })
+    setOpenCustomerMenuId(null)
+  }
+
+  function markAsPending(customerId: string) {
+    setVisitedCustomerIds((currentIds) => {
+      const nextIds = new Set(currentIds)
+      nextIds.delete(customerId)
+      setCustomerVisitStatus(customerId, false)
+      return nextIds
+    })
+    setOpenCustomerMenuId(null)
   }
 
   return (
@@ -62,18 +84,38 @@ export function ActiveDeliveryPage() {
         </section>
 
         <section className="detail-section" aria-labelledby="delivery-customers-title">
-          <div className="detail-section-heading"><h2 id="delivery-customers-title">Clientes del reparto ({delivery.customers.length})</h2><button type="button">Ver ruta <ChevronRight size={15} /></button></div>
+          <div className="detail-section-heading"><h2 id="delivery-customers-title">Clientes del reparto ({delivery.customers.length})</h2></div>
           <div className="customer-list">
-            {delivery.customers.map((customer) => (
-              <article className="customer-row" key={customer.id}>
-                <span className={`visit-marker visit-marker--${customer.status}`}>{customer.status === 'visited' ? <Check size={13} /> : <Circle size={16} />}</span>
+            {delivery.customers.map((customer) => {
+              const isVisited = visitedCustomerIds.has(customer.id)
+              const isMenuOpen = openCustomerMenuId === customer.id
+              return (
+              <article className={`customer-row${isMenuOpen ? ' customer-row--open' : ''}`} key={customer.id}>
+                <span className={`visit-marker visit-marker--${isVisited ? 'visited' : 'pending'}`}>{isVisited ? <Check size={13} /> : <Circle size={16} />}</span>
                 <span className="customer-avatar"><Store size={19} /></span>
-                <span className="customer-copy"><strong>{customer.name}</strong><small>{customer.note}</small></span>
-                <span className={`customer-status customer-status--${customer.status}`}>{customer.status === 'visited' ? 'VISITADO' : 'PENDIENTE'}</span>
-                <strong className="customer-amount">{customer.amount ?? '—'}</strong>
+                <span className="customer-copy"><strong>{customer.name}</strong><small>{isVisited ? 'Visita realizada' : 'Pendiente de visita'}</small></span>
+                <button
+                  className="customer-menu-trigger"
+                  type="button"
+                  onClick={() => setOpenCustomerMenuId(isMenuOpen ? null : customer.id)}
+                  aria-expanded={isMenuOpen}
+                  aria-controls={`customer-menu-${customer.id}`}
+                  aria-label={`Mostrar opciones de ${customer.name}`}
+                >
+                  <ChevronDown className={isMenuOpen ? 'customer-menu-chevron--open' : ''} size={17} aria-hidden="true" />
+                </button>
+                {isMenuOpen ? (
+                  <div className="customer-row-actions" id={`customer-menu-${customer.id}`}>
+                    {!isVisited ? <button className="mark-visited-button" type="button" onClick={() => markAsVisited(customer.id)}><Check size={14} /> Marcar visitado</button> : null}
+                    {isVisited ? <button className="edit-visit-button" type="button" onClick={() => markAsPending(customer.id)}><Pencil size={14} /> Editar estado</button> : null}
+                    <button className="view-customer-button" type="button" onClick={() => navigate(`/repartos/${delivery.id}/clientes/${customer.id}`)}>Ver cliente</button>
+                  </div>
+                ) : null}
               </article>
-            ))}
+              )
+            })}
           </div>
+          <button className="view-customers-button" type="button" onClick={() => navigate(`/repartos/${delivery.id}/clientes`)}>Ver todos los clientes <ChevronRight size={17} aria-hidden="true" /></button>
         </section>
 
         <button className="print-ticket-button" type="button" onClick={() => window.print()}><Printer size={20} aria-hidden="true" /> Imprimir ticket</button>

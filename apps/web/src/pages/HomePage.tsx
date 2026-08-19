@@ -2,23 +2,28 @@ import { AlertTriangle, BarChart3, Box, CalendarCheck, ChevronRight, Home, LogOu
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { sampleDeliveries } from '../data/sample-deliveries'
+import { getVisitedCustomerIds } from '../services/delivery-visits'
 import { clearTemporarySession, getTemporaryUser } from '../services/temporary-auth'
 
-const dailySalesCents = sampleDeliveries.flatMap(({ customers }) => customers).reduce((total, customer) => total + (customer.amountCents ?? 0), 0)
-const dailySales = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(dailySalesCents / 100)
-
-const summaryItems = [
-  { label: 'Repartos activos', value: String(sampleDeliveries.length), icon: Box, tone: 'blue' },
-  { label: 'Repartos finalizados', value: '0', icon: CalendarCheck, tone: 'green' },
-  { label: 'Alertas de inventario', value: '0', icon: AlertTriangle, tone: 'orange' },
-  { label: 'Ganancia del día', value: dailySales, icon: BarChart3, tone: 'purple' },
-]
+const currencyFormatter = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' })
 
 export function HomePage() {
   const navigate = useNavigate()
   const user = getTemporaryUser()
   const [moreOpen, setMoreOpen] = useState(false)
   const [deliveryMessage, setDeliveryMessage] = useState('')
+  const [visitedCustomerIds] = useState(() => getVisitedCustomerIds(
+    sampleDeliveries.flatMap(({ customers }) => customers.filter(({ status }) => status === 'visited').map(({ id }) => id)),
+  ))
+  const dailySalesCents = sampleDeliveries
+    .flatMap(({ customers }) => customers)
+    .reduce((total, customer) => visitedCustomerIds.has(customer.id) ? total + (customer.amountCents ?? 0) : total, 0)
+  const summaryItems = [
+    { label: 'Repartos activos', value: String(sampleDeliveries.length), icon: Box, tone: 'blue' },
+    { label: 'Repartos finalizados', value: '0', icon: CalendarCheck, tone: 'green' },
+    { label: 'Alertas de inventario', value: '0', icon: AlertTriangle, tone: 'orange' },
+    { label: 'Ganancia del día', value: currencyFormatter.format(dailySalesCents / 100), icon: BarChart3, tone: 'purple' },
+  ]
 
   function logout() {
     clearTemporarySession()
