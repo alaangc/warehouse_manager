@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
 import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
+import { ActiveDeliveryPage } from './pages/ActiveDeliveryPage'
 import { hasTemporarySession } from './services/temporary-auth'
 
 function ProtectedRoute() {
@@ -18,6 +19,7 @@ export function App() {
         <Route path="/recuperar-contrasena" element={<ForgotPasswordPage />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/inicio" element={<HomePage />} />
+          <Route path="/repartos/:deliveryId" element={<ActiveDeliveryPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/iniciar-sesion" replace />} />
       </Routes>

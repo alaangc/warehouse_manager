@@ -1,16 +1,24 @@
-import { Boxes, LogOut, PackageSearch, Route, ShoppingCart, Warehouse } from 'lucide-react'
+import { AlertTriangle, BarChart3, Box, CalendarCheck, ChevronRight, Home, LogOut, Menu, PackagePlus, ShoppingCart, Truck } from 'lucide-react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { clearTemporarySession } from '../services/temporary-auth'
+import { sampleDeliveries } from '../data/sample-deliveries'
+import { clearTemporarySession, getTemporaryUser } from '../services/temporary-auth'
 
-const overviewCards = [
-  { label: 'Inventario', detail: 'Consulta existencias por sucursal', icon: Boxes },
-  { label: 'Productos', detail: 'Administra el catálogo disponible', icon: PackageSearch },
-  { label: 'Ventas', detail: 'Revisa la actividad reciente', icon: ShoppingCart },
-  { label: 'Rutas', detail: 'Controla cargas y entregas', icon: Route },
+const dailySalesCents = sampleDeliveries.flatMap(({ customers }) => customers).reduce((total, customer) => total + (customer.amountCents ?? 0), 0)
+const dailySales = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(dailySalesCents / 100)
+
+const summaryItems = [
+  { label: 'Repartos activos', value: String(sampleDeliveries.length), icon: Box, tone: 'blue' },
+  { label: 'Repartos finalizados', value: '0', icon: CalendarCheck, tone: 'green' },
+  { label: 'Alertas de inventario', value: '0', icon: AlertTriangle, tone: 'orange' },
+  { label: 'Ganancia del día', value: dailySales, icon: BarChart3, tone: 'purple' },
 ]
 
 export function HomePage() {
   const navigate = useNavigate()
+  const user = getTemporaryUser()
+  const [moreOpen, setMoreOpen] = useState(false)
+  const [deliveryMessage, setDeliveryMessage] = useState('')
 
   function logout() {
     clearTemporarySession()
@@ -18,28 +26,71 @@ export function HomePage() {
   }
 
   return (
-    <main className="home-page">
-      <header className="home-header">
-        <div className="home-brand"><Warehouse size={26} aria-hidden="true" /><span>Stock Control</span></div>
-        <button className="logout-button" type="button" onClick={logout}><LogOut size={18} aria-hidden="true" /> Cerrar sesión</button>
-      </header>
-      <section className="home-content" aria-labelledby="welcome-title">
-        <div className="welcome-block">
-          <p className="eyebrow">Panel administrativo</p>
-          <h1 id="welcome-title">Bienvenido, admin</h1>
-          <p>Esta es la pantalla inicial temporal. Desde aquí construiremos los módulos operativos.</p>
-        </div>
-        <div className="overview-grid">
-          {overviewCards.map(({ label, detail, icon: Icon }) => (
-            <article className="overview-card" key={label}>
-              <span className="overview-card__icon"><Icon size={23} aria-hidden="true" /></span>
-              <h2>{label}</h2>
-              <p>{detail}</p>
-              <span className="coming-soon">Próximamente</span>
-            </article>
-          ))}
-        </div>
+    <main className="dashboard-page">
+      <section className="dashboard-shell" aria-labelledby="welcome-title">
+        <button className="dashboard-logout" type="button" onClick={logout}>
+          <LogOut size={18} aria-hidden="true" /> <span>Cerrar sesión</span>
+        </button>
+        <header className="dashboard-welcome">
+          <span className="dashboard-logo" aria-hidden="true"><Box size={39} strokeWidth={1.8} /></span>
+          <div>
+            <h1 id="welcome-title">¡Hola, {user?.displayName ?? 'Usuario'}!</h1>
+            <p>Resumen general del día</p>
+          </div>
+        </header>
+
+        <section className="summary-panel" aria-labelledby="summary-title">
+          <h2 id="summary-title">Resumen rápido</h2>
+          <div className="summary-grid">
+            {summaryItems.map(({ label, value, icon: Icon, tone }) => (
+              <article className="summary-item" key={label}>
+                <span className={`summary-icon summary-icon--${tone}`}><Icon size={23} aria-hidden="true" /></span>
+                <strong>{value}</strong>
+                <span>{label}</span>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="deliveries-section" aria-labelledby="deliveries-title">
+          <div className="section-heading">
+            <h2 id="deliveries-title">Repartos activos</h2>
+            <button type="button" disabled>Ver todos <ChevronRight size={17} aria-hidden="true" /></button>
+          </div>
+          <div className="delivery-list">
+            {sampleDeliveries.map((delivery) => (
+              <button className="delivery-card" type="button" key={delivery.id} onClick={() => navigate(`/repartos/${delivery.id}`)}>
+                <span className="delivery-card__icon"><Truck size={31} aria-hidden="true" /></span>
+                <span className="delivery-card__content">
+                  <strong>Reparto #{delivery.id}</strong>
+                  <small>Repartidor: {delivery.driverName}</small>
+                  <small>Inicio: {delivery.startTime}</small>
+                </span>
+                <span className="delivery-status">En ruta</span>
+                <ChevronRight className="delivery-card__arrow" size={25} aria-hidden="true" />
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <button className="add-delivery-button" type="button" onClick={() => setDeliveryMessage('El formulario para agregar un reparto será la siguiente pantalla que construiremos.')} aria-describedby={deliveryMessage ? 'delivery-message' : undefined}>
+          <PackagePlus size={19} aria-hidden="true" /> Agregar reparto <ChevronRight size={18} aria-hidden="true" />
+        </button>
+        {deliveryMessage && <p className="delivery-message" id="delivery-message" role="status">{deliveryMessage}</p>}
       </section>
+
+      {moreOpen && (
+        <div className="more-menu" id="more-menu">
+          <button type="button" onClick={logout}><LogOut size={18} aria-hidden="true" /> Cerrar sesión</button>
+        </div>
+      )}
+      <nav className="bottom-navigation" aria-label="Navegación principal">
+        <button className="bottom-navigation__item bottom-navigation__item--active" type="button"><Home size={20} aria-hidden="true" /><span>Inicio</span></button>
+        <button className="bottom-navigation__item" type="button" disabled><Box size={20} aria-hidden="true" /><span>Inventario</span></button>
+        <button className="bottom-navigation__item" type="button" disabled><ShoppingCart size={20} aria-hidden="true" /><span>Repartos</span></button>
+        <button className="bottom-navigation__item" type="button" disabled><BarChart3 size={20} aria-hidden="true" /><span>Reportes</span></button>
+        <button className="bottom-navigation__item" type="button" onClick={() => setMoreOpen((open) => !open)} aria-expanded={moreOpen} aria-controls="more-menu"><Menu size={20} aria-hidden="true" /><span>Más</span></button>
+      </nav>
     </main>
   )
 }
