@@ -20,6 +20,17 @@ its screen examples as context and its recommendations as unapproved proposals.
 - Q: May a driver create a new customer during an active route, or must the driver
   select an existing customer? → A: Drivers can only select existing customers;
   administrators create and edit them.
+- Q: Should a driver be able to record a sale when the buyer does not have an
+  individual customer record? → A: No; every sale requires an individually registered
+  customer.
+- Q: Who should be allowed to cancel a confirmed sale? → A: Only administrators may
+  cancel any confirmed sale.
+- Q: Who should create and start a delivery route? → A: An administrator creates and
+  assigns the route; the assigned driver records and confirms the load and starts it.
+- Q: Who approves and closes a route when returned stock differs from the expected
+  balance? → A: Only an administrator may document and approve the difference,
+  provide a mandatory reason, create the corresponding adjustment, and close the
+  route.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -74,14 +85,19 @@ complete a sale and verify the stored sale, ticket, customer history, and stock 
    payment method is preserved, and route stock is deducted exactly once.
 3. **Given** insufficient stock for any line, **When** the sale is confirmed, **Then**
    the entire sale is rejected and no partial stock deduction or ticket is created.
+4. **Given** no individually registered customer is selected, **When** the driver tries
+   to confirm a sale, **Then** confirmation is rejected without creating a sale,
+   ticket, or stock movement.
+5. **Given** a confirmed sale, **When** a driver attempts to cancel it, **Then** the
+   action is denied without changing the sale, inventory, or financial records.
 
 ---
 
 ### User Story 3 - Run and Reconcile a Delivery Route (Priority: P1)
 
-An administrator creates and assigns a route from a branch. The administrator or
-assigned driver records and confirms its load, the driver completes sales, and the
-remaining physical products return to the branch so all quantities reconcile.
+An administrator creates and assigns a route from a branch. The assigned driver records
+and confirms its load, starts the route, completes sales, and returns the remaining
+physical products so all quantities reconcile.
 
 **Why this priority**: Driver stock leaves a fixed branch but remains business
 inventory and must stay accountable throughout delivery activity.
@@ -92,15 +108,17 @@ complete reconciliation.
 
 **Acceptance Scenarios**:
 
-1. **Given** a Preparing route with sufficient branch stock, **When** its administrator
-   or assigned driver confirms the load, **Then** the quantities move from the branch
-   into temporary route inventory.
+1. **Given** a Preparing route with sufficient branch stock, **When** its assigned
+   driver confirms the load, **Then** the quantities move from the branch into
+   temporary route inventory.
 2. **Given** a confirmed load, **When** the assigned driver starts the route, **Then**
    its state becomes En Route and loaded products become available for sale.
 3. **Given** an En Route route, **When** the driver returns, **Then** its state becomes
    Returned and no additional sales can be confirmed.
-4. **Given** physical return quantities, **When** the administrator reconciles the
-   route, **Then** returned products move to the branch and differences require reasons.
+4. **Given** physical return quantities that differ from the expected balance,
+   **When** an administrator reconciles the route, **Then** returned products move to
+   the branch and the administrator must approve each difference with a reason and a
+   corresponding adjustment movement.
 5. **Given** a fully reconciled Returned route, **When** the administrator closes it,
    **Then** route inventory becomes zero and ordinary modification is blocked.
 
@@ -273,9 +291,10 @@ without losing historical attribution.
 
 #### Sales
 
-- **FR-015**: A sale MUST identify an existing customer, responsible driver, active
-  route, origin branch, items, quantities, applied unit prices, totals, payment method,
-  and completion time.
+- **FR-015**: A sale MUST identify an active, individually registered customer,
+  responsible driver, active route, origin branch, items, quantities, applied unit
+  prices, totals, payment method, and completion time. Anonymous or shared-public
+  customer sales MUST NOT be accepted.
 - **FR-016**: Confirming a driver sale MUST record the sale, deduct stock only from the
   driver's active route, create the corresponding movements, and generate one ticket
   as a single business outcome.
@@ -294,23 +313,26 @@ without losing historical attribution.
 
 #### Routes, Loads, and Returns
 
-- **FR-019**: Administrators MUST be able to create a route that identifies its origin
-  branch, assigned driver, assigned vehicle, date, creator, and creation time.
-- **FR-020**: While a route is Preparing, its administrator or assigned driver MUST be
-  able to record and confirm the load. Confirmation MUST fail unless the full load can
-  be transferred from the origin branch.
+- **FR-019**: Only administrators MUST be able to create and assign a route. Each route
+  MUST identify its origin branch, assigned driver, assigned vehicle, date, creator,
+  and creation time.
+- **FR-020**: While a route is Preparing, only its assigned driver MUST be able to
+  record and confirm the load. Confirmation MUST fail unless the full load can be
+  transferred from the origin branch.
 - **FR-021**: Authorized users MUST be able to see products originally loaded, sold,
   adjusted, expected back, physically returned, and still assigned to each route.
 - **FR-022**: After a route is Returned, administrators MUST be able to record physical
   return quantities and move them to the origin branch in the same business operation.
 - **FR-023**: A route MUST NOT close until every initial loaded quantity is reconciled
   as sold plus returned plus documented differences, and temporary route inventory is
-  zero.
+  zero. Only an administrator MUST be able to approve a difference or close a route.
+  Each approved difference MUST include a mandatory reason and create the corresponding
+  positive or negative adjustment movement before closure.
 - **FR-024**: The system MUST retain load, departure, sale, return, difference,
   adjustment, and closing history for each route and driver.
 - **FR-044**: A route MUST progress only through Preparing, En Route, Returned, and
-  Closed, in that order. Starting requires a confirmed load; returning blocks further
-  sales; closing requires full reconciliation.
+  Closed, in that order. Only the assigned driver may start a route with a confirmed
+  load; returning blocks further sales; closing requires full reconciliation.
 - **FR-045**: A Closed route MUST reject ordinary edits. Any administrator correction
   MUST be a new traceable adjustment or reversal rather than a history rewrite.
 - **FR-046**: The system MUST support multiple simultaneous active routes. Each active
@@ -478,10 +500,6 @@ without losing historical attribution.
   when the route closes; a vehicle is not a permanent warehouse.
 - Multiple routes may operate simultaneously, but an active driver or vehicle belongs
   to only one active route at a time.
-- Every sale requires a selected customer; anonymous public sales are excluded unless
-  this assumption is amended during clarification.
-- Only administrators cancel sales, and cancellation restores inventory through
-  traceable movements rather than deleting the sale.
 - Tostadas remains a distinct cash-close category rather than being grouped into Other.
 - Customer-specific prices are assigned per product, not per category.
 - Product, customer, category, and user removal means archival when historical records
