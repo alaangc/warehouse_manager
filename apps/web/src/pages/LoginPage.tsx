@@ -7,7 +7,7 @@ type FormErrors = { username?: string; password?: string }
 type SubmissionState = 'idle' | 'submitting' | 'error'
 
 function BrandMark() {
-  return <div className="brand-mark" aria-hidden="true"><div className="brand-mark__cube"><span>SC</span></div></div>
+  return <img className="brand-mark" src="/stock-control-logo.png" alt="" aria-hidden="true" />
 }
 
 function supportsPasskeys() {

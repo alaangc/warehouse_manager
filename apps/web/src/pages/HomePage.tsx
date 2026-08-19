@@ -32,7 +32,7 @@ export function HomePage() {
           <LogOut size={18} aria-hidden="true" /> <span>Cerrar sesión</span>
         </button>
         <header className="dashboard-welcome">
-          <span className="dashboard-logo" aria-hidden="true"><Box size={39} strokeWidth={1.8} /></span>
+          <img className="dashboard-logo" src="/stock-control-logo.png" alt="" aria-hidden="true" />
           <div>
             <h1 id="welcome-title">¡Hola, {user?.displayName ?? 'Usuario'}!</h1>
             <p>Resumen general del día</p>
