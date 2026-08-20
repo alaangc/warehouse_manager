@@ -1,0 +1,283 @@
+# Validation Quickstart: Warehouse Management Operations
+
+**Purpose**: Runnable guide for proving the implemented feature against the
+[specification](./spec.md), [data model](./data-model.md), and
+[HTTP contract](./contracts/openapi.yaml). Commands below are the required workspace
+interface to create during implementation; this planning phase does not scaffold code.
+
+## Prerequisites
+
+- Node.js 24 LTS and pnpm using the repository-pinned package-manager version.
+- Docker-compatible container runtime for the disposable PostgreSQL 18 database.
+- A current Chromium, Firefox, and WebKit browser installation for Playwright.
+- HTTPS for any browser session exercising Web Bluetooth.
+- For physical printing acceptance: the approved BLE/GATT thermal printer, exact
+  PrinterProfile metadata, paper, and a supported current Chromium browser/OS pair.
+
+Do not use production credentials or production data. Tests MUST create isolated data
+and an isolated database.
+
+## Required Environment
+
+The API startup schema must validate, at minimum:
+
+```text
+NODE_ENV=test|development|production
+DATABASE_URL=<PostgreSQL connection string>
+SESSION_SECRET=<high-entropy secret from environment/secret manager>
+APP_ORIGIN=https://<single allowed origin>
+BUSINESS_TIMEZONE=America/Hermosillo
+BUSINESS_CURRENCY=<ISO-4217 code>
+PORT=<API port>
+LOG_LEVEL=<structured log level>
+DOCUMENT_STORAGE_PATH=<non-public generated-document location>
+```
+
+Never commit populated environment files. Tests should inject ephemeral values through
+the test harness.
+
+## Bootstrap the Development Environment
+
+From the repository root after implementation scaffolding exists:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm db:test:up
+pnpm db:migrate
+pnpm db:seed
+pnpm dev
+```
+
+Expected result:
+
+- `apps/api` starts only after configuration and database compatibility pass.
+- `apps/web` serves the React application and sends `/api/v1` requests to the Express
+  API on the same logical origin.
+- The seed creates Administrator/Driver test identities, Magdalena and Caborca,
+  representative units/categories/products/customers/prices, one vehicle, and an
+  approved test PrinterProfile. Seed passwords are development-only.
+- `GET /api/v1/health` returns `200 {"status":"ok"}` without disclosing configuration.
+
+## Static and Contract Gates
+
+```bash
+pnpm format:check
+pnpm lint
+pnpm typecheck
+pnpm contract:generate
+pnpm contract:lint
+pnpm contract:check-diff
+pnpm build
+```
+
+Expected result:
+
+- Frontend and API build independently.
+- OpenAPI 3.1.2 generation is deterministic and matches
+  `specs/001-warehouse-management/contracts/openapi.yaml` semantically.
+- Frontend types regenerate without uncommitted differences.
+- Contract lint reports no errors or warnings accepted without an explicit review.
+- No browser bundle contains database credentials, session secrets, password hashes,
+  or API-only domain services.
+
+## Automated Test Gates
+
+```bash
+pnpm test:unit
+pnpm test:api
+pnpm test:integration
+pnpm test:contract
+pnpm test:e2e
+```
+
+The suites MUST prove:
+
+- exact price selection, line rounding, sale totals, 50% gross partner share, and cash
+  close reproduction without JavaScript `number` arithmetic;
+- permitted and denied access for every Administrator/Driver operation;
+- API input/output validation and RFC 9457 error shapes for 401, 403, 409, 422, 429,
+  and representative 500 failures;
+- database checks, partial active-route uniqueness, deterministic locks, Serializable
+  retry handling, rollback, append-only movement/audit permissions, and migrations on
+  a real PostgreSQL 18 container;
+- duplicate identical idempotency requests replay one result, while a changed request
+  under the same key returns 409;
+- frontend handling of loading, empty, validation, authorization, conflict, retryable,
+  and unexpected failure states;
+- critical workflows in Chromium, Firefox, and WebKit, except direct Bluetooth which
+  is explicitly Chromium/hardware constrained;
+- document and printer retries never resubmit source business mutations.
+
+## Migration and Recovery Gate
+
+Run migrations against both an empty database and a production-like sanitized fixture:
+
+```bash
+pnpm db:test:reset
+pnpm db:migrate
+pnpm db:verify
+pnpm db:recovery:test
+```
+
+For each production-affecting migration, attach evidence of:
+
+1. Preconditions and expected table-lock/runtime impact.
+2. Expand/backfill/verify/contract sequencing where data shape changes.
+3. Post-migration invariant queries and application smoke tests.
+4. Tested roll-forward and whether application rollback remains compatible.
+5. Recovery point and a successful disposable-environment restore/PITR drill when the
+   migration is destructive or large.
+
+An unapplied, modified-in-place, or unverified migration fails the gate.
+
+## End-to-End Acceptance Walkthrough
+
+Use unique idempotency keys for every critical command and retain the resulting IDs for
+cross-checking the ledger and audit history.
+
+### 1. Inventory by Branch
+
+1. Log in as Administrator.
+2. Create a unit, category, and product with an exact standard price and low-stock
+   threshold.
+3. Record an entry at Magdalena, transfer part to Caborca, then create positive and
+   negative adjustments with reasons.
+4. Attempt a decrement beyond the available balance.
+
+Expected:
+
+- Each accepted operation creates one atomic InventoryOperation and immutable movement
+  records whose resulting balances reproduce the current balances.
+- The rejected operation returns 409/422 as defined by its cause and changes neither
+  balance nor history.
+- The low-stock alert changes at the configured threshold.
+
+### 2. Customer, Price, Route, and Sale
+
+1. As Administrator, create an individually registered customer and a time-effective
+   customer-specific product price.
+2. Create and assign a Preparing route from Magdalena to a Driver and unused vehicle.
+3. Log in as that Driver, record the draft load, confirm it, and start the route.
+4. Confirm a sale using only loaded products and the existing customer.
+5. Replay the identical confirmation with the same Idempotency-Key, then send changed
+   content under that key.
+6. Attempt an anonymous sale, a price override, an unavailable product, and a sale from
+   another driver's route.
+
+Expected:
+
+- The customer price is selected and preserved as a decimal string; the driver cannot
+  edit it.
+- One accepted confirmation produces exactly one Sale, Ticket, movement set, and route
+  deduction. Identical replay returns it; changed replay conflicts.
+- Every invalid attempt is rejected with no partial sale, ticket, or stock deduction.
+
+### 3. Return, Difference, Reconciliation, and Closure
+
+1. As the assigned Driver, move the route from En Route to Returned.
+2. Verify further sales are rejected.
+3. As Administrator, submit physical quantities that include at least one shortage and
+   a mandatory reason.
+4. Approve reconciliation and close the route.
+5. Attempt an ordinary change to the Closed route.
+
+Expected:
+
+- Reconciliation creates the exact positive/negative difference adjustment and route
+  return movements atomically.
+- `initial load = sold + returned + documented differences` for every product.
+- Every route balance is zero before closure; only the Administrator can approve/close.
+- The Closed route rejects ordinary changes while preserving its full history.
+
+### 4. Authorization and Archival
+
+1. As Driver, attempt product, customer-create, user, inventory-adjustment, report, sale-
+   cancellation, reconciliation, and route-close operations.
+2. As Administrator, deactivate a customer/product/user referenced by history.
+3. Attempt to deactivate a driver or vehicle assigned to an active route.
+
+Expected:
+
+- Every Driver administrator-only attempt returns 403 without changes.
+- Historical sales, movements, prices, and actor attribution remain available after
+  archival.
+- Active assignment conflicts return 409 until resolved.
+
+### 5. Sale Cancellation
+
+1. As Administrator, cancel a completed sale with a reason while its route can still
+   receive movements.
+2. Repeat with a sale whose route has already closed.
+3. Retry each cancellation using the original key and attempt a second distinct
+   cancellation.
+
+Expected:
+
+- The original sale remains, status becomes Cancelled once, and inverse movements
+  restore exact quantities to the route or origin branch according to route state.
+- Replays do not restore stock twice; a second cancellation conflicts.
+
+### 6. Cash Close and Reports
+
+1. Create sales spanning all reporting groups and a business-day boundary.
+2. Generate day/week/month reports and a saved cash close.
+3. Change current prices/category names after the close and retrieve it again.
+
+Expected:
+
+- Period boundaries use the configured business timezone.
+- Category totals sum to exact gross sales; partner amount is 50% of gross and the
+  remaining amount is exact under the documented rounding rule.
+- The saved close remains byte-for-byte numerically reproducible from its snapshots and
+  contributing sale IDs after catalog changes.
+
+### 7. Documents, Sharing, and Printing
+
+1. Request PDFs for a ticket, route load, cash close, and report snapshot.
+2. Download each in every supported browser; test Web Share only where `canShare` allows.
+3. Deny document storage or simulate generation failure, then retry after restoration.
+4. In approved Chromium over HTTPS, select the approved BLE printer through a user
+   gesture, test it, print a committed ticket, disconnect during a write, and explicitly
+   reprint.
+
+Expected:
+
+- PDFs match committed sources, use `application/pdf` and stable filenames, and become
+  ready within SC-007's threshold in at least 95% of representative runs.
+- Unsupported sharing falls back to download.
+- Generation failure is visible and retryable without altering the source record.
+- A partial/disconnected print is `UNKNOWN`, is not silently retried, and never creates
+  a second sale/load/close. Explicit reprint creates only a new OutputAttempt.
+
+## Physical Printer Acceptance Matrix
+
+Record and approve all fields before FR-033/FR-047 can pass:
+
+| Area | Required evidence |
+|---|---|
+| Hardware | Manufacturer, model, firmware, paper width |
+| Client | Device model, OS/version, Chromium browser/version |
+| Transport | BLE/GATT confirmation, service UUID, write characteristic, write mode |
+| Protocol | ESC/POS dialect, initialization/cut/feed commands, chunk size and delay |
+| Text | Spanish accents, currency symbols, wrapping, long names, line items |
+| Failures | Permission denial, unsupported browser, disconnect, partial output, out of paper, reconnect, explicit reprint |
+
+If the available printer is Bluetooth Classic-only, requires iOS/Safari direct access,
+or needs unattended silent printing, stop and amend the plan; the approved browser-only
+BLE design does not satisfy those conditions.
+
+## Performance and Completion Evidence
+
+Run representative seeded-data tests for the scale target in [plan.md](./plan.md):
+
+- at least 95% of product/customer/inventory searches yield usable results within two
+  seconds;
+- a trained-user ten-line sale and ticket completes within two minutes;
+- at least 95% of PDF requests become ready within ten seconds;
+- concurrent last-unit, multi-line sale/load, and overlapping-route tests preserve all
+  constraints with observable bounded retry behavior.
+
+The feature is ready for review only when all applicable commands pass in a clean
+environment, the physical-printer matrix is approved, migration/recovery evidence is
+attached, no contract diff is unexplained, and a reviewer records constitution
+compliance.

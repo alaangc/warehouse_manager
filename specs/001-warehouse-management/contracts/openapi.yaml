@@ -1,0 +1,3725 @@
+openapi: 3.1.2
+jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
+info:
+  title: Warehouse Manager API
+  version: 1.0.0
+  description: >-
+    Authoritative HTTP contract for warehouse, route, sale, reconciliation, reporting,
+    document, user, and printer-profile operations. Money and quantities are decimal
+    strings. All protected authorization and business rules are enforced by the API.
+servers:
+  - url: /api/v1
+security:
+  - sessionCookie: []
+tags:
+  - name: Authentication
+  - name: Users
+  - name: Catalog
+  - name: Customers
+  - name: Inventory
+  - name: Routes
+  - name: Sales
+  - name: Cash closes
+  - name: Reports
+  - name: Documents
+  - name: Printers
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      security: []
+      responses:
+        '200':
+          description: Process is ready to serve requests
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [status]
+                properties:
+                  status:
+                    const: ok
+        '503':
+          $ref: '#/components/responses/Problem'
+
+  /auth/login:
+    post:
+      tags: [Authentication]
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authenticated session; sets the secure session cookie
+          headers:
+            X-CSRF-Token:
+              description: Synchronizer token for subsequent unsafe requests
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+        '429':
+          $ref: '#/components/responses/Problem'
+
+  /auth/session:
+    get:
+      tags: [Authentication]
+      operationId: getSession
+      responses:
+        '200':
+          description: Current authenticated session
+          headers:
+            X-CSRF-Token:
+              description: Current synchronizer token
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+
+  /auth/logout:
+    post:
+      tags: [Authentication]
+      operationId: logout
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      responses:
+        '204':
+          description: Session revoked and cookie cleared
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+
+  /overview:
+    get:
+      operationId: getRoleOverview
+      responses:
+        '200':
+          description: Role-filtered operational overview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OverviewResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+
+  /users:
+    get:
+      tags: [Users]
+      operationId: listUsers
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Search'
+        - name: active
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Users visible to an administrator
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserListResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+    post:
+      tags: [Users]
+      operationId: createUser
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /users/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+    get:
+      tags: [Users]
+      operationId: getUser
+      responses:
+        '200':
+          description: User detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+    patch:
+      tags: [Users]
+      operationId: updateUser
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+      responses:
+        '200':
+          description: User updated, activated, or deactivated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /locations:
+    get:
+      tags: [Catalog]
+      operationId: listLocations
+      responses:
+        '200':
+          description: Stock-holding branches
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationListResponse'
+    post:
+      tags: [Catalog]
+      operationId: createLocation
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocationWriteRequest'
+      responses:
+        '201':
+          description: Location created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /categories:
+    get:
+      tags: [Catalog]
+      operationId: listCategories
+      responses:
+        '200':
+          description: Product categories
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryListResponse'
+    post:
+      tags: [Catalog]
+      operationId: createCategory
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryWriteRequest'
+      responses:
+        '201':
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /units:
+    get:
+      tags: [Catalog]
+      operationId: listUnits
+      responses:
+        '200':
+          description: Product units
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnitListResponse'
+    post:
+      tags: [Catalog]
+      operationId: createUnit
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnitWriteRequest'
+      responses:
+        '201':
+          description: Unit created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnitResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /products:
+    get:
+      tags: [Catalog]
+      operationId: listProducts
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Search'
+        - name: active
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Products visible to the caller
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductListResponse'
+    post:
+      tags: [Catalog]
+      operationId: createProduct
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductWriteRequest'
+      responses:
+        '201':
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /products/{productId}:
+    parameters:
+      - $ref: '#/components/parameters/ProductId'
+    get:
+      tags: [Catalog]
+      operationId: getProduct
+      responses:
+        '200':
+          description: Product detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '404':
+          $ref: '#/components/responses/Problem'
+    patch:
+      tags: [Catalog]
+      operationId: updateProduct
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductUpdateRequest'
+      responses:
+        '200':
+          description: Product updated, activated, or archived
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /customers:
+    get:
+      tags: [Customers]
+      operationId: listCustomers
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Search'
+        - name: active
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Customers with fields filtered by caller role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerListResponse'
+    post:
+      tags: [Customers]
+      operationId: createCustomer
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerWriteRequest'
+      responses:
+        '201':
+          description: Customer created by an administrator
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /customers/{customerId}:
+    parameters:
+      - $ref: '#/components/parameters/CustomerId'
+    get:
+      tags: [Customers]
+      operationId: getCustomer
+      responses:
+        '200':
+          description: Customer detail filtered by role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponse'
+        '404':
+          $ref: '#/components/responses/Problem'
+    patch:
+      tags: [Customers]
+      operationId: updateCustomer
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerUpdateRequest'
+      responses:
+        '200':
+          description: Customer updated, activated, or archived
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /customers/{customerId}/prices:
+    parameters:
+      - $ref: '#/components/parameters/CustomerId'
+    get:
+      tags: [Customers]
+      operationId: listCustomerPrices
+      responses:
+        '200':
+          description: Customer-specific product price history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerPriceListResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+    post:
+      tags: [Customers]
+      operationId: createCustomerPrice
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerPriceWriteRequest'
+      responses:
+        '201':
+          description: Customer-specific price created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerPriceResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /customers/{customerId}/sales:
+    parameters:
+      - $ref: '#/components/parameters/CustomerId'
+      - $ref: '#/components/parameters/Cursor'
+      - $ref: '#/components/parameters/Limit'
+    get:
+      tags: [Customers]
+      operationId: listCustomerSales
+      responses:
+        '200':
+          description: Customer purchase history; administrators only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaleListResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+
+  /vehicles:
+    get:
+      tags: [Catalog]
+      operationId: listVehicles
+      responses:
+        '200':
+          description: Delivery vehicles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleListResponse'
+    post:
+      tags: [Catalog]
+      operationId: createVehicle
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleWriteRequest'
+      responses:
+        '201':
+          description: Vehicle created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /printer-profiles:
+    get:
+      tags: [Printers]
+      operationId: listPrinterProfiles
+      responses:
+        '200':
+          description: Approved printer profiles available to the caller
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrinterProfileListResponse'
+    post:
+      tags: [Printers]
+      operationId: createPrinterProfile
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrinterProfileWriteRequest'
+      responses:
+        '201':
+          description: Approved printer profile created by an administrator
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrinterProfileResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /me/printer-preference:
+    get:
+      tags: [Printers]
+      operationId: getMyPrinterPreference
+      responses:
+        '200':
+          description: Current user's limited printer preference
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrinterPreferenceResponse'
+    put:
+      tags: [Printers]
+      operationId: setMyPrinterPreference
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrinterPreferenceRequest'
+      responses:
+        '200':
+          description: Preference saved; physical permission remains browser-local
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrinterPreferenceResponse'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /inventory/balances:
+    get:
+      tags: [Inventory]
+      operationId: listInventoryBalances
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - name: productId
+          in: query
+          schema:
+            $ref: '#/components/schemas/Uuid'
+        - name: branchId
+          in: query
+          schema:
+            $ref: '#/components/schemas/Uuid'
+        - name: routeId
+          in: query
+          schema:
+            $ref: '#/components/schemas/Uuid'
+        - name: alertsOnly
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Role-filtered current balances
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryBalanceListResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+
+  /inventory/movements:
+    get:
+      tags: [Inventory]
+      operationId: listInventoryMovements
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - name: productId
+          in: query
+          schema:
+            $ref: '#/components/schemas/Uuid'
+        - name: branchId
+          in: query
+          schema:
+            $ref: '#/components/schemas/Uuid'
+        - name: routeId
+          in: query
+          schema:
+            $ref: '#/components/schemas/Uuid'
+        - name: operationType
+          in: query
+          schema:
+            $ref: '#/components/schemas/InventoryOperationType'
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Traceable inventory movements visible to the caller
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryMovementListResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+
+  /inventory/operations:
+    post:
+      tags: [Inventory]
+      operationId: createInventoryOperation
+      description: >-
+        Administrator-only entry, manual exit, or positive/negative adjustment.
+        Transfers use the dedicated endpoint.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventoryOperationRequest'
+      responses:
+        '201':
+          description: Operation and all movements committed atomically
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryOperationResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /inventory/transfers:
+    post:
+      tags: [Inventory]
+      operationId: createInventoryTransfer
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventoryTransferRequest'
+      responses:
+        '201':
+          description: Full transfer committed or no changes made
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryOperationResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /inventory/operations/{operationId}/reversal:
+    parameters:
+      - name: operationId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Uuid'
+    post:
+      tags: [Inventory]
+      operationId: reverseInventoryOperation
+      description: >-
+        Appends an administrator-authorized compensating operation and movements;
+        never edits the original operation or ledger rows.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasonRequest'
+      responses:
+        '201':
+          description: Compensating operation committed atomically
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryOperationResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /routes:
+    get:
+      tags: [Routes]
+      operationId: listRoutes
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - name: state
+          in: query
+          schema:
+            $ref: '#/components/schemas/RouteState'
+        - name: driverId
+          in: query
+          schema:
+            $ref: '#/components/schemas/Uuid'
+        - name: businessDate
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Routes visible to the caller
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RouteListResponse'
+    post:
+      tags: [Routes]
+      operationId: createRoute
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RouteCreateRequest'
+      responses:
+        '201':
+          description: Preparing route created and assigned by an administrator
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RouteResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /routes/{routeId}:
+    parameters:
+      - $ref: '#/components/parameters/RouteId'
+    get:
+      tags: [Routes]
+      operationId: getRoute
+      responses:
+        '200':
+          description: Route with load, balance, sales, return, and reconciliation summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RouteDetailResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+
+  /routes/{routeId}/load:
+    parameters:
+      - $ref: '#/components/parameters/RouteId'
+    put:
+      tags: [Routes]
+      operationId: replaceRouteLoadDraft
+      description: Assigned driver records the complete draft load while route is Preparing.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RouteLoadDraftRequest'
+      responses:
+        '200':
+          description: Draft load replaced
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RouteLoadResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /routes/{routeId}/load/confirmation:
+    parameters:
+      - $ref: '#/components/parameters/RouteId'
+    post:
+      tags: [Routes]
+      operationId: confirmRouteLoad
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExpectedVersionRequest'
+      responses:
+        '200':
+          description: Full load moved from branch to temporary route inventory
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RouteDetailResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /routes/{routeId}/start:
+    parameters:
+      - $ref: '#/components/parameters/RouteId'
+    post:
+      tags: [Routes]
+      operationId: startRoute
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExpectedVersionRequest'
+      responses:
+        '200':
+          description: Assigned driver moved route from Preparing to En Route
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RouteResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+
+  /routes/{routeId}/return:
+    parameters:
+      - $ref: '#/components/parameters/RouteId'
+    post:
+      tags: [Routes]
+      operationId: returnRoute
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExpectedVersionRequest'
+      responses:
+        '200':
+          description: Assigned driver moved route from En Route to Returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RouteResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+
+  /routes/{routeId}/reconciliation:
+    parameters:
+      - $ref: '#/components/parameters/RouteId'
+    put:
+      tags: [Routes]
+      operationId: approveRouteReconciliation
+      description: >-
+        Administrator records physical returns, provides mandatory reasons for
+        differences, creates adjustments, and returns stock to the origin atomically.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RouteReconciliationRequest'
+      responses:
+        '200':
+          description: Reconciliation approved and temporary route inventory is zero
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RouteReconciliationResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /routes/{routeId}/close:
+    parameters:
+      - $ref: '#/components/parameters/RouteId'
+    post:
+      tags: [Routes]
+      operationId: closeRoute
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExpectedVersionRequest'
+      responses:
+        '200':
+          description: Fully reconciled route closed by an administrator
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RouteResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+
+  /sales:
+    get:
+      tags: [Sales]
+      operationId: listSales
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - name: customerId
+          in: query
+          schema:
+            $ref: '#/components/schemas/Uuid'
+        - name: driverId
+          in: query
+          schema:
+            $ref: '#/components/schemas/Uuid'
+        - name: routeId
+          in: query
+          schema:
+            $ref: '#/components/schemas/Uuid'
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Sales visible to the caller
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaleListResponse'
+    post:
+      tags: [Sales]
+      operationId: confirmSale
+      description: >-
+        Assigned driver confirms a sale against products in an En Route route. Price,
+        totals, sale, ticket, movements, and idempotency result commit atomically.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaleCreateRequest'
+      responses:
+        '201':
+          description: Sale confirmed exactly once
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaleResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /sales/quote:
+    post:
+      tags: [Sales]
+      operationId: quoteSale
+      description: >-
+        Returns advisory effective prices and current route availability without
+        committing a sale. Sale confirmation recalculates and revalidates everything.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaleQuoteRequest'
+      responses:
+        '200':
+          description: Current authoritative preview for the assigned driver's route
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaleQuoteResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /sales/{saleId}:
+    parameters:
+      - $ref: '#/components/parameters/SaleId'
+    get:
+      tags: [Sales]
+      operationId: getSale
+      responses:
+        '200':
+          description: Preserved sale and ticket detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaleResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+
+  /sales/{saleId}/cancellation:
+    parameters:
+      - $ref: '#/components/parameters/SaleId'
+    post:
+      tags: [Sales]
+      operationId: cancelSale
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaleCancellationRequest'
+      responses:
+        '200':
+          description: Administrator cancellation preserved original sale and restored stock once
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaleResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /cash-closes:
+    get:
+      tags: [Cash closes]
+      operationId: listCashCloses
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Saved cash closes; administrators only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CashCloseListResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+    post:
+      tags: [Cash closes]
+      operationId: createCashClose
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CashCloseCreateRequest'
+      responses:
+        '201':
+          description: Reproducible cash close created from completed sales
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CashCloseResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /cash-closes/{cashCloseId}:
+    parameters:
+      - $ref: '#/components/parameters/CashCloseId'
+    get:
+      tags: [Cash closes]
+      operationId: getCashClose
+      responses:
+        '200':
+          description: Preserved cash-close detail and contributing sales
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CashCloseResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+
+  /reports/sales-by-driver:
+    get:
+      tags: [Reports]
+      operationId: getSalesByDriverReport
+      parameters:
+        - $ref: '#/components/parameters/PeriodFrom'
+        - $ref: '#/components/parameters/PeriodTo'
+      responses:
+        '200':
+          description: Exact sales totals grouped by driver
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+
+  /reports/best-selling-products:
+    get:
+      tags: [Reports]
+      operationId: getBestSellingProductsReport
+      parameters:
+        - $ref: '#/components/parameters/PeriodFrom'
+        - $ref: '#/components/parameters/PeriodTo'
+      responses:
+        '200':
+          description: Products ranked by sold quantity and exact amount
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+
+  /reports/inventory-by-branch:
+    get:
+      tags: [Reports]
+      operationId: getInventoryByBranchReport
+      responses:
+        '200':
+          description: Current inventory grouped by fixed branch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+
+  /reports/financial-summary:
+    get:
+      tags: [Reports]
+      operationId: getFinancialSummaryReport
+      parameters:
+        - $ref: '#/components/parameters/PeriodFrom'
+        - $ref: '#/components/parameters/PeriodTo'
+      responses:
+        '200':
+          description: Gross sales, partner share, and remaining share
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+
+  /report-snapshots:
+    post:
+      tags: [Reports, Documents]
+      operationId: createReportSnapshot
+      description: Persists an immutable report result before canonical PDF generation.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportSnapshotCreateRequest'
+      responses:
+        '201':
+          description: Exact report snapshot created from the validated filters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportSnapshotResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /documents:
+    post:
+      tags: [Documents]
+      operationId: requestDocument
+      description: Creates or reuses a canonical PDF from an already committed source record.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentCreateRequest'
+      responses:
+        '202':
+          description: Document generation accepted or existing output returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /documents/{documentId}:
+    parameters:
+      - $ref: '#/components/parameters/DocumentId'
+    get:
+      tags: [Documents]
+      operationId: getDocument
+      responses:
+        '200':
+          description: Document generation status and source metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+
+  /documents/{documentId}/content:
+    parameters:
+      - $ref: '#/components/parameters/DocumentId'
+    get:
+      tags: [Documents]
+      operationId: downloadDocument
+      responses:
+        '200':
+          description: Ready canonical PDF
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+          content:
+            application/pdf:
+              schema:
+                type: string
+                contentEncoding: binary
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+
+  /output-attempts:
+    post:
+      tags: [Documents, Printers]
+      operationId: recordOutputAttempt
+      description: >-
+        Records generation/download/share/print/test outcomes only. It never performs
+        or retries the source business transaction.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OutputAttemptRequest'
+      responses:
+        '201':
+          description: Output attempt recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutputAttemptResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /locations/{locationId}:
+    parameters:
+      - name: locationId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Uuid'
+    patch:
+      tags: [Catalog]
+      operationId: updateLocation
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocationUpdateRequest'
+      responses:
+        '200':
+          description: Location updated or deactivated without deleting history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /categories/{categoryId}:
+    parameters:
+      - name: categoryId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Uuid'
+    patch:
+      tags: [Catalog]
+      operationId: updateCategory
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryUpdateRequest'
+      responses:
+        '200':
+          description: Category updated or deactivated without rewriting sale snapshots
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /units/{unitId}:
+    parameters:
+      - name: unitId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Uuid'
+    patch:
+      tags: [Catalog]
+      operationId: updateUnit
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnitUpdateRequest'
+      responses:
+        '200':
+          description: Unit updated or deactivated without deleting history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnitResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /vehicles/{vehicleId}:
+    parameters:
+      - name: vehicleId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Uuid'
+    patch:
+      tags: [Catalog]
+      operationId: updateVehicle
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleUpdateRequest'
+      responses:
+        '200':
+          description: Vehicle updated or deactivated when it has no active route
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /printer-profiles/{printerProfileId}:
+    parameters:
+      - name: printerProfileId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Uuid'
+    patch:
+      tags: [Printers]
+      operationId: updatePrinterProfile
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrinterProfileUpdateRequest'
+      responses:
+        '200':
+          description: Supported printer profile updated or deactivated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrinterProfileResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /customer-prices/{customerPriceId}/deactivation:
+    parameters:
+      - name: customerPriceId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Uuid'
+    post:
+      tags: [Customers]
+      operationId: deactivateCustomerPrice
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasonRequest'
+      responses:
+        '200':
+          description: Customer price deactivated; completed sales remain unchanged
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerPriceResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+
+  /settings/business:
+    get:
+      tags: [Catalog]
+      operationId: getBusinessSettings
+      responses:
+        '200':
+          description: Business currency, timezone, partner rate, and rounding settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusinessSettingResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+    patch:
+      tags: [Catalog]
+      operationId: updateBusinessSettings
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BusinessSettingUpdateRequest'
+      responses:
+        '200':
+          description: Settings updated for future operations; history remains unchanged
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusinessSettingResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: __Host-wm_session
+
+  parameters:
+    CsrfToken:
+      name: X-CSRF-Token
+      in: header
+      required: true
+      description: Per-session synchronizer token for an authenticated unsafe request
+      schema:
+        type: string
+        minLength: 32
+        maxLength: 512
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Unique key scoped to actor and operation; reuse requires identical content
+      schema:
+        type: string
+        minLength: 16
+        maxLength: 128
+    Cursor:
+      name: cursor
+      in: query
+      schema:
+        type: string
+        maxLength: 512
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 25
+    Search:
+      name: search
+      in: query
+      schema:
+        type: string
+        maxLength: 120
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Uuid'
+    ProductId:
+      name: productId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Uuid'
+    CustomerId:
+      name: customerId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Uuid'
+    RouteId:
+      name: routeId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Uuid'
+    SaleId:
+      name: saleId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Uuid'
+    CashCloseId:
+      name: cashCloseId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Uuid'
+    DocumentId:
+      name: documentId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Uuid'
+    PeriodFrom:
+      name: from
+      in: query
+      required: true
+      schema:
+        type: string
+        format: date-time
+    PeriodTo:
+      name: to
+      in: query
+      required: true
+      schema:
+        type: string
+        format: date-time
+
+  responses:
+    Problem:
+      description: RFC 9457 error; exact status and stable code identify the failure
+      headers:
+        X-Request-Id:
+          schema:
+            type: string
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+
+  schemas:
+    Uuid:
+      type: string
+      format: uuid
+    Quantity:
+      type: string
+      pattern: '^(0|[1-9][0-9]*)(\.[0-9]{1,3})?$'
+      examples: ['12.500']
+    PositiveQuantity:
+      type: string
+      pattern: '^(0\.00[1-9]|0\.0[1-9][0-9]?|0\.[1-9][0-9]{0,2}|[1-9][0-9]*(\.[0-9]{1,3})?)$'
+      examples: ['1', '12.500']
+    Money:
+      type: string
+      pattern: '^-?(0|[1-9][0-9]*)\.[0-9]{2}$'
+      examples: ['1250.00']
+    NonnegativeMoney:
+      type: string
+      pattern: '^(0|[1-9][0-9]*)\.[0-9]{2}$'
+      examples: ['1250.00']
+    UnitPrice:
+      type: string
+      pattern: '^(0|[1-9][0-9]*)(\.[0-9]{1,4})?$'
+      examples: ['12.3450']
+    UserRole:
+      type: string
+      enum: [ADMINISTRATOR, DRIVER]
+    Problem:
+      type: object
+      additionalProperties: false
+      required: [type, title, status, code, instance]
+      properties:
+        type:
+          type: string
+          format: uri-reference
+        title:
+          type: string
+        status:
+          type: integer
+          minimum: 400
+          maximum: 599
+        detail:
+          type: string
+        code:
+          type: string
+          pattern: '^[A-Z][A-Z0-9_]+$'
+        instance:
+          type: string
+        fieldErrors:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [path, code, message]
+            properties:
+              path:
+                type: string
+              code:
+                type: string
+              message:
+                type: string
+    PageInfo:
+      type: object
+      additionalProperties: false
+      required: [hasNextPage]
+      properties:
+        hasNextPage:
+          type: boolean
+        nextCursor:
+          type: [string, 'null']
+
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          minLength: 1
+          maxLength: 120
+        password:
+          type: string
+          minLength: 8
+          maxLength: 1024
+    SessionUser:
+      type: object
+      additionalProperties: false
+      required: [id, username, displayName, role, active]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        username:
+          type: string
+        displayName:
+          type: string
+        role:
+          $ref: '#/components/schemas/UserRole'
+        active:
+          type: boolean
+    SessionResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/SessionUser'
+    User:
+      type: object
+      additionalProperties: false
+      required: [id, username, displayName, role, active, version, createdAt, updatedAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        username:
+          type: string
+        displayName:
+          type: string
+        role:
+          $ref: '#/components/schemas/UserRole'
+        active:
+          type: boolean
+        version:
+          type: integer
+          minimum: 1
+        archivedAt:
+          type: [string, 'null']
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    UserCreateRequest:
+      type: object
+      additionalProperties: false
+      required: [username, displayName, role, password]
+      properties:
+        username:
+          type: string
+          minLength: 1
+          maxLength: 120
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 160
+        role:
+          $ref: '#/components/schemas/UserRole'
+        password:
+          type: string
+          minLength: 12
+          maxLength: 1024
+    UserUpdateRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 160
+        role:
+          $ref: '#/components/schemas/UserRole'
+        active:
+          type: boolean
+        password:
+          type: string
+          minLength: 12
+          maxLength: 1024
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 500
+    UserResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/User'
+    UserListResponse:
+      type: object
+      additionalProperties: false
+      required: [data, page]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+    OverviewResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data:
+          type: object
+          description: Role-filtered counts, alerts, active route, and permitted action links
+          additionalProperties: true
+
+    Location:
+      type: object
+      additionalProperties: false
+      required: [id, code, name, active, version]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        code:
+          type: string
+        name:
+          type: string
+        active:
+          type: boolean
+        version:
+          type: integer
+          minimum: 1
+    LocationWriteRequest:
+      type: object
+      additionalProperties: false
+      required: [code, name]
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 32
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+    LocationUpdateRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion, code, name, active]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        code:
+          type: string
+          minLength: 1
+          maxLength: 32
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        active:
+          type: boolean
+        reason:
+          type: [string, 'null']
+          maxLength: 500
+    LocationResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/Location'
+    LocationListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Location'
+    ReportingGroup:
+      type: string
+      enum: [SODAS, CHARCOAL, TOSTADAS, OTHER]
+    Category:
+      type: object
+      additionalProperties: false
+      required: [id, name, reportingGroup, active, version]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        name:
+          type: string
+        reportingGroup:
+          $ref: '#/components/schemas/ReportingGroup'
+        active:
+          type: boolean
+        version:
+          type: integer
+          minimum: 1
+    CategoryWriteRequest:
+      type: object
+      additionalProperties: false
+      required: [name, reportingGroup]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        reportingGroup:
+          $ref: '#/components/schemas/ReportingGroup'
+    CategoryUpdateRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion, name, reportingGroup, active]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        reportingGroup:
+          $ref: '#/components/schemas/ReportingGroup'
+        active:
+          type: boolean
+        reason:
+          type: [string, 'null']
+          maxLength: 500
+    CategoryResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/Category'
+    CategoryListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+    Unit:
+      type: object
+      additionalProperties: false
+      required: [id, code, name, quantityScale, active, version]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        code:
+          type: string
+        name:
+          type: string
+        quantityScale:
+          type: integer
+          minimum: 0
+          maximum: 3
+        active:
+          type: boolean
+        version:
+          type: integer
+          minimum: 1
+    UnitWriteRequest:
+      type: object
+      additionalProperties: false
+      required: [code, name, quantityScale]
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 32
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        quantityScale:
+          type: integer
+          minimum: 0
+          maximum: 3
+    UnitUpdateRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion, code, name, quantityScale, active]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        code:
+          type: string
+          minLength: 1
+          maxLength: 32
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        quantityScale:
+          type: integer
+          minimum: 0
+          maximum: 3
+        active:
+          type: boolean
+        reason:
+          type: [string, 'null']
+          maxLength: 500
+    UnitResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/Unit'
+    UnitListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Unit'
+    Product:
+      type: object
+      additionalProperties: false
+      required: [id, sku, name, categoryId, unitId, standardUnitPrice, lowStockThreshold, active, version]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        sku:
+          type: string
+        name:
+          type: string
+        description:
+          type: [string, 'null']
+        categoryId:
+          $ref: '#/components/schemas/Uuid'
+        unitId:
+          $ref: '#/components/schemas/Uuid'
+        standardUnitPrice:
+          $ref: '#/components/schemas/UnitPrice'
+        lowStockThreshold:
+          $ref: '#/components/schemas/Quantity'
+        active:
+          type: boolean
+        version:
+          type: integer
+          minimum: 1
+    ProductWriteRequest:
+      type: object
+      additionalProperties: false
+      required: [sku, name, categoryId, unitId, standardUnitPrice, lowStockThreshold]
+      properties:
+        sku:
+          type: string
+          minLength: 1
+          maxLength: 64
+        name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        description:
+          type: [string, 'null']
+          maxLength: 1000
+        categoryId:
+          $ref: '#/components/schemas/Uuid'
+        unitId:
+          $ref: '#/components/schemas/Uuid'
+        standardUnitPrice:
+          $ref: '#/components/schemas/UnitPrice'
+        lowStockThreshold:
+          $ref: '#/components/schemas/Quantity'
+    ProductUpdateRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion, sku, name, categoryId, unitId, standardUnitPrice, lowStockThreshold, active]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        sku:
+          type: string
+          minLength: 1
+          maxLength: 64
+        name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        description:
+          type: [string, 'null']
+          maxLength: 1000
+        categoryId:
+          $ref: '#/components/schemas/Uuid'
+        unitId:
+          $ref: '#/components/schemas/Uuid'
+        standardUnitPrice:
+          $ref: '#/components/schemas/UnitPrice'
+        lowStockThreshold:
+          $ref: '#/components/schemas/Quantity'
+        active:
+          type: boolean
+        reason:
+          type: [string, 'null']
+          maxLength: 500
+    ProductResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/Product'
+    ProductListResponse:
+      type: object
+      required: [data, page]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+
+    Customer:
+      type: object
+      additionalProperties: false
+      required: [id, customerNumber, displayName, city, active, version]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        customerNumber:
+          type: string
+        displayName:
+          type: string
+        contactName:
+          type: [string, 'null']
+        phone:
+          type: [string, 'null']
+        email:
+          type: [string, 'null']
+          format: email
+        address:
+          type: [string, 'null']
+        city:
+          type: string
+        notes:
+          type: [string, 'null']
+        active:
+          type: boolean
+        version:
+          type: integer
+          minimum: 1
+    CustomerWriteRequest:
+      type: object
+      additionalProperties: false
+      required: [displayName, city]
+      properties:
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 200
+        contactName:
+          type: [string, 'null']
+          maxLength: 160
+        phone:
+          type: [string, 'null']
+          maxLength: 40
+        email:
+          type: [string, 'null']
+          format: email
+        address:
+          type: [string, 'null']
+          maxLength: 500
+        city:
+          type: string
+          minLength: 1
+          maxLength: 120
+        notes:
+          type: [string, 'null']
+          maxLength: 1000
+    CustomerUpdateRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion, displayName, city, active]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 200
+        contactName:
+          type: [string, 'null']
+          maxLength: 160
+        phone:
+          type: [string, 'null']
+          maxLength: 40
+        email:
+          type: [string, 'null']
+          format: email
+        address:
+          type: [string, 'null']
+          maxLength: 500
+        city:
+          type: string
+          minLength: 1
+          maxLength: 120
+        notes:
+          type: [string, 'null']
+          maxLength: 1000
+        active:
+          type: boolean
+        reason:
+          type: [string, 'null']
+          maxLength: 500
+    CustomerResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/Customer'
+    CustomerListResponse:
+      type: object
+      required: [data, page]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Customer'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+    CustomerPrice:
+      type: object
+      additionalProperties: false
+      required: [id, customerId, productId, unitPrice, validFrom, active]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        customerId:
+          $ref: '#/components/schemas/Uuid'
+        productId:
+          $ref: '#/components/schemas/Uuid'
+        unitPrice:
+          $ref: '#/components/schemas/UnitPrice'
+        validFrom:
+          type: string
+          format: date-time
+        validTo:
+          type: [string, 'null']
+          format: date-time
+        active:
+          type: boolean
+    CustomerPriceWriteRequest:
+      type: object
+      additionalProperties: false
+      required: [productId, unitPrice, validFrom]
+      properties:
+        productId:
+          $ref: '#/components/schemas/Uuid'
+        unitPrice:
+          $ref: '#/components/schemas/UnitPrice'
+        validFrom:
+          type: string
+          format: date-time
+        validTo:
+          type: [string, 'null']
+          format: date-time
+    CustomerPriceResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/CustomerPrice'
+    CustomerPriceListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomerPrice'
+
+    Vehicle:
+      type: object
+      additionalProperties: false
+      required: [id, code, name, active, version]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        code:
+          type: string
+        name:
+          type: string
+        registration:
+          type: [string, 'null']
+        active:
+          type: boolean
+        version:
+          type: integer
+          minimum: 1
+    VehicleWriteRequest:
+      type: object
+      additionalProperties: false
+      required: [code, name]
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 32
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        registration:
+          type: [string, 'null']
+          maxLength: 64
+    VehicleUpdateRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion, code, name, active]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        code:
+          type: string
+          minLength: 1
+          maxLength: 32
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        registration:
+          type: [string, 'null']
+          maxLength: 64
+        active:
+          type: boolean
+        reason:
+          type: [string, 'null']
+          maxLength: 500
+    VehicleResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/Vehicle'
+    VehicleListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Vehicle'
+
+    PrinterProfile:
+      type: object
+      additionalProperties: false
+      required: [id, name, model, transport, serviceUuid, writeCharacteristicUuid, paperWidthMm, encoding, maxChunkBytes, active, version]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        name:
+          type: string
+        model:
+          type: string
+        transport:
+          const: WEB_BLUETOOTH_BLE
+        serviceUuid:
+          type: string
+        writeCharacteristicUuid:
+          type: string
+        writeMode:
+          type: string
+          enum: [WITH_RESPONSE, WITHOUT_RESPONSE]
+        commandDialect:
+          type: string
+        paperWidthMm:
+          type: integer
+          enum: [58, 80]
+        encoding:
+          type: string
+        maxChunkBytes:
+          type: integer
+          minimum: 1
+          maximum: 1024
+        interChunkDelayMs:
+          type: integer
+          minimum: 0
+          maximum: 5000
+        active:
+          type: boolean
+        version:
+          type: integer
+          minimum: 1
+    PrinterProfileWriteRequest:
+      type: object
+      additionalProperties: false
+      required: [name, model, serviceUuid, writeCharacteristicUuid, writeMode, commandDialect, paperWidthMm, encoding, maxChunkBytes, interChunkDelayMs]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        model:
+          type: string
+          minLength: 1
+          maxLength: 120
+        serviceUuid:
+          type: string
+          maxLength: 64
+        writeCharacteristicUuid:
+          type: string
+          maxLength: 64
+        writeMode:
+          type: string
+          enum: [WITH_RESPONSE, WITHOUT_RESPONSE]
+        commandDialect:
+          type: string
+          maxLength: 80
+        paperWidthMm:
+          type: integer
+          enum: [58, 80]
+        encoding:
+          type: string
+          maxLength: 40
+        maxChunkBytes:
+          type: integer
+          minimum: 1
+          maximum: 1024
+        interChunkDelayMs:
+          type: integer
+          minimum: 0
+          maximum: 5000
+    PrinterProfileUpdateRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion, name, model, serviceUuid, writeCharacteristicUuid, writeMode, commandDialect, paperWidthMm, encoding, maxChunkBytes, interChunkDelayMs, active]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        model:
+          type: string
+          minLength: 1
+          maxLength: 120
+        serviceUuid:
+          type: string
+          maxLength: 64
+        writeCharacteristicUuid:
+          type: string
+          maxLength: 64
+        writeMode:
+          type: string
+          enum: [WITH_RESPONSE, WITHOUT_RESPONSE]
+        commandDialect:
+          type: string
+          maxLength: 80
+        paperWidthMm:
+          type: integer
+          enum: [58, 80]
+        encoding:
+          type: string
+          maxLength: 40
+        maxChunkBytes:
+          type: integer
+          minimum: 1
+          maximum: 1024
+        interChunkDelayMs:
+          type: integer
+          minimum: 0
+          maximum: 5000
+        active:
+          type: boolean
+        reason:
+          type: [string, 'null']
+          maxLength: 500
+    PrinterProfileResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/PrinterProfile'
+    PrinterProfileListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PrinterProfile'
+    PrinterPreferenceRequest:
+      type: object
+      additionalProperties: false
+      required: [printerProfileId]
+      properties:
+        printerProfileId:
+          $ref: '#/components/schemas/Uuid'
+        deviceLabel:
+          type: [string, 'null']
+          maxLength: 120
+        testedBrowser:
+          type: [string, 'null']
+          maxLength: 120
+        testedOs:
+          type: [string, 'null']
+          maxLength: 120
+        lastTestResult:
+          type: [string, 'null']
+          enum: [SUCCEEDED, FAILED, UNKNOWN, null]
+    PrinterPreferenceResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required: [printerProfileId]
+          properties:
+            printerProfileId:
+              $ref: '#/components/schemas/Uuid'
+            deviceLabel:
+              type: [string, 'null']
+            testedBrowser:
+              type: [string, 'null']
+            testedOs:
+              type: [string, 'null']
+            lastTestResult:
+              type: [string, 'null']
+              enum: [SUCCEEDED, FAILED, UNKNOWN, null]
+            lastTestedAt:
+              type: [string, 'null']
+              format: date-time
+
+    ReasonRequest:
+      type: object
+      additionalProperties: false
+      required: [reason]
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 500
+    BusinessSetting:
+      type: object
+      additionalProperties: false
+      required: [currencyCode, currencyScale, businessTimezone, partnerShareRate, moneyRoundingMode, version]
+      properties:
+        currencyCode:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        currencyScale:
+          const: 2
+        businessTimezone:
+          type: string
+          maxLength: 100
+        partnerShareRate:
+          const: '0.500000'
+        moneyRoundingMode:
+          const: HALF_AWAY_FROM_ZERO
+        version:
+          type: integer
+          minimum: 1
+    BusinessSettingUpdateRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion, currencyCode, businessTimezone, reason]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        currencyCode:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        businessTimezone:
+          type: string
+          minLength: 1
+          maxLength: 100
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 500
+    BusinessSettingResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/BusinessSetting'
+
+    InventoryOperationType:
+      type: string
+      enum: [ENTRY, MANUAL_EXIT, TRANSFER, ROUTE_LOAD, SALE, ROUTE_RETURN, POSITIVE_ADJUSTMENT, NEGATIVE_ADJUSTMENT, SALE_CANCELLATION]
+    StockLocationRef:
+      type: object
+      additionalProperties: false
+      required: [id, kind, label]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        kind:
+          type: string
+          enum: [BRANCH, ROUTE]
+        label:
+          type: string
+        branchId:
+          type: [string, 'null']
+          format: uuid
+        routeId:
+          type: [string, 'null']
+          format: uuid
+    InventoryBalance:
+      type: object
+      additionalProperties: false
+      required: [id, productId, stockLocation, quantity, lowStockAlert, version, updatedAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        productId:
+          $ref: '#/components/schemas/Uuid'
+        productName:
+          type: string
+        stockLocation:
+          $ref: '#/components/schemas/StockLocationRef'
+        quantity:
+          $ref: '#/components/schemas/Quantity'
+        lowStockAlert:
+          type: boolean
+        version:
+          type: integer
+          minimum: 1
+        updatedAt:
+          type: string
+          format: date-time
+    InventoryBalanceListResponse:
+      type: object
+      required: [data, page]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/InventoryBalance'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+    InventoryMovement:
+      type: object
+      additionalProperties: false
+      required: [id, operationId, operationType, productId, quantity, actorId, occurredAt, relatedEntityType, relatedEntityId]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        operationId:
+          $ref: '#/components/schemas/Uuid'
+        operationType:
+          $ref: '#/components/schemas/InventoryOperationType'
+        productId:
+          $ref: '#/components/schemas/Uuid'
+        source:
+          oneOf:
+            - $ref: '#/components/schemas/StockLocationRef'
+            - type: 'null'
+        destination:
+          oneOf:
+            - $ref: '#/components/schemas/StockLocationRef'
+            - type: 'null'
+        quantity:
+          $ref: '#/components/schemas/PositiveQuantity'
+        sourceBalanceAfter:
+          oneOf:
+            - $ref: '#/components/schemas/Quantity'
+            - type: 'null'
+        destinationBalanceAfter:
+          oneOf:
+            - $ref: '#/components/schemas/Quantity'
+            - type: 'null'
+        actorId:
+          $ref: '#/components/schemas/Uuid'
+        reason:
+          type: [string, 'null']
+        occurredAt:
+          type: string
+          format: date-time
+        relatedEntityType:
+          type: string
+        relatedEntityId:
+          $ref: '#/components/schemas/Uuid'
+    InventoryMovementListResponse:
+      type: object
+      required: [data, page]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/InventoryMovement'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+    InventoryOperationLineRequest:
+      type: object
+      additionalProperties: false
+      required: [productId, quantity]
+      properties:
+        productId:
+          $ref: '#/components/schemas/Uuid'
+        quantity:
+          $ref: '#/components/schemas/PositiveQuantity'
+    InventoryOperationRequest:
+      type: object
+      additionalProperties: false
+      required: [operationType, branchId, reason, lines]
+      properties:
+        operationType:
+          type: string
+          enum: [ENTRY, MANUAL_EXIT, POSITIVE_ADJUSTMENT, NEGATIVE_ADJUSTMENT]
+        branchId:
+          $ref: '#/components/schemas/Uuid'
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 500
+        lines:
+          type: array
+          minItems: 1
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/InventoryOperationLineRequest'
+    InventoryTransferRequest:
+      type: object
+      additionalProperties: false
+      required: [sourceBranchId, destinationBranchId, reason, lines]
+      properties:
+        sourceBranchId:
+          $ref: '#/components/schemas/Uuid'
+        destinationBranchId:
+          $ref: '#/components/schemas/Uuid'
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 500
+        lines:
+          type: array
+          minItems: 1
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/InventoryOperationLineRequest'
+    InventoryOperation:
+      type: object
+      additionalProperties: false
+      required: [id, operationType, actorId, reason, movements, occurredAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        operationType:
+          $ref: '#/components/schemas/InventoryOperationType'
+        actorId:
+          $ref: '#/components/schemas/Uuid'
+        reason:
+          type: [string, 'null']
+        movements:
+          type: array
+          items:
+            $ref: '#/components/schemas/InventoryMovement'
+        occurredAt:
+          type: string
+          format: date-time
+    InventoryOperationResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/InventoryOperation'
+
+    ExpectedVersionRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+    RouteState:
+      type: string
+      enum: [PREPARING, EN_ROUTE, RETURNED, CLOSED]
+    RouteCreateRequest:
+      type: object
+      additionalProperties: false
+      required: [originLocationId, driverId, vehicleId, businessDate]
+      properties:
+        originLocationId:
+          $ref: '#/components/schemas/Uuid'
+        driverId:
+          $ref: '#/components/schemas/Uuid'
+        vehicleId:
+          $ref: '#/components/schemas/Uuid'
+        businessDate:
+          type: string
+          format: date
+    Route:
+      type: object
+      additionalProperties: false
+      required: [id, routeNumber, state, originLocationId, driverId, vehicleId, businessDate, createdBy, createdAt, version]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        routeNumber:
+          type: string
+        state:
+          $ref: '#/components/schemas/RouteState'
+        originLocationId:
+          $ref: '#/components/schemas/Uuid'
+        driverId:
+          $ref: '#/components/schemas/Uuid'
+        vehicleId:
+          $ref: '#/components/schemas/Uuid'
+        businessDate:
+          type: string
+          format: date
+        createdBy:
+          $ref: '#/components/schemas/Uuid'
+        createdAt:
+          type: string
+          format: date-time
+        startedAt:
+          type: [string, 'null']
+          format: date-time
+        returnedAt:
+          type: [string, 'null']
+          format: date-time
+        closedAt:
+          type: [string, 'null']
+          format: date-time
+        closedBy:
+          type: [string, 'null']
+          format: uuid
+        version:
+          type: integer
+          minimum: 1
+    RouteResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/Route'
+    RouteListResponse:
+      type: object
+      required: [data, page]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Route'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+    RouteLoadLineRequest:
+      type: object
+      additionalProperties: false
+      required: [productId, quantity]
+      properties:
+        productId:
+          $ref: '#/components/schemas/Uuid'
+        quantity:
+          $ref: '#/components/schemas/PositiveQuantity'
+    RouteLoadDraftRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion, lines]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        lines:
+          type: array
+          minItems: 1
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/RouteLoadLineRequest'
+    RouteLoad:
+      type: object
+      additionalProperties: false
+      required: [id, routeId, state, recordedBy, lines, version]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        routeId:
+          $ref: '#/components/schemas/Uuid'
+        state:
+          type: string
+          enum: [DRAFT, CONFIRMED]
+        recordedBy:
+          $ref: '#/components/schemas/Uuid'
+        confirmedAt:
+          type: [string, 'null']
+          format: date-time
+        lines:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [productId, quantity]
+            properties:
+              productId:
+                $ref: '#/components/schemas/Uuid'
+              quantity:
+                $ref: '#/components/schemas/PositiveQuantity'
+        version:
+          type: integer
+          minimum: 1
+    RouteLoadResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/RouteLoad'
+    RouteReconciliationLineRequest:
+      type: object
+      additionalProperties: false
+      required: [productId, physicalReturnQuantity]
+      properties:
+        productId:
+          $ref: '#/components/schemas/Uuid'
+        physicalReturnQuantity:
+          $ref: '#/components/schemas/Quantity'
+        differenceReason:
+          type: [string, 'null']
+          maxLength: 500
+    RouteReconciliationRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion, lines]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        lines:
+          type: array
+          minItems: 1
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/RouteReconciliationLineRequest'
+    RouteReconciliationLine:
+      type: object
+      additionalProperties: false
+      required: [productId, loadedQuantity, soldQuantity, expectedReturnQuantity, physicalReturnQuantity, differenceQuantity]
+      properties:
+        productId:
+          $ref: '#/components/schemas/Uuid'
+        loadedQuantity:
+          $ref: '#/components/schemas/Quantity'
+        soldQuantity:
+          $ref: '#/components/schemas/Quantity'
+        expectedReturnQuantity:
+          $ref: '#/components/schemas/Quantity'
+        physicalReturnQuantity:
+          $ref: '#/components/schemas/Quantity'
+        differenceQuantity:
+          type: string
+          pattern: '^-?(0|[1-9][0-9]*)(\.[0-9]{1,3})?$'
+        differenceReason:
+          type: [string, 'null']
+    RouteReconciliation:
+      type: object
+      additionalProperties: false
+      required: [id, routeId, state, recordedBy, approvedBy, approvedAt, lines, version]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        routeId:
+          $ref: '#/components/schemas/Uuid'
+        state:
+          const: APPROVED
+        recordedBy:
+          $ref: '#/components/schemas/Uuid'
+        approvedBy:
+          $ref: '#/components/schemas/Uuid'
+        approvedAt:
+          type: string
+          format: date-time
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/RouteReconciliationLine'
+        version:
+          type: integer
+          minimum: 1
+    RouteReconciliationResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/RouteReconciliation'
+    RouteDetail:
+      type: object
+      additionalProperties: false
+      required: [route, balances, sales]
+      properties:
+        route:
+          $ref: '#/components/schemas/Route'
+        load:
+          oneOf:
+            - $ref: '#/components/schemas/RouteLoad'
+            - type: 'null'
+        balances:
+          type: array
+          items:
+            $ref: '#/components/schemas/InventoryBalance'
+        sales:
+          type: array
+          items:
+            $ref: '#/components/schemas/SaleSummary'
+        reconciliation:
+          oneOf:
+            - $ref: '#/components/schemas/RouteReconciliation'
+            - type: 'null'
+    RouteDetailResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/RouteDetail'
+
+    PaymentMethod:
+      type: string
+      enum: [CASH, BANK_TRANSFER, CARD]
+    SaleStatus:
+      type: string
+      enum: [COMPLETED, CANCELLED]
+    SaleCreateLineRequest:
+      type: object
+      additionalProperties: false
+      required: [productId, quantity]
+      properties:
+        productId:
+          $ref: '#/components/schemas/Uuid'
+        quantity:
+          $ref: '#/components/schemas/PositiveQuantity'
+    SaleQuoteRequest:
+      type: object
+      additionalProperties: false
+      required: [customerId, routeId, lines]
+      properties:
+        customerId:
+          $ref: '#/components/schemas/Uuid'
+        routeId:
+          $ref: '#/components/schemas/Uuid'
+        lines:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/SaleCreateLineRequest'
+    SaleQuoteLine:
+      type: object
+      additionalProperties: false
+      required: [productId, requestedQuantity, availableQuantity, available, appliedPriceSource, unitPrice, lineAmount]
+      properties:
+        productId:
+          $ref: '#/components/schemas/Uuid'
+        requestedQuantity:
+          $ref: '#/components/schemas/PositiveQuantity'
+        availableQuantity:
+          $ref: '#/components/schemas/Quantity'
+        available:
+          type: boolean
+        appliedPriceSource:
+          type: string
+          enum: [CUSTOMER, STANDARD]
+        unitPrice:
+          $ref: '#/components/schemas/UnitPrice'
+        lineAmount:
+          $ref: '#/components/schemas/NonnegativeMoney'
+    SaleQuoteResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required: [customerId, routeId, currencyCode, lines, total, quotedAt]
+          properties:
+            customerId:
+              $ref: '#/components/schemas/Uuid'
+            routeId:
+              $ref: '#/components/schemas/Uuid'
+            currencyCode:
+              type: string
+              pattern: '^[A-Z]{3}$'
+            lines:
+              type: array
+              items:
+                $ref: '#/components/schemas/SaleQuoteLine'
+            total:
+              $ref: '#/components/schemas/NonnegativeMoney'
+            quotedAt:
+              type: string
+              format: date-time
+    SaleCreateRequest:
+      type: object
+      additionalProperties: false
+      required: [clientOperationId, customerId, routeId, paymentMethod, lines]
+      properties:
+        clientOperationId:
+          $ref: '#/components/schemas/Uuid'
+        customerId:
+          $ref: '#/components/schemas/Uuid'
+        routeId:
+          $ref: '#/components/schemas/Uuid'
+        paymentMethod:
+          $ref: '#/components/schemas/PaymentMethod'
+        lines:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/SaleCreateLineRequest'
+    SaleLine:
+      type: object
+      additionalProperties: false
+      required: [sequence, productId, productName, categoryName, reportingGroup, unitCode, quantity, appliedPriceSource, unitPrice, lineAmount]
+      properties:
+        sequence:
+          type: integer
+          minimum: 1
+        productId:
+          $ref: '#/components/schemas/Uuid'
+        productName:
+          type: string
+        categoryName:
+          type: string
+        reportingGroup:
+          $ref: '#/components/schemas/ReportingGroup'
+        unitCode:
+          type: string
+        quantity:
+          $ref: '#/components/schemas/PositiveQuantity'
+        appliedPriceSource:
+          type: string
+          enum: [CUSTOMER, STANDARD]
+        unitPrice:
+          $ref: '#/components/schemas/UnitPrice'
+        lineAmount:
+          $ref: '#/components/schemas/NonnegativeMoney'
+    SaleSummary:
+      type: object
+      additionalProperties: false
+      required: [id, saleNumber, status, customerId, driverId, routeId, paymentMethod, total, completedAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        saleNumber:
+          type: string
+        status:
+          $ref: '#/components/schemas/SaleStatus'
+        customerId:
+          $ref: '#/components/schemas/Uuid'
+        driverId:
+          $ref: '#/components/schemas/Uuid'
+        routeId:
+          $ref: '#/components/schemas/Uuid'
+        paymentMethod:
+          $ref: '#/components/schemas/PaymentMethod'
+        total:
+          $ref: '#/components/schemas/NonnegativeMoney'
+        completedAt:
+          type: string
+          format: date-time
+        cancelledAt:
+          type: [string, 'null']
+          format: date-time
+    Sale:
+      type: object
+      additionalProperties: false
+      required: [id, saleNumber, clientOperationId, status, customerId, driverId, routeId, originLocationId, paymentMethod, currencyCode, subtotal, total, roundingMode, lines, ticketNumber, completedAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        saleNumber:
+          type: string
+        clientOperationId:
+          $ref: '#/components/schemas/Uuid'
+        status:
+          $ref: '#/components/schemas/SaleStatus'
+        customerId:
+          $ref: '#/components/schemas/Uuid'
+        driverId:
+          $ref: '#/components/schemas/Uuid'
+        routeId:
+          $ref: '#/components/schemas/Uuid'
+        originLocationId:
+          $ref: '#/components/schemas/Uuid'
+        paymentMethod:
+          $ref: '#/components/schemas/PaymentMethod'
+        currencyCode:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        subtotal:
+          $ref: '#/components/schemas/NonnegativeMoney'
+        total:
+          $ref: '#/components/schemas/NonnegativeMoney'
+        roundingMode:
+          const: HALF_AWAY_FROM_ZERO
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/SaleLine'
+        ticketNumber:
+          type: string
+        completedAt:
+          type: string
+          format: date-time
+        cancelledAt:
+          type: [string, 'null']
+          format: date-time
+        cancelledBy:
+          type: [string, 'null']
+          format: uuid
+        cancellationReason:
+          type: [string, 'null']
+    SaleResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/Sale'
+    SaleListResponse:
+      type: object
+      required: [data, page]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SaleSummary'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+    SaleCancellationRequest:
+      type: object
+      additionalProperties: false
+      required: [reason]
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 500
+
+    CashCloseCreateRequest:
+      type: object
+      additionalProperties: false
+      required: [periodStart, periodEnd]
+      properties:
+        periodStart:
+          type: string
+          format: date-time
+        periodEnd:
+          type: string
+          format: date-time
+    CashCloseLine:
+      type: object
+      additionalProperties: false
+      required: [reportingGroup, total]
+      properties:
+        reportingGroup:
+          $ref: '#/components/schemas/ReportingGroup'
+        total:
+          $ref: '#/components/schemas/NonnegativeMoney'
+    CashClose:
+      type: object
+      additionalProperties: false
+      required: [id, closeNumber, periodStart, periodEnd, businessTimezone, currencyCode, grossTotal, partnerRate, partnerAmount, remainingAmount, roundingMode, lines, contributingSaleIds, createdBy, createdAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        closeNumber:
+          type: string
+        periodStart:
+          type: string
+          format: date-time
+        periodEnd:
+          type: string
+          format: date-time
+        businessTimezone:
+          type: string
+        currencyCode:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        grossTotal:
+          $ref: '#/components/schemas/NonnegativeMoney'
+        partnerRate:
+          type: string
+          pattern: '^(0|1)(\.[0-9]{1,6})?$|^0\.[0-9]{1,6}$'
+        partnerAmount:
+          $ref: '#/components/schemas/NonnegativeMoney'
+        remainingAmount:
+          $ref: '#/components/schemas/NonnegativeMoney'
+        roundingMode:
+          const: HALF_AWAY_FROM_ZERO
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/CashCloseLine'
+        contributingSaleIds:
+          type: array
+          items:
+            $ref: '#/components/schemas/Uuid'
+        createdBy:
+          $ref: '#/components/schemas/Uuid'
+        createdAt:
+          type: string
+          format: date-time
+    CashCloseResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/CashClose'
+    CashCloseListResponse:
+      type: object
+      required: [data, page]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/CashClose'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+
+    ReportResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required: [reportType, generatedAt, businessTimezone, filters, rows]
+          properties:
+            reportType:
+              type: string
+              enum: [SALES_BY_DRIVER, BEST_SELLING_PRODUCTS, INVENTORY_BY_BRANCH, FINANCIAL_SUMMARY]
+            generatedAt:
+              type: string
+              format: date-time
+            businessTimezone:
+              type: string
+            filters:
+              type: object
+              additionalProperties: true
+            rows:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+            totals:
+              type: object
+              additionalProperties: true
+    ReportSnapshotCreateRequest:
+      type: object
+      additionalProperties: false
+      required: [reportType, filters]
+      properties:
+        reportType:
+          type: string
+          enum: [SALES_BY_DRIVER, BEST_SELLING_PRODUCTS, INVENTORY_BY_BRANCH, FINANCIAL_SUMMARY]
+        filters:
+          type: object
+          additionalProperties: true
+    ReportSnapshot:
+      type: object
+      additionalProperties: false
+      required: [id, reportType, filters, businessTimezone, sourceWatermark, result, createdBy, createdAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        reportType:
+          type: string
+          enum: [SALES_BY_DRIVER, BEST_SELLING_PRODUCTS, INVENTORY_BY_BRANCH, FINANCIAL_SUMMARY]
+        filters:
+          type: object
+          additionalProperties: true
+        businessTimezone:
+          type: string
+        sourceWatermark:
+          type: string
+        result:
+          type: object
+          additionalProperties: true
+        createdBy:
+          $ref: '#/components/schemas/Uuid'
+        createdAt:
+          type: string
+          format: date-time
+    ReportSnapshotResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/ReportSnapshot'
+
+    DocumentType:
+      type: string
+      enum: [TICKET, ROUTE_LOAD, CASH_CLOSE, REPORT, RECEIPT]
+    DocumentCreateRequest:
+      type: object
+      additionalProperties: false
+      required: [documentType, sourceType, sourceId]
+      properties:
+        documentType:
+          $ref: '#/components/schemas/DocumentType'
+        sourceType:
+          type: string
+          enum: [SALE, ROUTE_LOAD, CASH_CLOSE, REPORT_SNAPSHOT]
+        sourceId:
+          $ref: '#/components/schemas/Uuid'
+    DocumentOutput:
+      type: object
+      additionalProperties: false
+      required: [id, documentType, sourceType, sourceId, contentVersion, state, createdBy, createdAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        documentType:
+          $ref: '#/components/schemas/DocumentType'
+        sourceType:
+          type: string
+        sourceId:
+          $ref: '#/components/schemas/Uuid'
+        contentVersion:
+          type: string
+        contentHash:
+          type: [string, 'null']
+        state:
+          type: string
+          enum: [PENDING, READY, FAILED]
+        createdBy:
+          $ref: '#/components/schemas/Uuid'
+        createdAt:
+          type: string
+          format: date-time
+        readyAt:
+          type: [string, 'null']
+          format: date-time
+        lastErrorCode:
+          type: [string, 'null']
+    DocumentResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/DocumentOutput'
+    OutputAttemptRequest:
+      type: object
+      additionalProperties: false
+      required: [mode, state]
+      properties:
+        documentId:
+          type: [string, 'null']
+          format: uuid
+        mode:
+          type: string
+          enum: [GENERATE, DOWNLOAD, SHARE, PRINT, REPRINT, TEST_PRINT]
+        printerProfileId:
+          type: [string, 'null']
+          format: uuid
+        state:
+          type: string
+          enum: [STARTED, SUCCEEDED, FAILED, UNKNOWN]
+        errorCode:
+          type: [string, 'null']
+          maxLength: 120
+        requestId:
+          type: [string, 'null']
+          maxLength: 200
+    OutputAttempt:
+      type: object
+      additionalProperties: false
+      required: [id, actorId, mode, state, attemptNumber, createdAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        actorId:
+          $ref: '#/components/schemas/Uuid'
+        documentId:
+          type: [string, 'null']
+          format: uuid
+        mode:
+          type: string
+          enum: [GENERATE, DOWNLOAD, SHARE, PRINT, REPRINT, TEST_PRINT]
+        printerProfileId:
+          type: [string, 'null']
+          format: uuid
+        state:
+          type: string
+          enum: [STARTED, SUCCEEDED, FAILED, UNKNOWN]
+        errorCode:
+          type: [string, 'null']
+        requestId:
+          type: [string, 'null']
+        attemptNumber:
+          type: integer
+          minimum: 1
+        createdAt:
+          type: string
+          format: date-time
+    OutputAttemptResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/OutputAttempt'
