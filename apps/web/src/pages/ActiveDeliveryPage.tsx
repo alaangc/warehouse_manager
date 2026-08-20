@@ -1,16 +1,21 @@
-import { ArrowLeft, BarChart3, Box, Check, ChevronDown, ChevronRight, Circle, Home, Menu, Package, Pencil, Printer, ShoppingBag, ShoppingCart, Store, Truck } from 'lucide-react'
+import { ArrowLeft, BarChart3, Box, Check, ChevronDown, ChevronRight, Circle, Home, Menu, Package, Pencil, Plus, Printer, ShoppingBag, ShoppingCart, Store, Truck, X } from 'lucide-react'
 import { useState } from 'react'
+import type { FormEvent } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
-import { sampleDeliveries } from '../data/sample-deliveries'
 import { getVisitedCustomerIds, setCustomerVisitStatus } from '../services/delivery-visits'
+import { addDeliveryCustomer, getDeliveryCustomers } from '../services/delivery-customers'
+import { getDeliveries } from '../services/deliveries'
 
 export function ActiveDeliveryPage() {
   const { deliveryId } = useParams()
   const navigate = useNavigate()
-  const delivery = sampleDeliveries.find(({ id }) => id === deliveryId)
+  const delivery = getDeliveries().find(({ id }) => id === deliveryId)
+  const [customers, setCustomers] = useState(() => getDeliveryCustomers(delivery))
   const [finished, setFinished] = useState(false)
-  const [visitedCustomerIds, setVisitedCustomerIds] = useState(() => getVisitedCustomerIds(delivery?.customers.filter(({ status }) => status === 'visited').map(({ id }) => id)))
+  const [visitedCustomerIds, setVisitedCustomerIds] = useState(() => getVisitedCustomerIds(customers.filter(({ status }) => status === 'visited').map(({ id }) => id)))
   const [openCustomerMenuId, setOpenCustomerMenuId] = useState<string | null>(null)
+  const [isAddingCustomer, setIsAddingCustomer] = useState(false)
+  const [newCustomer, setNewCustomer] = useState({ name: '', address: '', phone: '' })
 
   if (!delivery) return <Navigate to="/inicio" replace />
 
@@ -35,6 +40,23 @@ export function ActiveDeliveryPage() {
       return nextIds
     })
     setOpenCustomerMenuId(null)
+  }
+
+  function createCustomer(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const customer = {
+      id: `CLI-${String(Date.now()).slice(-5)}`,
+      name: newCustomer.name.trim(),
+      status: 'pending' as const,
+      note: 'Pendiente de visita',
+      address: newCustomer.address.trim(),
+      phone: newCustomer.phone.trim(),
+      deliveredProducts: [],
+    }
+    addDeliveryCustomer(delivery!.id, customer)
+    setCustomers((currentCustomers) => [...currentCustomers, customer])
+    setNewCustomer({ name: '', address: '', phone: '' })
+    setIsAddingCustomer(false)
   }
 
   return (
@@ -80,35 +102,46 @@ export function ActiveDeliveryPage() {
             <div><dt>Vehículo</dt><dd>{delivery.vehicle}</dd></div>
             <div><dt>Sucursal de origen</dt><dd>{delivery.origin}</dd></div>
             <div><dt>Fecha de inicio</dt><dd>{delivery.startedAt}</dd></div>
+            {delivery.observations ? <div><dt>Observaciones</dt><dd>{delivery.observations}</dd></div> : null}
           </dl>
         </section>
 
         <section className="detail-section" aria-labelledby="delivery-customers-title">
-          <div className="detail-section-heading"><h2 id="delivery-customers-title">Clientes del reparto ({delivery.customers.length})</h2></div>
+          <div className="detail-section-heading">
+            <h2 id="delivery-customers-title">Clientes del reparto ({customers.length})</h2>
+            <button className="add-customer-trigger" type="button" onClick={() => setIsAddingCustomer((isOpen) => !isOpen)} aria-expanded={isAddingCustomer} aria-controls="new-delivery-customer-form">{isAddingCustomer ? <X size={16} /> : <Plus size={16} />}{isAddingCustomer ? 'Cancelar' : 'Nuevo cliente'}</button>
+          </div>
+          {isAddingCustomer ? <form className="new-customer-form" id="new-delivery-customer-form" onSubmit={createCustomer}>
+            <div className="new-customer-form-heading"><span><Store size={20} /></span><div><strong>Agregar cliente al reparto</strong><small>Se añadirá como pendiente de visita</small></div></div>
+            <label>Nombre del cliente<input required value={newCustomer.name} onChange={(event) => setNewCustomer((current) => ({ ...current, name: event.target.value }))} placeholder="Ej. Abarrotes San José" /></label>
+            <label>Dirección<input required value={newCustomer.address} onChange={(event) => setNewCustomer((current) => ({ ...current, address: event.target.value }))} placeholder="Calle, número y colonia" /></label>
+            <label>Teléfono<input required type="tel" value={newCustomer.phone} onChange={(event) => setNewCustomer((current) => ({ ...current, phone: event.target.value }))} placeholder="632 000 0000" /></label>
+            <button type="submit"><Plus size={17} /> Agregar cliente</button>
+          </form> : null}
           <div className="customer-list">
-            {delivery.customers.map((customer) => {
+            {customers.map((customer) => {
               const isVisited = visitedCustomerIds.has(customer.id)
               const isMenuOpen = openCustomerMenuId === customer.id
               return (
               <article className={`customer-row${isMenuOpen ? ' customer-row--open' : ''}`} key={customer.id}>
-                <span className={`visit-marker visit-marker--${isVisited ? 'visited' : 'pending'}`}>{isVisited ? <Check size={13} /> : <Circle size={16} />}</span>
-                <span className="customer-avatar"><Store size={19} /></span>
-                <span className="customer-copy"><strong>{customer.name}</strong><small>{isVisited ? 'Visita realizada' : 'Pendiente de visita'}</small></span>
                 <button
-                  className="customer-menu-trigger"
+                  className="customer-row-toggle"
                   type="button"
                   onClick={() => setOpenCustomerMenuId(isMenuOpen ? null : customer.id)}
                   aria-expanded={isMenuOpen}
                   aria-controls={`customer-menu-${customer.id}`}
-                  aria-label={`Mostrar opciones de ${customer.name}`}
+                  aria-label={`${isMenuOpen ? 'Ocultar' : 'Mostrar'} opciones de ${customer.name}`}
                 >
-                  <ChevronDown className={isMenuOpen ? 'customer-menu-chevron--open' : ''} size={17} aria-hidden="true" />
+                  <span className={`visit-marker visit-marker--${isVisited ? 'visited' : 'pending'}`}>{isVisited ? <Check size={13} /> : <Circle size={16} />}</span>
+                  <span className="customer-avatar"><Store size={19} /></span>
+                  <span className="customer-copy"><strong>{customer.name}</strong><small>{isVisited ? 'Visita realizada' : 'Pendiente de visita'}</small></span>
+                  <span className="customer-expand-hint"><small>{isMenuOpen ? 'Cerrar' : 'Ver opciones'}</small><ChevronDown className={isMenuOpen ? 'customer-menu-chevron--open' : ''} size={18} aria-hidden="true" /></span>
                 </button>
                 {isMenuOpen ? (
                   <div className="customer-row-actions" id={`customer-menu-${customer.id}`}>
                     {!isVisited ? <button className="mark-visited-button" type="button" onClick={() => markAsVisited(customer.id)}><Check size={14} /> Marcar visitado</button> : null}
                     {isVisited ? <button className="edit-visit-button" type="button" onClick={() => markAsPending(customer.id)}><Pencil size={14} /> Editar estado</button> : null}
-                    <button className="view-customer-button" type="button" onClick={() => navigate(`/repartos/${delivery.id}/clientes/${customer.id}`)}>Ver cliente</button>
+                    <button className="view-customer-button" type="button" onClick={() => navigate(`/repartos/${delivery.id}/clientes/${customer.id}`)}>Detalles</button>
                   </div>
                 ) : null}
               </article>

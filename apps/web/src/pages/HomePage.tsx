@@ -1,25 +1,25 @@
 import { AlertTriangle, BarChart3, Box, CalendarCheck, ChevronRight, Home, LogOut, Menu, PackagePlus, ShoppingCart, Truck } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { sampleDeliveries } from '../data/sample-deliveries'
 import { getVisitedCustomerIds } from '../services/delivery-visits'
 import { clearTemporarySession, getTemporaryUser } from '../services/temporary-auth'
+import { getDeliveries } from '../services/deliveries'
 
 const currencyFormatter = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' })
 
 export function HomePage() {
   const navigate = useNavigate()
   const user = getTemporaryUser()
+  const [deliveries] = useState(getDeliveries)
   const [moreOpen, setMoreOpen] = useState(false)
-  const [deliveryMessage, setDeliveryMessage] = useState('')
   const [visitedCustomerIds] = useState(() => getVisitedCustomerIds(
-    sampleDeliveries.flatMap(({ customers }) => customers.filter(({ status }) => status === 'visited').map(({ id }) => id)),
+    deliveries.flatMap(({ customers }) => customers.filter(({ status }) => status === 'visited').map(({ id }) => id)),
   ))
-  const dailySalesCents = sampleDeliveries
+  const dailySalesCents = deliveries
     .flatMap(({ customers }) => customers)
     .reduce((total, customer) => visitedCustomerIds.has(customer.id) ? total + (customer.amountCents ?? 0) : total, 0)
   const summaryItems = [
-    { label: 'Repartos activos', value: String(sampleDeliveries.length), icon: Box, tone: 'blue' },
+    { label: 'Repartos activos', value: String(deliveries.length), icon: Box, tone: 'blue' },
     { label: 'Repartos finalizados', value: '0', icon: CalendarCheck, tone: 'green' },
     { label: 'Alertas de inventario', value: '0', icon: AlertTriangle, tone: 'orange' },
     { label: 'Ganancia del día', value: currencyFormatter.format(dailySalesCents / 100), icon: BarChart3, tone: 'purple' },
@@ -63,7 +63,7 @@ export function HomePage() {
             <button type="button" disabled>Ver todos <ChevronRight size={17} aria-hidden="true" /></button>
           </div>
           <div className="delivery-list">
-            {sampleDeliveries.map((delivery) => (
+            {deliveries.map((delivery) => (
               <button className="delivery-card" type="button" key={delivery.id} onClick={() => navigate(`/repartos/${delivery.id}`)}>
                 <span className="delivery-card__icon"><Truck size={31} aria-hidden="true" /></span>
                 <span className="delivery-card__content">
@@ -78,10 +78,9 @@ export function HomePage() {
           </div>
         </section>
 
-        <button className="add-delivery-button" type="button" onClick={() => setDeliveryMessage('El formulario para agregar un reparto será la siguiente pantalla que construiremos.')} aria-describedby={deliveryMessage ? 'delivery-message' : undefined}>
+        <button className="add-delivery-button" type="button" onClick={() => navigate('/repartos/nuevo')}>
           <PackagePlus size={19} aria-hidden="true" /> Agregar reparto <ChevronRight size={18} aria-hidden="true" />
         </button>
-        {deliveryMessage && <p className="delivery-message" id="delivery-message" role="status">{deliveryMessage}</p>}
       </section>
 
       {moreOpen && (

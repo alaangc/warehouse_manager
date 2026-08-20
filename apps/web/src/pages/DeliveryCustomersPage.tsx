@@ -1,24 +1,26 @@
 import { ArrowLeft, BarChart3, Check, Circle, Home, Menu, Package, Search, ShoppingCart, Store } from 'lucide-react'
 import { useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
-import { sampleDeliveries } from '../data/sample-deliveries'
 import { getVisitedCustomerIds } from '../services/delivery-visits'
+import { getDeliveryCustomers } from '../services/delivery-customers'
+import { getDeliveries } from '../services/deliveries'
 
 export function DeliveryCustomersPage() {
   const { deliveryId } = useParams()
   const navigate = useNavigate()
-  const delivery = sampleDeliveries.find(({ id }) => id === deliveryId)
+  const delivery = getDeliveries().find(({ id }) => id === deliveryId)
+  const customers = getDeliveryCustomers(delivery)
   const [query, setQuery] = useState('')
-  const [visitedCustomerIds] = useState(() => getVisitedCustomerIds(delivery?.customers.filter(({ status }) => status === 'visited').map(({ id }) => id)))
+  const [visitedCustomerIds] = useState(() => getVisitedCustomerIds(customers.filter(({ status }) => status === 'visited').map(({ id }) => id)))
 
   if (!delivery) return <Navigate to="/inicio" replace />
 
   const normalizedQuery = query.trim().toLocaleLowerCase('es-MX')
   const filteredCustomers = normalizedQuery
-    ? delivery.customers.filter(({ name, id }) => `${name} ${id}`.toLocaleLowerCase('es-MX').includes(normalizedQuery))
-    : delivery.customers
+    ? customers.filter(({ name, id }) => `${name} ${id}`.toLocaleLowerCase('es-MX').includes(normalizedQuery))
+    : customers
   const visitedCount = visitedCustomerIds.size
-  const pendingCount = delivery.customers.length - visitedCount
+  const pendingCount = customers.length - visitedCount
 
   return (
     <main className="delivery-customers-page">
@@ -35,7 +37,7 @@ export function DeliveryCustomersPage() {
         </section>
 
         <section className="customer-progress" aria-label="Resumen de clientes">
-          <div><strong>{delivery.customers.length}</strong><span>Total</span></div>
+          <div><strong>{customers.length}</strong><span>Total</span></div>
           <div><strong>{visitedCount}</strong><span>Visitados</span></div>
           <div><strong>{pendingCount}</strong><span>Pendientes</span></div>
         </section>
