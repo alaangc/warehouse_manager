@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-14
 
-**Last Updated**: 2026-08-18
+**Last Updated**: 2026-08-20
 
 **Status**: Draft
 
@@ -31,6 +31,22 @@ its screen examples as context and its recommendations as unapproved proposals.
   balance? → A: Only an administrator may document and approve the difference,
   provide a mandatory reason, create the corresponding adjustment, and close the
   route.
+
+### Session 2026-08-20
+
+- Q: Should “ticket” and “receipt” refer to the same customer-facing sale document?
+  → A: Yes. They are the same document; use “sale ticket” as the canonical term and
+  do not define a separate receipt type.
+- Q: Under which operating load must the search and document response-time targets
+  pass? → A: 25 concurrent users against data containing 10,000 products, 10,000
+  customers, and 100,000 completed sales.
+- Q: Which usability acceptance protocol should test first-attempt workflow completion
+  and the two-minute sale target? → A: Test five administrators and five drivers after
+  a standardized 15-minute introduction; each receives no assistance during one scored
+  attempt.
+- Q: Which historical records should a Driver be allowed to view? → A: Their own
+  sales and every route assigned to them, including load, movement, reconciliation,
+  and closure history; they cannot view another Driver's history.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -66,14 +82,15 @@ at each branch, and verify that balances and movement history remain consistent.
 ### User Story 2 - Record a Customer Sale (Priority: P1)
 
 A driver working an active route selects an existing customer and loaded products,
-receives the applicable prices, confirms the sale, and obtains a ticket while route
-inventory is reduced exactly once.
+receives the applicable prices, confirms the sale, and obtains a sale ticket while
+route inventory is reduced exactly once.
 
 **Why this priority**: Recording sales is the primary revenue-producing workflow and
-must keep customer, price, ticket, and stock records aligned.
+must keep customer, price, sale ticket, and stock records aligned.
 
 **Independent Test**: Using preconfigured customer, product, price, and stock data,
-complete a sale and verify the stored sale, ticket, customer history, and stock movement.
+complete a sale and verify the stored sale, sale ticket, customer history, and stock
+movement.
 
 **Acceptance Scenarios**:
 
@@ -81,13 +98,13 @@ complete a sale and verify the stored sale, ticket, customer history, and stock 
    product to a sale, **Then** the special price is selected, cannot be edited by the
    driver, and is preserved on the sale.
 2. **Given** sufficient stock in the driver's active route, **When** the driver confirms
-   a sale with a payment method, **Then** one sale and one ticket are created, the
+   a sale with a payment method, **Then** one sale and one sale ticket are created, the
    payment method is preserved, and route stock is deducted exactly once.
 3. **Given** insufficient stock for any line, **When** the sale is confirmed, **Then**
-   the entire sale is rejected and no partial stock deduction or ticket is created.
+   the entire sale is rejected and no partial stock deduction or sale ticket is created.
 4. **Given** no individually registered customer is selected, **When** the driver tries
    to confirm a sale, **Then** confirmation is rejected without creating a sale,
-   ticket, or stock movement.
+   sale ticket, or stock movement.
 5. **Given** a confirmed sale, **When** a driver attempts to cancel it, **Then** the
    action is denied without changing the sale, inventory, or financial records.
 
@@ -173,8 +190,8 @@ reporting period, and compare every displayed result with the source records.
 
 ### User Story 6 - Save, Share, and Print Operational Documents (Priority: P3)
 
-An authorized user generates portable copies of tickets, route loads, cash closes, and
-reports and prints supported documents on a configured Bluetooth thermal printer.
+An authorized user generates portable copies of sale tickets, route loads, cash closes,
+and reports and prints supported documents on a configured Bluetooth thermal printer.
 
 **Why this priority**: Portable and printed records support customers and field
 operations, but the underlying business transactions retain value without them.
@@ -184,7 +201,7 @@ from known records, save or share it where applicable, and simulate output failu
 
 **Acceptance Scenarios**:
 
-1. **Given** an existing ticket, cash close, or report, **When** an authorized user
+1. **Given** an existing sale ticket, cash close, or report, **When** an authorized user
    requests a portable document, **Then** the output matches the stored source record
    and can be saved or shared.
 2. **Given** a configured thermal printer, **When** an authorized user prints a
@@ -251,8 +268,10 @@ without losing historical attribution.
   customer-specific prices, customers, inventory, routes, cash closes, reports, users,
   printers, and operational settings.
 - **FR-004**: Drivers MUST be limited to their assigned route, its load and returns,
-  existing-customer selection, sales, their own history, and limited printer settings;
-  they MUST NOT maintain products, prices, users, general inventory, or prior movements.
+  existing-customer selection, sales, their own completed-sale history, the complete
+  load, movement, reconciliation, and closure history of every route assigned to them,
+  and limited printer settings. Drivers MUST NOT view another Driver's history or
+  maintain products, prices, users, general inventory, or unrelated movements.
 
 #### Products and Inventory
 
@@ -296,12 +315,12 @@ without losing historical attribution.
   prices, totals, payment method, and completion time. Anonymous or shared-public
   customer sales MUST NOT be accepted.
 - **FR-016**: Confirming a driver sale MUST record the sale, deduct stock only from the
-  driver's active route, create the corresponding movements, and generate one ticket
+  driver's active route, create the corresponding movements, and generate one sale ticket
   as a single business outcome.
 - **FR-017**: The system MUST reject an entire sale when any requested quantity is
   unavailable and MUST explain which item prevented completion.
 - **FR-018**: Repeating a sale confirmation after an uncertain response MUST NOT create
-  a duplicate sale, ticket, or stock deduction.
+  a duplicate sale, sale ticket, or stock deduction.
 - **FR-041**: Drivers MUST NOT edit an applied unit price during a sale.
 - **FR-042**: Only administrators MUST be able to cancel a confirmed sale. Cancellation
   MUST preserve the original sale, record the actor and reason, and restore quantities
@@ -329,7 +348,9 @@ without losing historical attribution.
   Each approved difference MUST include a mandatory reason and create the corresponding
   positive or negative adjustment movement before closure.
 - **FR-024**: The system MUST retain load, departure, sale, return, difference,
-  adjustment, and closing history for each route and driver.
+  adjustment, and closing history for each route and Driver. Administrators MUST be
+  able to view all such history; Drivers MUST be able to view it only for routes
+  assigned to them.
 - **FR-044**: A route MUST progress only through Preparing, En Route, Returned, and
   Closed, in that order. Only the assigned driver may start a route with a confirmed
   load; returning blocks further sales; closing requires full reconciliation.
@@ -356,11 +377,11 @@ without losing historical attribution.
 
 #### Documents and Printing
 
-- **FR-031**: Authorized users MUST be able to generate portable documents for tickets,
-  cash closes, and reports that match their stored source records.
+- **FR-031**: Authorized users MUST be able to generate portable documents for sale
+  tickets, cash closes, and reports that match their stored source records.
 - **FR-032**: Users MUST be able to save or share each generated portable document.
-- **FR-033**: Authorized users MUST be able to print tickets, route loads, cash closes,
-  and receipts on a configured Bluetooth thermal printer.
+- **FR-033**: Authorized users MUST be able to print sale tickets, route loads, and
+  cash closes on a configured Bluetooth thermal printer.
 - **FR-034**: Output failure MUST be shown to the user and MUST NOT reverse, duplicate,
   or alter a committed business record.
 - **FR-035**: Users MUST be able to retry failed document generation or printing without
@@ -430,9 +451,9 @@ without losing historical attribution.
 - **Customer Price**: A time-bounded product price assigned to one customer.
 - **Sale**: A completed business transaction linked to a customer, driver, active route,
   origin branch, line items, preserved prices, totals, payment method, movements, and
-  ticket.
+  sale ticket.
 - **Sale Line**: A product, quantity, unit price, and calculated amount within a sale.
-- **Ticket**: The customer-facing record generated from a completed sale.
+- **Sale Ticket**: The customer-facing record generated from a completed sale.
 - **Vehicle**: A named, active or inactive delivery vehicle that can belong to only one
   active route at a time.
 - **Route**: A delivery lifecycle assigned to an origin branch, driver, and vehicle,
@@ -458,21 +479,26 @@ without losing historical attribution.
   operations are explainable by movement history and reproduce the current balance.
 - **SC-002**: No accepted concurrent or retried operation creates negative inventory or
   more than one business transaction for the same confirmation.
-- **SC-003**: A trained user can complete a typical sale of up to 10 line items and
-  obtain its ticket in under 2 minutes.
+- **SC-003**: After the standardized 15-minute introduction, each of the five Driver
+  participants MUST complete one typical sale of up to 10 line items and obtain its
+  sale ticket in under 2 minutes without assistance.
 - **SC-004**: Every Closed route accounts for 100 percent of initial loaded quantities
   as sold, returned, or explicitly documented differences, with temporary route
   inventory equal to zero.
 - **SC-005**: Cash-close and report values match their source records in 100 percent of
   acceptance-test samples, including boundary and rounding cases.
-- **SC-006**: At least 95 percent of routine product, customer, and inventory searches
-  show usable results within 2 seconds under expected operating conditions.
-- **SC-007**: At least 95 percent of requested portable documents become available to
-  save or share within 10 seconds under expected operating conditions.
+- **SC-006**: During an acceptance workload with 25 concurrent users and data containing
+  10,000 products, 10,000 customers, and 100,000 completed sales, at least 95 percent
+  of routine product, customer, and inventory searches MUST show usable results within
+  2 seconds.
+- **SC-007**: During the same acceptance workload defined in SC-006, at least 95 percent
+  of requested portable documents MUST become available to save or share within 10
+  seconds.
 - **SC-008**: Output failure tests produce zero lost or duplicated business records and
   allow a successful retry after the output dependency is restored.
-- **SC-009**: At least 90 percent of representative administrators and drivers complete
-  their primary workflow on the first attempt after basic training.
+- **SC-009**: After the standardized 15-minute introduction, at least 9 of the 10
+  participants—five Administrators and five Drivers—MUST complete their role's primary
+  workflow on the first attempt without assistance.
 - **SC-010**: All tested attempts to perform an operation outside a user's role are
   denied without changing protected business data.
 - **SC-011**: In route-state acceptance tests, 100 percent of invalid transitions and
@@ -504,7 +530,7 @@ without losing historical attribution.
 - Customer-specific prices are assigned per product, not per category.
 - Product, customer, category, and user removal means archival when historical records
   refer to that data.
-- Tickets and receipts are operational records, not government-authorized fiscal invoices.
+- Sale tickets are operational records, not government-authorized fiscal invoices.
 - The business will provide compatible Bluetooth thermal-printer hardware for
   acceptance testing.
 - Basic user training and production setup are delivery activities rather than

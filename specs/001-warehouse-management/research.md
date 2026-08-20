@@ -1,6 +1,6 @@
 # Phase 0 Research: Warehouse Management Operations
 
-**Date**: 2026-08-19  
+**Date**: 2026-08-20
 **Feature**: [Warehouse Management Operations](./spec.md)
 
 This research resolves every technical unknown identified in the implementation plan.
@@ -90,6 +90,14 @@ the request, while every application operation performs explicit role/resource c
 bearer credentials to browser storage. Same-origin cookies simplify deployment;
 server-side CSRF state and origin checks protect cookie-authenticated mutations.
 
+Driver history authorization is enforced in repository/service queries as well as HTTP
+policies: Driver sale history is constrained to `sale.driver_id = authenticated user`,
+and Driver route history is constrained to `route.driver_id = authenticated user` in
+every list and direct-detail lookup. Client-supplied Driver or route filters never
+broaden scope. Administrators retain system-wide access. Contract, integration, and
+end-to-end tests cover both allowed history and attempts to access another Driver's
+records.
+
 **Alternatives considered**:
 
 - JWTs in local or session storage: rejected because theft and revocation handling add
@@ -127,6 +135,35 @@ append-only ledgers, and partial indexes.
 **Sources**: [PostgreSQL version policy](https://www.postgresql.org/support/versioning/),
 [Kysely introduction](https://www.kysely.dev/docs/getting-started),
 [node-postgres transactions](https://node-postgres.com/features/transactions)
+
+## Temporal Customer-Price Exclusion
+
+**Decision**: Model each active customer-specific price with a half-open UTC validity
+range `[valid_from, valid_to)`, where a null upper bound is unbounded. Require
+`valid_to > valid_from` when present. Provision PostgreSQL's trusted `btree_gist`
+extension through the migration owner and create a partial GiST exclusion constraint
+combining equality on `customer_id` and `product_id` with range overlap (`&&`) on the
+validity range, applying only while the row is active.
+
+**Rationale**: An ordinary unique index cannot prevent two different time ranges from
+overlapping. The exclusion constraint makes the invariant authoritative under direct
+SQL and concurrent writers, as required by the constitution. Adjacent half-open ranges
+remain valid. Integration tests must bypass the application service and prove overlap
+rejection, adjacent-range acceptance, unbounded-range handling, inactive-row behavior,
+and concurrent conflict handling.
+
+**Alternatives considered**:
+
+- Application-only overlap checks: rejected because concurrent requests can both pass
+  before either commits.
+- A unique constraint on start/end timestamps: rejected because distinct endpoints can
+  still describe overlapping periods.
+- An inclusive upper boundary: rejected because adjacent prices would conflict at the
+  shared transition instant.
+
+**Sources**: [PostgreSQL range constraints](https://www.postgresql.org/docs/current/rangetypes.html#RANGETYPES-CONSTRAINT),
+[exclusion constraints](https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-EXCLUSION),
+[`btree_gist`](https://www.postgresql.org/docs/current/btree-gist.html)
 
 ## Inventory Concurrency and Transaction Isolation
 
@@ -174,6 +211,41 @@ deduplication makes the retry safe even across API restarts and concurrent deliv
 - Blind retries: rejected because they can duplicate sales, movements, and returns.
 
 **Source**: [PostgreSQL `INSERT ... ON CONFLICT`](https://www.postgresql.org/docs/current/sql-insert.html)
+
+## Transactional Audit Coverage
+
+**Decision**: Use one typed application-owned AuditWriter inside the same database
+transaction as every security-sensitive or business-critical mutation. The mutation
+cannot commit if its AuditEvent insert fails. Action codes and before/after snapshot
+fields use explicit allowlists; password hashes, credentials, session/CSRF tokens, and
+browser device handles are always excluded. Append-only database permissions prevent
+the runtime role from updating or deleting audit rows.
+
+Coverage includes user/access changes; catalog, customer, customer-price, vehicle,
+business-setting, printer-profile, and printer-preference changes; inventory operations
+and reversals; route creation, assignment, loading, transitions, reconciliation,
+differences, closure, and correction; sale confirmation/cancellation; cash-close and
+persisted report-snapshot creation. InventoryMovement and OutputAttempt remain
+specialized immutable ledgers but do not replace the AuditEvent for their source
+business or configuration mutation.
+
+**Rationale**: Best-effort or asynchronous audit insertion can leave an authoritative
+business change with no corresponding history. Transaction participation also lets
+integration tests prove audit rollback when a mutation fails and mutation rollback
+when audit insertion fails. Operational logs remain separate diagnostic evidence.
+
+**Alternatives considered**:
+
+- Asynchronous or best-effort audit writes: rejected because delivery failure creates
+  permanent gaps.
+- Operational logs as the audit ledger: rejected because their retention, access, and
+  mutability guarantees differ.
+- Database triggers for every domain action: rejected as the primary mechanism because
+  they lack the application command context needed for stable actions, reasons, and
+  safe snapshots; database permissions still enforce append-only storage.
+
+**Sources**: [PostgreSQL transactions](https://www.postgresql.org/docs/current/tutorial-transactions.html),
+[privileges](https://www.postgresql.org/docs/current/ddl-priv.html)
 
 ## Exact Money and Quantities
 
@@ -235,7 +307,7 @@ PDFKit and server-owned templates. Stream them as `application/pdf` with a stabl
 file sharing is progressive enhancement after `navigator.canShare` succeeds. Persist
 document generation and output attempts separately from source business transactions.
 
-**Rationale**: The first-release documents are tickets, load sheets, cash closes, and
+**Rationale**: The first-release documents are sale tickets, load sheets, cash closes, and
 tabular reports; PDFKit avoids a headless-browser runtime while supporting streaming,
 text, and tables. Building documents from committed records preserves reproducibility
 and separates output failure from transaction success.
@@ -306,6 +378,38 @@ indexes, or numeric behavior.
 [Testing Library](https://testing-library.com/docs/react-testing-library/intro/),
 [Playwright browsers](https://playwright.dev/docs/browsers),
 [Testcontainers for Node.js](https://node.testcontainers.org/)
+
+## Performance and Human Usability Acceptance
+
+**Decision**: Create a deterministic performance fixture containing exactly 10,000
+products, 10,000 customers, and 100,000 completed sales. Measure the SC-006 search and
+SC-007 portable-document targets in separate closed-loop profiles, each with 25
+concurrent users after an unmeasured warm-up. The search profile rotates evenly among
+product, customer, and inventory searches. The document profile rotates evenly among
+sale-ticket, route-load, cash-close, and report PDFs and uses distinct committed source
+records to measure uncached generation. Each profile records at least 400 measured
+requests, operation mix, elapsed times, percentile/pass counts, environment, and seed.
+
+Separately conduct the human usability protocol with five Administrators and five
+Drivers after the same standardized 15-minute introduction and without assistance
+during one scored attempt. The Administrator workflow reconciles and closes a returned
+route containing a documented difference. The Driver workflow completes a typical sale
+of up to ten lines and obtains its sale ticket. All five Drivers must finish within two
+minutes; at least 9 of all 10 participants must complete their workflow on the first
+attempt.
+
+**Rationale**: Fixed data and concurrency make performance evidence reproducible.
+Automated browser tests verify software behavior but cannot substitute for the human
+first-attempt and task-timing outcomes required by SC-003 and SC-009.
+
+**Alternatives considered**:
+
+- An unspecified "representative" load: rejected because results could not be compared
+  between environments or releases.
+- Automated E2E timing as usability evidence: rejected because automation does not
+  measure whether a trained person can understand and complete the workflow.
+- Informal staff demonstrations: rejected because participant, training, assistance,
+  and pass criteria would be inconsistent.
 
 ## Migrations, Recovery, Configuration, and Logging
 

@@ -1,6 +1,6 @@
 # Data Model: Warehouse Management Operations
 
-**Date**: 2026-08-19  
+**Date**: 2026-08-20
 **Feature**: [Warehouse Management Operations](./spec.md)  
 **Research**: [Phase 0 decisions](./research.md)
 
@@ -90,15 +90,38 @@ mutation commit together.
 This table is append-only. Authentication secrets, password hashes, and session tokens
 MUST NOT appear in snapshots.
 
+### Audit Coverage and Atomicity
+
+Every security-sensitive or business-critical mutation inserts its AuditEvent in the
+same database transaction as the changed record. Audit insertion failure rolls back the
+mutation, and mutation failure leaves no success AuditEvent. `before_values` come from
+the locked or version-checked row and `after_values` from the candidate committed state.
+Typed action codes and field allowlists exclude credentials, password hashes,
+session/CSRF tokens, and browser device handles. The runtime database role has
+`SELECT`/`INSERT` but no `UPDATE`/`DELETE` privilege on `audit_event`.
+
+| Mutation class | Required audited actions |
+|---|---|
+| Users and access | Create/edit, activation/deactivation, role/password change, and privilege/deactivation-driven session revocation |
+| Catalog and configuration | Product, category, unit, location, vehicle, customer, and customer-price create/edit/archive/deactivate; BusinessSetting, PrinterProfile, and UserPrinterPreference changes |
+| Inventory | Entry, manual exit, transfer, positive/negative adjustment, and reversal |
+| Routes | Create/assignment, load confirmation, start, return, reconciliation approval, difference, closure, and correction |
+| Sales and finance | Sale confirmation/cancellation, CashClose creation, and persisted ReportSnapshot creation |
+
+InventoryMovement and OutputAttempt are specialized immutable ledgers, but they do not
+replace the AuditEvent required for the related source mutation. Integration tests must
+assert both audit presence and rollback-on-audit-failure for every mutation class.
+
 ## Catalog and Configuration
 
 ### BusinessSetting
 
-Singleton configuration with `currency_code`, `currency_scale` (initially 2),
-`business_timezone`, `partner_share_rate` (`numeric(9,6)` constrained to `0.500000` for
-this release), `money_rounding_mode` (`HALF_AWAY_FROM_ZERO`), `updated_by`, timestamps,
-and version. Every saved sale/cash close copies the relevant values it used. The partner
-rate is not an editable operational setting while FR-026 fixes it at 50 percent.
+Singleton configuration with a stable UUID `id` used for audit attribution,
+`currency_code`, `currency_scale` (initially 2), `business_timezone`,
+`partner_share_rate` (`numeric(9,6)` constrained to `0.500000` for this release),
+`money_rounding_mode` (`HALF_AWAY_FROM_ZERO`), `updated_by`, timestamps, and version.
+Every saved sale/cash close copies the relevant values it used. The partner rate is not
+an editable operational setting while FR-026 fixes it at 50 percent.
 
 ### Location
 
@@ -140,9 +163,23 @@ sale.
 ### CustomerPrice
 
 `id`, `customer_id`, `product_id`, `unit_price numeric(19,4)`, `valid_from`, optional
-`valid_to`, `active`, `created_by`, timestamps. Price must be nonnegative. Active time
-ranges for the same customer/product MUST NOT overlap. Historical sale lines reference
-the price row when used and also persist the applied price.
+`valid_to`, `active`, `created_by`, timestamps. Validity uses half-open UTC periods
+`[valid_from, valid_to)`; a null `valid_to` is unbounded. Price must be nonnegative and
+`CHECK (valid_to IS NULL OR valid_to > valid_from)` applies. A stored/generated
+`tstzrange` validity period (or equivalent immutable expression) participates in a
+partial GiST exclusion constraint using `btree_gist`:
+
+```sql
+EXCLUDE USING gist (
+  customer_id WITH =,
+  product_id WITH =,
+  valid_period WITH &&
+) WHERE (active)
+```
+
+This permits adjacent ranges and inactive historical rows but rejects active overlap,
+including concurrent direct SQL writes. Historical sale lines reference the price row
+when used and also persist the applied price.
 
 ### Vehicle
 
@@ -281,7 +318,7 @@ No other transition is valid. A conditional update includes the expected current
 and version. Closed routes reject ordinary changes; corrections reference the route
 through new adjustment/reversal operations without changing its state or history.
 
-## Sales and Tickets
+## Sales and Sale Tickets
 
 ### Sale
 
@@ -302,7 +339,8 @@ through new adjustment/reversal operations without changing its state or history
 
 Sale confirmation requires an active individually registered customer, the assigned
 driver, an EN_ROUTE route, and all requested products in that route. Sale, lines,
-balance updates, movement, ticket, idempotency result, and audit event commit together.
+balance updates, movement, sale ticket, idempotency result, and audit event commit
+together.
 The API computes an advisory price/availability preview from the same domain service,
 but confirmation revalidates every input and recalculates authoritatively.
 
@@ -323,10 +361,12 @@ The route is a valid cancellation destination only while it remains EN_ROUTE; af
 is Returned or Closed, restored stock goes to the origin branch without reopening or
 rewriting route history.
 
-### Ticket
+### SaleTicket
 
-One immutable row per sale with unique `ticket_number`, `sale_id`, printable snapshot
-JSON, content version, and `created_at`. Reprints always reference this record.
+One immutable `sale_ticket` row per sale with unique `ticket_number`, `sale_id`,
+printable snapshot JSON, content version, and `created_at`. `TICKET` remains the stable
+API document-type code. No second customer-facing entity or document type exists.
+Reprints always reference this record.
 
 ## Cash Closing and Reporting
 
@@ -352,7 +392,7 @@ time. Document output references this immutable snapshot.
 | Field | Type | Rules |
 |---|---|---|
 | `id` | UUID | Primary key |
-| `document_type` | `TICKET \| ROUTE_LOAD \| CASH_CLOSE \| REPORT \| RECEIPT` | Required |
+| `document_type` | `TICKET \| ROUTE_LOAD \| CASH_CLOSE \| REPORT` | Required; `TICKET` means SaleTicket |
 | `source_type`, `source_id` | stable code, UUID | Required immutable source |
 | `content_version`, `content_hash` | text | Required |
 | `storage_key` | text? | Set if generated bytes are retained |
@@ -363,6 +403,10 @@ time. Document output references this immutable snapshot.
 Creation/generation is post-commit relative to the source transaction. A unique key on
 `(document_type, source_type, source_id, content_version)` prevents accidental duplicate
 canonical outputs while allowing a new template version.
+
+Valid document/source pairs are `TICKET/SALE`, `ROUTE_LOAD/ROUTE_LOAD`,
+`CASH_CLOSE/CASH_CLOSE`, and `REPORT/REPORT_SNAPSHOT`; both database checks and the HTTP
+request schema reject every other pairing.
 
 ### OutputAttempt
 
@@ -392,6 +436,22 @@ none of them partially committed.
 Document generation and output attempts are separate transactions after their source
 record commits. Their failure never reverses or duplicates the source.
 
+## Role-Scoped Read Projections
+
+These are query projections, not additional stored ledgers:
+
+- **DriverSaleHistory** applies `sale.driver_id = authenticated_user.id` in the
+  repository/service query and includes the Driver's completed sales, preserved
+  cancellation status, SaleTicket details, and only the customer fields permitted for
+  assigned sales.
+- **DriverRouteHistory** applies `route.driver_id = authenticated_user.id` and includes
+  every assigned route in every state plus its load, movements, sales, reconciliation,
+  differences, return, and closure history.
+- Administrators may query system-wide sale and route history. Driver-provided
+  `driver_id`, `sale_id`, or `route_id` values never broaden scope. Both list and
+  direct-detail queries apply the ownership predicate and use the contract's consistent
+  forbidden/not-found policy, with deny-path contract, integration, and E2E tests.
+
 ## Required Database Constraints and Indexes
 
 - Nonnegative InventoryBalance and low-stock thresholds; positive sale/load quantities;
@@ -400,19 +460,27 @@ record commits. Their failure never reverses or duplicates the source.
   business document numbers.
 - Unique balance per stock location/product and unique route stock location.
 - Partial unique active route per driver and per vehicle.
-- One load and one reconciliation per route; one ticket and at most one cancellation
+- One load and one reconciliation per route; one sale ticket and at most one cancellation
   per sale.
-- Non-overlapping active CustomerPrice ranges per customer/product.
+- `btree_gist`-backed partial GiST exclusion of overlapping active CustomerPrice
+  `[valid_from, valid_to)` ranges per customer/product, plus a valid-endpoint check.
 - Unique idempotency tuple and critical client operation UUID.
 - Search indexes for active products/customers, movement time/product/location, sale
   completion/customer/driver/route, route state/date/driver, and report period filters.
 - Restrictive historical foreign keys; no cascade delete from catalog/identity records
   into business history.
 
+Database integration tests must bypass application services and prove overlapping
+CustomerPrice rejection, adjacent-range acceptance, unbounded and inactive range
+behavior, and concurrent-writer enforcement.
+
 ## Migration and Recovery Rules
 
 - Applied migration files are immutable and ordered. PostgreSQL-specific constraints,
   partial indexes, permissions, and triggers use reviewed SQL inside migrations.
+- The controlled migration owner provisions the trusted `btree_gist` extension before
+  creating the CustomerPrice exclusion constraint; the runtime role cannot manage
+  extensions or weaken the constraint.
 - Production data changes use expand/backfill/verify/contract and document lock impact,
   expected duration, validation queries, roll-forward steps, rollback applicability,
   and recovery point.

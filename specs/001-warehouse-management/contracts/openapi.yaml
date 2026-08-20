@@ -688,6 +688,11 @@ paths:
     get:
       tags: [Inventory]
       operationId: listInventoryMovements
+      description: >-
+        Administrators may query all permitted inventory movements. Drivers may query
+        movements only for routes assigned to them, including Returned and Closed
+        routes; branch-wide, general-inventory, and unrelated-route movements are
+        forbidden. Query parameters never broaden the authenticated caller's scope.
       parameters:
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/Limit'
@@ -719,7 +724,7 @@ paths:
             format: date-time
       responses:
         '200':
-          description: Traceable inventory movements visible to the caller
+          description: Role-scoped traceable inventory movements
           content:
             application/json:
               schema:
@@ -826,6 +831,10 @@ paths:
     get:
       tags: [Routes]
       operationId: listRoutes
+      description: >-
+        Administrators may list all routes. Drivers receive every route assigned to
+        them, including Returned and Closed history. A Driver-provided filter cannot
+        expand visibility to another Driver's routes.
       parameters:
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/Limit'
@@ -835,6 +844,7 @@ paths:
             $ref: '#/components/schemas/RouteState'
         - name: driverId
           in: query
+          description: Administrator filter; Drivers may specify only their own identity.
           schema:
             $ref: '#/components/schemas/Uuid'
         - name: businessDate
@@ -844,11 +854,13 @@ paths:
             format: date
       responses:
         '200':
-          description: Routes visible to the caller
+          description: Routes visible under the caller's role and resource scope
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/RouteListResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
     post:
       tags: [Routes]
       operationId: createRoute
@@ -880,9 +892,12 @@ paths:
     get:
       tags: [Routes]
       operationId: getRoute
+      description: >-
+        Administrators may retrieve any route. Drivers may retrieve only routes
+        assigned to them, in any state; another Driver's route is forbidden.
       responses:
         '200':
-          description: Route with load, balance, sales, return, and reconciliation summary
+          description: Route with load, balances, movements, sales, return, reconciliation, and closure history
           content:
             application/json:
               schema:
@@ -1069,6 +1084,10 @@ paths:
     get:
       tags: [Sales]
       operationId: listSales
+      description: >-
+        Administrators may list all sales. Drivers receive only sales attributed to
+        their authenticated identity, including preserved cancellation status. A
+        Driver-provided filter cannot expand visibility to another Driver's sales.
       parameters:
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/Limit'
@@ -1078,6 +1097,7 @@ paths:
             $ref: '#/components/schemas/Uuid'
         - name: driverId
           in: query
+          description: Administrator filter; Drivers may specify only their own identity.
           schema:
             $ref: '#/components/schemas/Uuid'
         - name: routeId
@@ -1096,17 +1116,19 @@ paths:
             format: date-time
       responses:
         '200':
-          description: Sales visible to the caller
+          description: Sales visible under the caller's role and resource scope
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SaleListResponse'
+        '403':
+          $ref: '#/components/responses/Problem'
     post:
       tags: [Sales]
       operationId: confirmSale
       description: >-
         Assigned driver confirms a sale against products in an En Route route. Price,
-        totals, sale, ticket, movements, and idempotency result commit atomically.
+        totals, sale, sale ticket, movements, and idempotency result commit atomically.
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -1165,9 +1187,12 @@ paths:
     get:
       tags: [Sales]
       operationId: getSale
+      description: >-
+        Administrators may retrieve any sale. Drivers may retrieve only a sale
+        attributed to them; another Driver's sale is forbidden.
       responses:
         '200':
-          description: Preserved sale and ticket detail
+          description: Preserved sale and sale-ticket detail
           content:
             application/json:
               schema:
@@ -3208,7 +3233,7 @@ components:
     RouteDetail:
       type: object
       additionalProperties: false
-      required: [route, balances, sales]
+      required: [route, balances, movements, sales]
       properties:
         route:
           $ref: '#/components/schemas/Route'
@@ -3220,6 +3245,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/InventoryBalance'
+        movements:
+          type: array
+          description: Role-scoped immutable movement history for this route.
+          items:
+            $ref: '#/components/schemas/InventoryMovement'
         sales:
           type: array
           items:
@@ -3614,19 +3644,50 @@ components:
 
     DocumentType:
       type: string
-      enum: [TICKET, ROUTE_LOAD, CASH_CLOSE, REPORT, RECEIPT]
+      description: TICKET is the sole customer-facing Sale Ticket document type.
+      enum: [TICKET, ROUTE_LOAD, CASH_CLOSE, REPORT]
     DocumentCreateRequest:
-      type: object
-      additionalProperties: false
-      required: [documentType, sourceType, sourceId]
-      properties:
-        documentType:
-          $ref: '#/components/schemas/DocumentType'
-        sourceType:
-          type: string
-          enum: [SALE, ROUTE_LOAD, CASH_CLOSE, REPORT_SNAPSHOT]
-        sourceId:
-          $ref: '#/components/schemas/Uuid'
+      oneOf:
+        - type: object
+          additionalProperties: false
+          required: [documentType, sourceType, sourceId]
+          properties:
+            documentType:
+              const: TICKET
+            sourceType:
+              const: SALE
+            sourceId:
+              $ref: '#/components/schemas/Uuid'
+        - type: object
+          additionalProperties: false
+          required: [documentType, sourceType, sourceId]
+          properties:
+            documentType:
+              const: ROUTE_LOAD
+            sourceType:
+              const: ROUTE_LOAD
+            sourceId:
+              $ref: '#/components/schemas/Uuid'
+        - type: object
+          additionalProperties: false
+          required: [documentType, sourceType, sourceId]
+          properties:
+            documentType:
+              const: CASH_CLOSE
+            sourceType:
+              const: CASH_CLOSE
+            sourceId:
+              $ref: '#/components/schemas/Uuid'
+        - type: object
+          additionalProperties: false
+          required: [documentType, sourceType, sourceId]
+          properties:
+            documentType:
+              const: REPORT
+            sourceType:
+              const: REPORT_SNAPSHOT
+            sourceId:
+              $ref: '#/components/schemas/Uuid'
     DocumentOutput:
       type: object
       additionalProperties: false

@@ -13,6 +13,11 @@ types, and exercised with request/response validation in API integration tests.
 
 - Except for login and health checks, operations require the opaque `__Host-wm_session`
   cookie. Authorization is enforced per operation and resource by the API.
+- List and detail history operations are scoped by the authenticated principal in the
+  API and repository query. Administrators may access system-wide history. Drivers may
+  access only their own completed sales and every state/history record for routes
+  assigned to them; Driver-controlled filters never broaden authorization, and direct
+  access to another Driver's sale or route returns 403.
 - Authenticated unsafe requests require `X-CSRF-Token` and same-origin request checks.
 - Critical business mutations require `Idempotency-Key`. Replaying the same validated
   request returns the original result; reusing a key for different content returns 409.
@@ -29,6 +34,9 @@ types, and exercised with request/response validation in API integration tests.
 - Canonical PDF generation and output-attempt recording operate only on committed source
   records. Retrying output never retries the underlying sale, load, reconciliation, or
   cash close.
+- `TICKET` is the only customer-facing sale-document type and always derives from a
+  committed `SALE`; there is no second customer-facing document type. Document request
+  schemas constrain every document type to its valid source type.
 
 ## Compatibility Policy
 

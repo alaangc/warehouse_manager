@@ -100,6 +100,11 @@ The suites MUST prove:
 - database checks, partial active-route uniqueness, deterministic locks, Serializable
   retry handling, rollback, append-only movement/audit permissions, and migrations on
   a real PostgreSQL 18 container;
+- direct-SQL and concurrent-writer enforcement of the CustomerPrice GiST exclusion
+  constraint, including overlapping, adjacent, unbounded, and inactive ranges;
+- same-transaction AuditEvent presence for every mutation class in the data-model
+  coverage matrix, mutation rollback when audit insertion fails, and no success audit
+  record when the source mutation rolls back;
 - duplicate identical idempotency requests replay one result, while a changed request
   under the same key returns 409;
 - frontend handling of loading, empty, validation, authorization, conflict, retryable,
@@ -168,9 +173,9 @@ Expected:
 
 - The customer price is selected and preserved as a decimal string; the driver cannot
   edit it.
-- One accepted confirmation produces exactly one Sale, Ticket, movement set, and route
-  deduction. Identical replay returns it; changed replay conflicts.
-- Every invalid attempt is rejected with no partial sale, ticket, or stock deduction.
+- One accepted confirmation produces exactly one Sale, Sale Ticket, movement set, and
+  route deduction. Identical replay returns it; changed replay conflicts.
+- Every invalid attempt is rejected with no partial sale, sale ticket, or stock deduction.
 
 ### 3. Return, Difference, Reconciliation, and Closure
 
@@ -193,12 +198,21 @@ Expected:
 
 1. As Driver, attempt product, customer-create, user, inventory-adjustment, report, sale-
    cancellation, reconciliation, and route-close operations.
-2. As Administrator, deactivate a customer/product/user referenced by history.
-3. Attempt to deactivate a driver or vehicle assigned to an active route.
+2. Create records for two Drivers. As the first Driver, list and retrieve that Driver's
+   own completed sales and the load, movements, reconciliation, and closure history for
+   an assigned Closed route.
+3. As the first Driver, try to list or directly retrieve the second Driver's sale and
+   route history, including by supplying the second Driver's ID as a filter.
+4. As Administrator, retrieve both Drivers' records and deactivate a customer/product/
+   user referenced by history.
+5. Attempt to deactivate a driver or vehicle assigned to an active route.
 
 Expected:
 
 - Every Driver administrator-only attempt returns 403 without changes.
+- Driver lists are server-filtered to the authenticated Driver; direct access to another
+  Driver's sale or route returns 403, while assigned Closed-route history remains
+  available.
 - Historical sales, movements, prices, and actor attribution remain available after
   archival.
 - Active assignment conflicts return 409 until resolved.
@@ -233,17 +247,18 @@ Expected:
 
 ### 7. Documents, Sharing, and Printing
 
-1. Request PDFs for a ticket, route load, cash close, and report snapshot.
+1. Request PDFs for a sale ticket, route load, cash close, and report snapshot.
 2. Download each in every supported browser; test Web Share only where `canShare` allows.
 3. Deny document storage or simulate generation failure, then retry after restoration.
 4. In approved Chromium over HTTPS, select the approved BLE printer through a user
-   gesture, test it, print a committed ticket, disconnect during a write, and explicitly
-   reprint.
+   gesture, test it, print a committed sale ticket, disconnect during a write, and
+   explicitly reprint.
 
 Expected:
 
 - PDFs match committed sources, use `application/pdf` and stable filenames, and become
-  ready within SC-007's threshold in at least 95% of representative runs.
+  ready within SC-007's threshold in at least 95% of the exact measured document
+  profile defined below.
 - Unsupported sharing falls back to download.
 - Generation failure is visible and retryable without altering the source record.
 - A partial/disconnected print is `UNKNOWN`, is not silently retried, and never creates
@@ -268,14 +283,34 @@ BLE design does not satisfy those conditions.
 
 ## Performance and Completion Evidence
 
-Run representative seeded-data tests for the scale target in [plan.md](./plan.md):
+Create a deterministic acceptance fixture containing exactly 10,000 products, 10,000
+customers, and 100,000 completed sales. After an unmeasured warm-up, run two separate
+closed-loop profiles with 25 concurrent users and at least 400 measured requests each:
+
+1. Rotate search requests evenly among product, customer, and inventory searches.
+2. Rotate document requests evenly among sale-ticket, route-load, cash-close, and report
+   PDFs, using distinct committed sources to measure uncached generation.
+
+Record the exact seed, environment, operation mix, sample count, elapsed times,
+percentiles, and pass counts, and prove:
 
 - at least 95% of product/customer/inventory searches yield usable results within two
   seconds;
-- a trained-user ten-line sale and ticket completes within two minutes;
 - at least 95% of PDF requests become ready within ten seconds;
 - concurrent last-unit, multi-line sale/load, and overlapping-route tests preserve all
   constraints with observable bounded retry behavior.
+
+Conduct the human usability acceptance separately:
+
+1. Recruit five Administrators and five Drivers.
+2. Give every participant the same standardized 15-minute introduction.
+3. Allow no assistance during one scored attempt of the participant's primary workflow.
+4. Require each Administrator to reconcile and close a returned route containing a
+   documented difference.
+5. Require each of the five Drivers to complete a typical sale of up to ten lines and
+   obtain its sale ticket in under two minutes.
+6. Require at least 9 of all 10 participants to complete the primary workflow on the
+   first attempt.
 
 The feature is ready for review only when all applicable commands pass in a clean
 environment, the physical-printer matrix is approved, migration/recovery evidence is
