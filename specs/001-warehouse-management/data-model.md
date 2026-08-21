@@ -1,6 +1,6 @@
 # Data Model: Warehouse Management Operations
 
-**Date**: 2026-08-20
+**Date**: 2026-08-21
 **Feature**: [Warehouse Management Operations](./spec.md)  
 **Research**: [Phase 0 decisions](./research.md)
 
@@ -402,17 +402,68 @@ time. Document output references this immutable snapshot.
 
 Creation/generation is post-commit relative to the source transaction. A unique key on
 `(document_type, source_type, source_id, content_version)` prevents accidental duplicate
-canonical outputs while allowing a new template version.
+canonical outputs while allowing a new template version. A ROUTE_LOAD output requires
+the referenced RouteLoad to be CONFIRMED and therefore immutable. The generation
+transaction locks/reads the RouteLoad and rejects DRAFT before inserting DocumentOutput;
+a database constraint trigger (or equivalent schema-enforced confirmed-load reference)
+also rejects direct or racing inserts for a DRAFT load. Add a unique `(id,
+document_type)` key so OutputAttempt can enforce its document-type capability by
+composite foreign key.
 
 Valid document/source pairs are `TICKET/SALE`, `ROUTE_LOAD/ROUTE_LOAD`,
 `CASH_CLOSE/CASH_CLOSE`, and `REPORT/REPORT_SNAPSHOT`; both database checks and the HTTP
-request schema reject every other pairing.
+request schema reject every other pairing. REPORT/REPORT_SNAPSHOT is portable-only.
+
+| Document type | Generate | Download/save | Share | Print/reprint |
+|---|---:|---:|---:|---:|
+| `TICKET` | Yes | Yes | Yes | Yes |
+| `ROUTE_LOAD` | Yes | Yes | Yes | Yes |
+| `CASH_CLOSE` | Yes | Yes | Yes | Yes |
+| `REPORT` | Yes | Yes | Yes | No |
+
+### Document Authorization Projection
+
+Authorization derives from the immutable source relationship, never from
+`DocumentOutput.created_by`. A Driver may therefore access an otherwise authorized
+output originally created by an Administrator, and cannot access an unauthorized
+output even when its ID is known.
+
+| Role | Generate/download/save/share | Print/reprint |
+|---|---|---|
+| Administrator | Any TICKET, confirmed ROUTE_LOAD, CASH_CLOSE, or REPORT | Any TICKET, confirmed ROUTE_LOAD, or CASH_CLOSE; never REPORT |
+| Driver | TICKET only when `Sale.driver_id = actor.id`; confirmed ROUTE_LOAD only when `Route.driver_id = actor.id`; never CASH_CLOSE or REPORT | Same source predicates; only TICKET and confirmed ROUTE_LOAD |
+
+The TICKET predicate joins `DocumentOutput.source_id = Sale.id` and requires
+`Sale.driver_id = authenticated_user.id`. The ROUTE_LOAD predicate joins
+`DocumentOutput.source_id = RouteLoad.id`, joins its Route, and requires both
+`RouteLoad.state = CONFIRMED` and `Route.driver_id = authenticated_user.id`. The same
+predicate is applied when creating or reusing an output, listing or retrieving its
+metadata, downloading/sharing its content, printing/reprinting, and reading or writing
+OutputAttempt history. Driver-controlled IDs or filters never broaden it. TEST_PRINT
+uses printer-profile authorization because it has no business document source.
+
+An authorization or source-state denial creates no DocumentOutput or accepted
+OutputAttempt, performs no document-storage or Bluetooth-device side effect, and does
+not expose source metadata. Contract, integration, and E2E tests cover new and existing
+outputs, direct IDs, content URLs, manipulated filters, DRAFT-load insertion/races, and
+every denied role/source combination.
 
 ### OutputAttempt
 
-`id`, `document_output_id`, `actor_id`, `mode` (`GENERATE | DOWNLOAD | SHARE | PRINT |
-REPRINT | TEST_PRINT`), optional `printer_profile_id`, `state` (`STARTED | SUCCEEDED |
-FAILED | UNKNOWN`), safe error code, attempt number, request ID, and timestamps.
+`id`, nullable `document_output_id`, nullable copied `document_type`, `actor_id`, `mode`
+(`GENERATE | DOWNLOAD | SHARE | PRINT | REPRINT | TEST_PRINT`), optional
+`printer_profile_id`, `state` (`STARTED | SUCCEEDED | FAILED | UNKNOWN`), safe error
+code, attempt number, request ID, and timestamps.
+
+For every mode except TEST_PRINT, `document_output_id` and copied `document_type` are
+required and reference DocumentOutput through composite foreign key
+`(document_output_id, document_type) -> (id, document_type)`. PRINT and REPRINT require
+`printer_profile_id` and a document type in `TICKET | ROUTE_LOAD | CASH_CLOSE`; a CHECK
+constraint rejects REPORT. GENERATE, DOWNLOAD, and SHARE require no printer and accept
+all four document types. TEST_PRINT requires `printer_profile_id` and has no document
+reference or document type because it validates the printer profile rather than a
+business document. The API performs the same validation before any browser Bluetooth
+write, and integration tests bypass the service to prove the database constraints.
 
 `UNKNOWN` is mandatory after an ambiguous partial/disconnected printer write. A retry
 creates a new REPRINT attempt; it never recreates the source Sale, RouteLoad, CashClose,

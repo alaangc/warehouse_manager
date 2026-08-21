@@ -111,7 +111,10 @@ The suites MUST prove:
   and unexpected failure states;
 - critical workflows in Chromium, Firefox, and WebKit, except direct Bluetooth which
   is explicitly Chromium/hardware constrained;
-- document and printer retries never resubmit source business mutations.
+- document and printer retries never resubmit source business mutations;
+- the portable/thermal capability matrix is enforced by the API and database, including
+  rejection of REPORT print/reprint and printer-profile requirements for printable
+  document attempts.
 
 ## Migration and Recovery Gate
 
@@ -203,9 +206,17 @@ Expected:
    an assigned Closed route.
 3. As the first Driver, try to list or directly retrieve the second Driver's sale and
    route history, including by supplying the second Driver's ID as a filter.
-4. As Administrator, retrieve both Drivers' records and deactivate a customer/product/
+4. As Administrator, generate/save/share all four document types and print a Sale
+   Ticket, confirmed route load, and cash close. Then generate an own-sale Ticket and
+   assigned confirmed-route-load output before the first Driver accesses them.
+5. As the first Driver, generate/download/share/print an own-sale Ticket and assigned
+   confirmed route load, including the outputs created by the Administrator. Attempt
+   the second Driver's Ticket, an unassigned route load, CASH_CLOSE, REPORT, and a DRAFT
+   route load through list filters, direct document IDs, content/share URLs,
+   PRINT/REPRINT, and manipulated source IDs.
+6. As Administrator, retrieve both Drivers' records and deactivate a customer/product/
    user referenced by history.
-5. Attempt to deactivate a driver or vehicle assigned to an active route.
+7. Attempt to deactivate a driver or vehicle assigned to an active route.
 
 Expected:
 
@@ -213,6 +224,10 @@ Expected:
 - Driver lists are server-filtered to the authenticated Driver; direct access to another
   Driver's sale or route returns 403, while assigned Closed-route history remains
   available.
+- Document authorization follows the immutable Sale/Route source rather than output
+  creator. Forbidden or DRAFT-load requests return the defined 403/409 response without
+  exposing metadata/bytes or creating a DocumentOutput, accepted OutputAttempt, storage
+  write, or Bluetooth-device write. Reusing an existing output never bypasses access.
 - Historical sales, movements, prices, and actor attribution remain available after
   archival.
 - Active assignment conflicts return 409 until resolved.
@@ -247,12 +262,18 @@ Expected:
 
 ### 7. Documents, Sharing, and Printing
 
-1. Request PDFs for a sale ticket, route load, cash close, and report snapshot.
-2. Download each in every supported browser; test Web Share only where `canShare` allows.
-3. Deny document storage or simulate generation failure, then retry after restoration.
-4. In approved Chromium over HTTPS, select the approved BLE printer through a user
-   gesture, test it, print a committed sale ticket, disconnect during a write, and
-   explicitly reprint.
+1. Request PDFs for a committed sale ticket, confirmed route load, cash close, and
+   report snapshot.
+2. Download each in every supported browser; test sharing for each only where Web Share
+   and `canShare` allow it.
+3. Request generate/save/share/print/reprint for a DRAFT route load, then confirm the
+   same load and repeat the authorized output request.
+4. Deny document storage or simulate generation failure, then retry after restoration.
+5. In approved Chromium over HTTPS, select the approved BLE printer through a user
+   gesture, test it, then print and content-compare the sale ticket, route load, and
+   cash close.
+6. Attempt to print and reprint the report, then disconnect during one supported
+   document write and explicitly reprint that supported document.
 
 Expected:
 
@@ -260,6 +281,13 @@ Expected:
   ready within SC-007's threshold in at least 95% of the exact measured document
   profile defined below.
 - Unsupported sharing falls back to download.
+- The route-load PDF matches its confirmed immutable source and can be saved or shared.
+- Every DRAFT-load output mode is rejected with 409 before generation or device access;
+  confirmation permits a subsequent authorized request without any draft output or
+  accepted attempt having been created.
+- Report printing/reprinting is rejected with 422 before a Bluetooth write, creates no
+  accepted PRINT/REPRINT OutputAttempt, and leaves the report snapshot and document
+  output unchanged.
 - Generation failure is visible and retryable without altering the source record.
 - A partial/disconnected print is `UNKNOWN`, is not silently retried, and never creates
   a second sale/load/close. Explicit reprint creates only a new OutputAttempt.
@@ -274,8 +302,9 @@ Record and approve all fields before FR-033/FR-047 can pass:
 | Client | Device model, OS/version, Chromium browser/version |
 | Transport | BLE/GATT confirmation, service UUID, write characteristic, write mode |
 | Protocol | ESC/POS dialect, initialization/cut/feed commands, chunk size and delay |
-| Text | Spanish accents, currency symbols, wrapping, long names, line items |
+| Content | Sale-ticket, confirmed-route-load, and cash-close templates; Spanish accents, currency symbols, wrapping, long names, and line items |
 | Failures | Permission denial, unsupported browser, disconnect, partial output, out of paper, reconnect, explicit reprint |
+| Negative scope | REPORT print/reprint rejected before a device write, with no accepted print attempt or source change |
 
 If the available printer is Bluetooth Classic-only, requires iOS/Safari direct access,
 or needs unattended silent printing, stop and amend the plan; the approved browser-only
@@ -285,17 +314,24 @@ BLE design does not satisfy those conditions.
 
 Create a deterministic acceptance fixture containing exactly 10,000 products, 10,000
 customers, and 100,000 completed sales. After an unmeasured warm-up, run two separate
-closed-loop profiles with 25 concurrent users and at least 400 measured requests each:
+closed-loop profiles with 25 concurrent users and at least 400 measurements each:
 
-1. Rotate search requests evenly among product, customer, and inventory searches.
-2. Rotate document requests evenly among sale-ticket, route-load, cash-close, and report
-   PDFs, using distinct committed sources to measure uncached generation.
+1. Use 25 concurrent authenticated browser sessions and rotate visible search actions
+   evenly among matching and no-results product, customer, and inventory searches.
+   Start at the user action and stop only after loading ends, matching rows or an
+   explicit no-results state is visible, identifying fields and relevant values are
+   rendered, and every result action available to that user is enabled. The browser
+   harness must assert all four conditions before recording completion.
+2. Rotate document requests evenly among sale-ticket, confirmed-route-load, cash-close,
+   and report PDFs, using distinct committed or confirmed sources to measure uncached
+   generation.
 
 Record the exact seed, environment, operation mix, sample count, elapsed times,
 percentiles, and pass counts, and prove:
 
-- at least 95% of product/customer/inventory searches yield usable results within two
-  seconds;
+- at least 95% of product/customer/inventory searches satisfy all four visible DOM
+  completion conditions within two seconds, using end-to-end browser timing rather
+  than API response time;
 - at least 95% of PDF requests become ready within ten seconds;
 - concurrent last-unit, multi-line sale/load, and overlapping-route tests preserve all
   constraints with observable bounded retry behavior.
@@ -303,14 +339,24 @@ percentiles, and pass counts, and prove:
 Conduct the human usability acceptance separately:
 
 1. Recruit five Administrators and five Drivers.
-2. Give every participant the same standardized 15-minute introduction.
-3. Allow no assistance during one scored attempt of the participant's primary workflow.
-4. Require each Administrator to reconcile and close a returned route containing a
-   documented difference.
-5. Require each of the five Drivers to complete a typical sale of up to ten lines and
-   obtain its sale ticket in under two minutes.
-6. Require at least 9 of all 10 participants to complete the primary workflow on the
-   first attempt.
+2. Freeze and version one standardized 15-minute introduction script and give the same
+   version to every participant.
+3. Allow no assistance during one scored attempt. A first attempt is one uninterrupted
+   run after the start signal; ordinary correction before final submission remains in
+   the run, but a rejected final submission, any restart, or any assistance fails the
+   attempt.
+4. Start each Driver authenticated at the same defined screen with an assigned EN_ROUTE
+   route, sufficient stock, an existing customer, exactly 10 requested line items, and
+   a payment method. Start timing at task handoff and stop only when the completed sale
+   ticket is visibly available. Every Driver must finish in under two minutes.
+5. Start each Administrator authenticated at the same defined screen with a Returned
+   route whose expected and physical quantities create exactly one nonzero difference.
+   The participant must record the mandatory reason, approve reconciliation, return
+   stock, and close the route; success requires CLOSED state and zero route inventory.
+6. Record participant role, introduction/fixture version, start/end timestamps, elapsed
+   time, first-attempt result, assistance (which must be none), and failure reason.
+7. Require all five Drivers to pass the timing target and at least 9 of all 10
+   participants to complete their assigned workflow on the first attempt.
 
 The feature is ready for review only when all applicable commands pass in a clean
 environment, the physical-printer matrix is approved, migration/recovery evidence is

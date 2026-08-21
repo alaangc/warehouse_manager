@@ -1400,7 +1400,16 @@ paths:
     post:
       tags: [Documents]
       operationId: requestDocument
-      description: Creates or reuses a canonical PDF from an already committed source record.
+      description: >-
+        Creates or reuses a portable canonical PDF from an already committed source
+        record. TICKET, ROUTE_LOAD, CASH_CLOSE, and REPORT are all supported;
+        ROUTE_LOAD requires a confirmed immutable load. Administrators may request all
+        four types. Drivers may request only a TICKET whose Sale belongs to them or a
+        confirmed ROUTE_LOAD whose Route is assigned to them. Driver requests for
+        CASH_CLOSE, REPORT, another Driver's Sale, or an unassigned Route return 403
+        without creating/exposing output. An authorized DRAFT-load request returns 409
+        ROUTE_LOAD_NOT_CONFIRMED. Source authorization is checked before reusing an
+        existing canonical output and never derives from DocumentOutput.createdBy.
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -1432,6 +1441,11 @@ paths:
     get:
       tags: [Documents]
       operationId: getDocument
+      description: >-
+        Administrators may retrieve any document metadata. Drivers may retrieve only
+        their own Sale Tickets and confirmed route-load documents for assigned Routes,
+        including outputs created by an Administrator. Other direct IDs return 403
+        without exposing metadata.
       responses:
         '200':
           description: Document generation status and source metadata
@@ -1450,6 +1464,11 @@ paths:
     get:
       tags: [Documents]
       operationId: downloadDocument
+      description: >-
+        Downloads/saves any ready TICKET, ROUTE_LOAD, CASH_CLOSE, or REPORT PDF. The
+        browser may offer the same bytes through Web Share when supported. The same
+        source-derived authorization as document metadata applies; output creator and
+        possession of the document ID never broaden Driver access.
       responses:
         '200':
           description: Ready canonical PDF
@@ -1475,7 +1494,14 @@ paths:
       operationId: recordOutputAttempt
       description: >-
         Records generation/download/share/print/test outcomes only. It never performs
-        or retries the source business transaction.
+        or retries the source business transaction. PRINT and REPRINT are valid only
+        for TICKET, ROUTE_LOAD, and CASH_CLOSE; REPORT is portable-only. A REPORT
+        PRINT/REPRINT request returns 422 and creates no accepted OutputAttempt.
+        TEST_PRINT validates a printer profile without a business document. For every
+        document mode, the API first resolves the immutable source and authorizes the
+        actor: Drivers are limited to their own Sale Tickets and confirmed loads for
+        assigned Routes. Forbidden source access returns 403 with no accepted attempt;
+        capability validation follows, so Administrator REPORT printing returns 422.
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -3644,11 +3670,14 @@ components:
 
     DocumentType:
       type: string
-      description: TICKET is the sole customer-facing Sale Ticket document type.
+      description: >-
+        TICKET is the sole customer-facing Sale Ticket document type. All values are
+        portable PDF types; only TICKET, ROUTE_LOAD, and CASH_CLOSE are thermal-printable.
       enum: [TICKET, ROUTE_LOAD, CASH_CLOSE, REPORT]
     DocumentCreateRequest:
       oneOf:
         - type: object
+          description: Source must be an existing committed Sale.
           additionalProperties: false
           required: [documentType, sourceType, sourceId]
           properties:
@@ -3659,6 +3688,7 @@ components:
             sourceId:
               $ref: '#/components/schemas/Uuid'
         - type: object
+          description: Source must be a CONFIRMED immutable RouteLoad; DRAFT returns 409.
           additionalProperties: false
           required: [documentType, sourceType, sourceId]
           properties:
@@ -3669,6 +3699,7 @@ components:
             sourceId:
               $ref: '#/components/schemas/Uuid'
         - type: object
+          description: Source must be an existing committed CashClose.
           additionalProperties: false
           required: [documentType, sourceType, sourceId]
           properties:
@@ -3679,6 +3710,7 @@ components:
             sourceId:
               $ref: '#/components/schemas/Uuid'
         - type: object
+          description: Source must be an immutable ReportSnapshot.
           additionalProperties: false
           required: [documentType, sourceType, sourceId]
           properties:
@@ -3725,28 +3757,71 @@ components:
         data:
           $ref: '#/components/schemas/DocumentOutput'
     OutputAttemptRequest:
-      type: object
-      additionalProperties: false
-      required: [mode, state]
-      properties:
-        documentId:
-          type: [string, 'null']
-          format: uuid
-        mode:
-          type: string
-          enum: [GENERATE, DOWNLOAD, SHARE, PRINT, REPRINT, TEST_PRINT]
-        printerProfileId:
-          type: [string, 'null']
-          format: uuid
-        state:
-          type: string
-          enum: [STARTED, SUCCEEDED, FAILED, UNKNOWN]
-        errorCode:
-          type: [string, 'null']
-          maxLength: 120
-        requestId:
-          type: [string, 'null']
-          maxLength: 200
+      description: >-
+        PRINT/REPRINT require a printer and a TICKET, ROUTE_LOAD, or CASH_CLOSE
+        document. REPORT print/reprint is rejected with 422. TEST_PRINT has a printer
+        but no document. Cross-resource document-type validation is authoritative in
+        the API and database.
+      oneOf:
+        - type: object
+          additionalProperties: false
+          required: [documentId, mode, state]
+          properties:
+            documentId:
+              type: string
+              format: uuid
+            mode:
+              type: string
+              enum: [GENERATE, DOWNLOAD, SHARE]
+            state:
+              type: string
+              enum: [STARTED, SUCCEEDED, FAILED, UNKNOWN]
+            errorCode:
+              type: [string, 'null']
+              maxLength: 120
+            requestId:
+              type: [string, 'null']
+              maxLength: 200
+        - type: object
+          additionalProperties: false
+          required: [documentId, mode, printerProfileId, state]
+          properties:
+            documentId:
+              type: string
+              format: uuid
+            mode:
+              type: string
+              enum: [PRINT, REPRINT]
+            printerProfileId:
+              type: string
+              format: uuid
+            state:
+              type: string
+              enum: [STARTED, SUCCEEDED, FAILED, UNKNOWN]
+            errorCode:
+              type: [string, 'null']
+              maxLength: 120
+            requestId:
+              type: [string, 'null']
+              maxLength: 200
+        - type: object
+          additionalProperties: false
+          required: [mode, printerProfileId, state]
+          properties:
+            mode:
+              const: TEST_PRINT
+            printerProfileId:
+              type: string
+              format: uuid
+            state:
+              type: string
+              enum: [STARTED, SUCCEEDED, FAILED, UNKNOWN]
+            errorCode:
+              type: [string, 'null']
+              maxLength: 120
+            requestId:
+              type: [string, 'null']
+              maxLength: 200
     OutputAttempt:
       type: object
       additionalProperties: false

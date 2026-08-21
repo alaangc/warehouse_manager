@@ -47,6 +47,32 @@ its screen examples as context and its recommendations as unapproved proposals.
 - Q: Which historical records should a Driver be allowed to view? → A: Their own
   sales and every route assigned to them, including load, movement, reconciliation,
   and closure history; they cannot view another Driver's history.
+- Q: Should route-load documents be available as portable files that users can save
+  or share, in addition to being printable? → A: Yes. Route loads can be generated,
+  saved, shared, and printed.
+- Q: Should operational reports be limited to portable files, or should users also
+  be able to print them on Bluetooth thermal printers? → A: Reports can be generated,
+  saved, and shared, but cannot be printed on Bluetooth thermal printers.
+- Q: Which exact workflows should participants perform during the first-attempt
+  usability test? → A: Each Driver completes an exactly 10-line sale and obtains its
+  sale ticket; each Administrator reconciles and closes a Returned route containing
+  one documented inventory difference.
+
+### Session 2026-08-21
+
+- Q: What must be visible and functional before a search is considered to have
+  produced usable results for the two-second target? → A: Loading has ended; matching
+  rows or an explicit no-results state is visible; identifying fields and relevant
+  values are rendered; available result actions are enabled.
+- Q: At what route-load stage should users be allowed to generate, save, share, or
+  print its document? → A: Only confirmed route loads can be generated, saved, shared,
+  or printed; drafts remain editable and have no output document.
+- Q: Which business documents should a Driver be allowed to generate, save, share, or
+  print? → A: Drivers may access sale tickets for their own sales and confirmed route
+  loads for routes assigned to them; cash closes and reports remain Administrator-only.
+- Q: What should count as a failed first attempt during the usability test? → A: The
+  attempt is one uninterrupted run; corrections before final submission are allowed,
+  but a rejected final submission, restart, or assistance fails the attempt.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -201,14 +227,17 @@ from known records, save or share it where applicable, and simulate output failu
 
 **Acceptance Scenarios**:
 
-1. **Given** an existing sale ticket, cash close, or report, **When** an authorized user
-   requests a portable document, **Then** the output matches the stored source record
-   and can be saved or shared.
+1. **Given** an existing sale ticket, confirmed route load, cash close, or report,
+   **When** an authorized user requests a portable document, **Then** the output
+   matches the stored source record and can be saved or shared.
 2. **Given** a configured thermal printer, **When** an authorized user prints a
    supported document, **Then** the printed content matches its source record.
 3. **Given** an unavailable printer or interrupted output, **When** printing fails,
    **Then** the user sees the failure, the business record remains committed exactly
    once, and output can be retried safely.
+4. **Given** a Driver, **When** the Driver requests a cash-close document, report
+   document, another Driver's sale ticket, or a route-load document for an unassigned
+   route, **Then** access is denied without creating or exposing the document.
 
 ---
 
@@ -242,6 +271,7 @@ without losing historical attribution.
 - A user attempts to delete a product or customer referenced by historical activity.
 - A returned quantity exceeds the quantity still assigned to the driver.
 - A route load contains a product that becomes inactive before reconciliation.
+- A user requests portable or printed output for a draft route load.
 - The physical return differs from the expected route balance.
 - A user attempts a route-state transition out of sequence.
 - A vehicle or driver is assigned to overlapping active routes.
@@ -270,8 +300,10 @@ without losing historical attribution.
 - **FR-004**: Drivers MUST be limited to their assigned route, its load and returns,
   existing-customer selection, sales, their own completed-sale history, the complete
   load, movement, reconciliation, and closure history of every route assigned to them,
-  and limited printer settings. Drivers MUST NOT view another Driver's history or
-  maintain products, prices, users, general inventory, or unrelated movements.
+  sale-ticket documents for their own sales, confirmed-route-load documents for their
+  assigned routes, and limited printer settings. Drivers MUST NOT view another Driver's
+  history or documents, access cash-close or report documents, or maintain products,
+  prices, users, general inventory, or unrelated movements.
 
 #### Products and Inventory
 
@@ -378,10 +410,16 @@ without losing historical attribution.
 #### Documents and Printing
 
 - **FR-031**: Authorized users MUST be able to generate portable documents for sale
-  tickets, cash closes, and reports that match their stored source records.
+  tickets, confirmed route loads, cash closes, and reports that match their stored
+  source records. Administrators MUST be able to generate all four types. Drivers MUST
+  be limited to sale tickets for their own sales and confirmed route loads for routes
+  assigned to them. Draft route loads MUST NOT produce an output document.
 - **FR-032**: Users MUST be able to save or share each generated portable document.
-- **FR-033**: Authorized users MUST be able to print sale tickets, route loads, and
-  cash closes on a configured Bluetooth thermal printer.
+- **FR-033**: Authorized users MUST be able to print sale tickets, confirmed route
+  loads, and cash closes on a configured Bluetooth thermal printer. Administrators MUST
+  be able to print all three types. Drivers MUST be limited to sale tickets for their
+  own sales and confirmed route loads for routes assigned to them. Draft route loads
+  and reports MUST NOT be eligible for Bluetooth thermal printing.
 - **FR-034**: Output failure MUST be shown to the user and MUST NOT reverse, duplicate,
   or alter a committed business record.
 - **FR-035**: Users MUST be able to retry failed document generation or printing without
@@ -480,7 +518,7 @@ without losing historical attribution.
 - **SC-002**: No accepted concurrent or retried operation creates negative inventory or
   more than one business transaction for the same confirmation.
 - **SC-003**: After the standardized 15-minute introduction, each of the five Driver
-  participants MUST complete one typical sale of up to 10 line items and obtain its
+  participants MUST complete one typical sale of exactly 10 line items and obtain its
   sale ticket in under 2 minutes without assistance.
 - **SC-004**: Every Closed route accounts for 100 percent of initial loaded quantities
   as sold, returned, or explicitly documented differences, with temporary route
@@ -489,16 +527,23 @@ without losing historical attribution.
   acceptance-test samples, including boundary and rounding cases.
 - **SC-006**: During an acceptance workload with 25 concurrent users and data containing
   10,000 products, 10,000 customers, and 100,000 completed sales, at least 95 percent
-  of routine product, customer, and inventory searches MUST show usable results within
-  2 seconds.
+  of routine product, customer, and inventory searches MUST, within 2 seconds, finish
+  loading and show either matching rows or an explicit no-results state. Identifying
+  fields and relevant values MUST be rendered, and every result action available to
+  the user MUST be enabled before the search is counted as complete.
 - **SC-007**: During the same acceptance workload defined in SC-006, at least 95 percent
   of requested portable documents MUST become available to save or share within 10
   seconds.
 - **SC-008**: Output failure tests produce zero lost or duplicated business records and
   allow a successful retry after the output dependency is restored.
 - **SC-009**: After the standardized 15-minute introduction, at least 9 of the 10
-  participants—five Administrators and five Drivers—MUST complete their role's primary
-  workflow on the first attempt without assistance.
+  participants—five Administrators and five Drivers—MUST complete their assigned
+  workflow on the first attempt without assistance. Each Driver's assigned workflow
+  is the exactly 10-line sale and sale-ticket workflow defined in SC-003. Each
+  Administrator's assigned workflow is to reconcile and close a Returned route that
+  contains one documented inventory difference. A first attempt MUST be one
+  uninterrupted run. Participants MAY correct inputs before final submission, but a
+  rejected final submission, restart, or any assistance MUST count as a failed attempt.
 - **SC-010**: All tested attempts to perform an operation outside a user's role are
   denied without changing protected business data.
 - **SC-011**: In route-state acceptance tests, 100 percent of invalid transitions and

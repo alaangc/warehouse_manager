@@ -1,6 +1,6 @@
 # Phase 0 Research: Warehouse Management Operations
 
-**Date**: 2026-08-20
+**Date**: 2026-08-21
 **Feature**: [Warehouse Management Operations](./spec.md)
 
 This research resolves every technical unknown identified in the implementation plan.
@@ -97,6 +97,15 @@ every list and direct-detail lookup. Client-supplied Driver or route filters nev
 broaden scope. Administrators retain system-wide access. Contract, integration, and
 end-to-end tests cover both allowed history and attempts to access another Driver's
 records.
+
+Document authorization resolves the immutable source record before creating, reading,
+downloading, sharing, printing, reprinting, or recording an output attempt.
+Administrators may access all four document types. Drivers may access TICKET only when
+the source Sale belongs to the authenticated Driver and ROUTE_LOAD only when the source
+load is confirmed and its Route is assigned to that Driver. Drivers are denied
+CASH_CLOSE, REPORT, another Driver's Sale Ticket, and unassigned-route load documents.
+The same source predicate applies to request, status, content, and OutputAttempt paths;
+frontend-hidden actions never substitute for API enforcement.
 
 **Alternatives considered**:
 
@@ -302,15 +311,16 @@ line arrays, and server error mapping without moving business authority into the
 ## Portable Documents
 
 **Decision**: Generate canonical PDFs in the API from committed immutable records using
-PDFKit and server-owned templates. Stream them as `application/pdf` with a stable
-`Content-Disposition` filename. Browser download is the universal baseline; Web Share
-file sharing is progressive enhancement after `navigator.canShare` succeeds. Persist
-document generation and output attempts separately from source business transactions.
+PDFKit and server-owned templates. A route-load PDF requires a confirmed immutable
+RouteLoad. Stream PDFs as `application/pdf` with a stable `Content-Disposition`
+filename. Browser download is the universal baseline; Web Share file sharing is
+progressive enhancement after `navigator.canShare` succeeds. Persist document
+generation and output attempts separately from source business transactions.
 
-**Rationale**: The first-release documents are sale tickets, load sheets, cash closes, and
-tabular reports; PDFKit avoids a headless-browser runtime while supporting streaming,
-text, and tables. Building documents from committed records preserves reproducibility
-and separates output failure from transaction success.
+**Rationale**: The first-release portable documents are sale tickets, route loads, cash
+closes, and tabular reports; PDFKit avoids a headless-browser runtime while supporting
+streaming, text, and tables. Building documents from committed records preserves
+reproducibility and separates output failure from transaction success.
 
 **Alternatives considered**:
 
@@ -329,9 +339,11 @@ Web Bluetooth BLE/GATT adapter in the first release. Require HTTPS, a current ap
 Chromium browser/OS pair, a user gesture for device selection, filtered service UUIDs,
 and a restrictive `Permissions-Policy: bluetooth=(self)`. Store supported printer model,
 transport, protocol, UUID, paper width, encoding, and command-dialect metadata on the
-server, but keep the browser-granted device handle local. Print only from committed
-document records. Partial/disconnected writes become `UNKNOWN` and require an explicit
-user reprint; they are never silently retried.
+server, but keep the browser-granted device handle local. Permit thermal PRINT/REPRINT
+only for committed sale-ticket, confirmed route-load, and cash-close documents; reports
+remain portable-only and a report print attempt is rejected before any Bluetooth write.
+Partial/disconnected writes become `UNKNOWN` and require an explicit user reprint; they
+are never silently retried.
 
 **Rationale**: Web Bluetooth exposes BLE GATT, not arbitrary Bluetooth printers. Browser
 permissions are per origin/profile, and transport success cannot prove paper output.
@@ -363,7 +375,11 @@ printer acceptance remains a required manual hardware test.
 **Rationale**: The layers correspond directly to the constitution's unit, database,
 authorization, contract, retry, rollback, and E2E gates. A real PostgreSQL instance is
 required because an in-memory substitute cannot reproduce isolation, locks, partial
-indexes, or numeric behavior.
+indexes, or numeric behavior. SC-006 additionally requires a browser-level performance
+harness that measures from the user's search action until loading ends, matching rows
+or an explicit no-results state is visible, identifying/relevant values are rendered,
+and every available result action is enabled under the full 25-user workload. API-only
+latency is useful diagnostic evidence but does not prove that outcome.
 
 **Alternatives considered**:
 
@@ -384,19 +400,25 @@ indexes, or numeric behavior.
 **Decision**: Create a deterministic performance fixture containing exactly 10,000
 products, 10,000 customers, and 100,000 completed sales. Measure the SC-006 search and
 SC-007 portable-document targets in separate closed-loop profiles, each with 25
-concurrent users after an unmeasured warm-up. The search profile rotates evenly among
-product, customer, and inventory searches. The document profile rotates evenly among
-sale-ticket, route-load, cash-close, and report PDFs and uses distinct committed source
-records to measure uncached generation. Each profile records at least 400 measured
-requests, operation mix, elapsed times, percentile/pass counts, environment, and seed.
+concurrent users after an unmeasured warm-up. The search profile uses authenticated
+browser sessions, rotates evenly among product, customer, and inventory searches, and
+measures from the user action until loading ends, matching rows or an explicit
+no-results state is visible, identifying/relevant values are rendered, and available
+result actions are enabled. The document profile
+rotates evenly among sale-ticket, confirmed-route-load, cash-close, and report PDFs and
+uses distinct committed source records to measure uncached generation. Each profile
+records at least 400 measured actions/requests, operation mix, elapsed times,
+percentile/pass counts, environment, and seed.
 
 Separately conduct the human usability protocol with five Administrators and five
 Drivers after the same standardized 15-minute introduction and without assistance
-during one scored attempt. The Administrator workflow reconciles and closes a returned
-route containing a documented difference. The Driver workflow completes a typical sale
-of up to ten lines and obtains its sale ticket. All five Drivers must finish within two
-minutes; at least 9 of all 10 participants must complete their workflow on the first
-attempt.
+during one scored attempt. The Administrator workflow reconciles and closes a Returned
+route containing exactly one documented inventory difference. The Driver workflow
+completes a sale of exactly ten line items and obtains its sale ticket. All five Drivers
+must finish within two minutes; at least 9 of all 10 participants must complete their
+workflow on the first attempt. A first attempt is one uninterrupted run after the start
+signal. Participants may correct inputs before final submission, but a rejected final
+submission, restart, or any assistance fails the attempt.
 
 **Rationale**: Fixed data and concurrency make performance evidence reproducible.
 Automated browser tests verify software behavior but cannot substitute for the human
@@ -406,6 +428,8 @@ first-attempt and task-timing outcomes required by SC-003 and SC-009.
 
 - An unspecified "representative" load: rejected because results could not be compared
   between environments or releases.
+- API-only search timing as SC-006 evidence: rejected because it does not prove when
+  usable search results become visible in the browser.
 - Automated E2E timing as usability evidence: rejected because automation does not
   measure whether a trained person can understand and complete the workflow.
 - Informal staff demonstrations: rejected because participant, training, assistance,
