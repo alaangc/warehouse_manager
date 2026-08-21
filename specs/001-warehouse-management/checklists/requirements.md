@@ -1,7 +1,8 @@
 # Specification Quality Checklist: Warehouse Management Operations
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
-**Created**: 2026-08-14
+**Created**: 2026-08-14  
+**Last validated**: 2026-08-20 after Inventory and Product Detail alignment
 **Feature**: [spec.md](../spec.md)
 
 ## Content Quality
@@ -38,3 +39,7 @@
 - Resolved decisions: partner share uses gross sales (FR-026), sales record payment
   method without credit processing (FR-043), and multiple routes may operate
   simultaneously with unique active driver and vehicle assignments (FR-046).
+- Inventory alignment validation confirms product-specific navigation, location
+  filtering, detail fields, and measurable acceptance coverage (FR-051 through FR-054,
+  SC-013). The current catalog cost is explicitly distinguished from out-of-scope
+  historical cost accounting.

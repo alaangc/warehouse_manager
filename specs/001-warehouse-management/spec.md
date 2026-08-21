@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-14
 
-**Last Updated**: 2026-08-18
+**Last Updated**: 2026-08-20
 
 **Status**: Draft
 
@@ -37,7 +37,7 @@ its screen examples as context and its recommendations as unapproved proposals.
 ### User Story 1 - Control Inventory by Location (Priority: P1)
 
 An administrator maintains the product catalog and sees accurate stock for Magdalena,
-Caborca, and active routes. Each entry, manual exit, adjustment, sale, load, transfer,
+Tucson, and active routes. Each entry, manual exit, adjustment, sale, load, transfer,
 return, or cancellation explains why the balance changed so the administrator can
 reconcile physical and recorded stock.
 
@@ -60,6 +60,15 @@ at each branch, and verify that balances and movement history remain consistent.
    branch.
 4. **Given** insufficient stock, **When** an operation would make the balance negative,
    **Then** the operation is rejected without changing the balance or history.
+5. **Given** an authenticated administrator, **When** the administrator opens
+   Inventory from the primary navigation, **Then** a summary of total, sufficient,
+   low, and out-of-stock products and a per-location overview are displayed.
+6. **Given** the inventory overview, **When** the administrator filters by Magdalena,
+   Tucson, or a route inventory holder, **Then** only the selected holder's inventory
+   summary is shown and the filter can be cleared to show all holders.
+7. **Given** a product shown in a stock list, **When** the administrator selects it,
+   **Then** the product detail shows that product's identity, price, cost, supplier,
+   total and minimum stock, shortage, per-location balances, status, and recent movements.
 
 ---
 
@@ -257,10 +266,10 @@ without losing historical attribution.
 #### Products and Inventory
 
 - **FR-005**: Administrators MUST be able to create, edit, search, activate, and
-  deactivate products with a category, unit of sale, standard price, and low-stock
-  threshold.
+  deactivate products with a category, unit of sale, standard price, current
+  acquisition cost, supplier, and low-stock threshold.
 - **FR-006**: The system MUST maintain separate stock balances for each product at the
-  initial branches Magdalena and Caborca and in each active route. A vehicle MUST NOT
+  initial branches Magdalena and Tucson and in each active route. A vehicle MUST NOT
   retain a permanent balance outside an active route.
 - **FR-007**: Every stock change MUST create a movement containing the product,
   quantity, movement type, actor, time, reason, resulting balance, and related business
@@ -274,6 +283,15 @@ without losing historical attribution.
   Cancellation movements.
 - **FR-040**: Administrators MUST see an inventory alert when an active product's branch
   balance is at or below its configured low-stock threshold.
+- **FR-051**: The inventory overview MUST show counts for total products, products with
+  sufficient stock, products with low stock, and products without stock.
+- **FR-052**: Administrators MUST be able to filter the inventory overview by a fixed
+  branch or temporary active-route inventory holder and restore the all-locations view.
+- **FR-053**: Selecting a product from an inventory stock list MUST open a product-specific
+  detail view; selecting different products MUST display the corresponding product data.
+- **FR-054**: Product detail MUST show identity, catalog attributes, selling price,
+  acquisition cost, supplier, total stock, minimum stock, shortage, per-location balances,
+  active status, and recent inventory movements visible to the administrator.
 
 #### Customers and Prices
 
@@ -405,7 +423,8 @@ without losing historical attribution.
 - Route planning, GPS tracking, and vehicle telematics.
 - Online ordering, customer self-service, and electronic payment processing.
 - Credit sales, customer balances, accounts receivable, and payment collection.
-- Product acquisition-cost tracking and accounting-profit calculations.
+- Historical acquisition-cost tracking and accounting-profit calculations; the current
+  catalog acquisition cost remains available for product administration and detail.
 - Fiscal invoicing, tax filing, payroll, and general-ledger accounting.
 - Integrations with external accounting, commerce, or logistics systems.
 - Mandatory screen layouts, navigation structures, charts, and visual styling from the
@@ -416,10 +435,11 @@ without losing historical attribution.
 - **User**: An authenticated person with an Administrator or Driver role and an active
   or inactive status.
 - **Role**: The permissions granted to an Administrator or Driver.
-- **Location**: A fixed stock-holding branch, initially Magdalena or Caborca, identified
+- **Location**: A fixed stock-holding branch, initially Magdalena or Tucson, identified
   by name and active status.
 - **Product**: A sellable item with a stable identity, description, category, standard
-  price, unit of sale, low-stock threshold, and active status.
+  price, current acquisition cost, supplier, unit of sale, low-stock threshold, and
+  active status.
 - **Category**: A stable classification used to group products and cash-close totals.
 - **Inventory Balance**: The current quantity of one product at a branch or in temporary
   inventory belonging to an active route.
@@ -479,12 +499,15 @@ without losing historical attribution.
   post-close ordinary edits are rejected without changing route or inventory history.
 - **SC-012**: In cancellation acceptance tests, 100 percent of authorized sale
   cancellations preserve the original sale and restore each quantity exactly once.
+- **SC-013**: In inventory navigation acceptance tests, 100 percent of selectable
+  products open the matching detail record, and changing the location filter never
+  displays a location outside the selected scope.
 
 ## Assumptions
 
 - Users have reliable network access while using the browser-based application;
   offline capture and synchronization are not required for the first release.
-- The business operates as one organization with Magdalena and Caborca as the initial
+- The business operates as one organization with Magdalena and Tucson as the initial
   fixed stock-holding branches and may add or deactivate branches later without
   changing historical records.
 - One configured business currency and one configured business timezone apply to the
