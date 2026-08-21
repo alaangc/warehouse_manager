@@ -90,7 +90,7 @@ export function HomePage() {
       )}
       <nav className="bottom-navigation" aria-label="Navegación principal">
         <button className="bottom-navigation__item bottom-navigation__item--active" type="button"><Home size={20} aria-hidden="true" /><span>Inicio</span></button>
-        <button className="bottom-navigation__item" type="button" disabled><Box size={20} aria-hidden="true" /><span>Inventario</span></button>
+        <button className="bottom-navigation__item" type="button" onClick={() => navigate('/inventario')}><Box size={20} aria-hidden="true" /><span>Inventario</span></button>
         <button className="bottom-navigation__item" type="button" disabled><ShoppingCart size={20} aria-hidden="true" /><span>Repartos</span></button>
         <button className="bottom-navigation__item" type="button" disabled><BarChart3 size={20} aria-hidden="true" /><span>Reportes</span></button>
         <button className="bottom-navigation__item" type="button" onClick={() => setMoreOpen((open) => !open)} aria-expanded={moreOpen} aria-controls="more-menu"><Menu size={20} aria-hidden="true" /><span>Más</span></button>

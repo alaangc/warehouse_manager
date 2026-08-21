@@ -5,6 +5,8 @@ import { ActiveDeliveryPage } from './pages/ActiveDeliveryPage'
 import { DeliveryCustomersPage } from './pages/DeliveryCustomersPage'
 import { DeliveryCustomerDetailPage } from './pages/DeliveryCustomerDetailPage'
 import { NewDeliveryPage } from './pages/NewDeliveryPage'
+import { InventoryPage } from './pages/InventoryPage'
+import { InventoryProductDetailPage } from './pages/InventoryProductDetailPage'
 import { hasTemporarySession } from './services/temporary-auth'
 
 function ProtectedRoute() {
@@ -20,6 +22,8 @@ export function App() {
         <Route path="/iniciar-sesion" element={<LoginPage />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/inicio" element={<HomePage />} />
+          <Route path="/inventario" element={<InventoryPage />} />
+          <Route path="/inventario/productos/:productId" element={<InventoryProductDetailPage />} />
           <Route path="/repartos/nuevo" element={<NewDeliveryPage />} />
           <Route path="/repartos/:deliveryId" element={<ActiveDeliveryPage />} />
           <Route path="/repartos/:deliveryId/clientes" element={<DeliveryCustomersPage />} />

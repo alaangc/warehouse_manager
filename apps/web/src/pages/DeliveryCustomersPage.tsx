@@ -81,7 +81,7 @@ export function DeliveryCustomersPage() {
 
       <nav className="bottom-navigation" aria-label="Navegación principal">
         <button className="bottom-navigation__item" type="button" onClick={() => navigate('/inicio')}><Home size={20} /><span>Inicio</span></button>
-        <button className="bottom-navigation__item" type="button" disabled><Package size={20} /><span>Inventario</span></button>
+        <button className="bottom-navigation__item" type="button" onClick={() => navigate('/inventario')}><Package size={20} /><span>Inventario</span></button>
         <button className="bottom-navigation__item bottom-navigation__item--active" type="button" onClick={() => navigate(`/repartos/${delivery.id}`)}><ShoppingCart size={20} /><span>Repartos</span></button>
         <button className="bottom-navigation__item" type="button" disabled><BarChart3 size={20} /><span>Reportes</span></button>
         <button className="bottom-navigation__item" type="button" disabled><Menu size={20} /><span>Más</span></button>
