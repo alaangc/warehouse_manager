@@ -1,6 +1,6 @@
 # Data Model: Warehouse Management Operations
 
-**Date**: 2026-08-21
+**Date**: 2026-08-26
 **Feature**: [Warehouse Management Operations](./spec.md)  
 **Research**: [Phase 0 decisions](./research.md)
 
@@ -106,7 +106,7 @@ session/CSRF tokens, and browser device handles. The runtime database role has
 | Catalog and configuration | Product, category, unit, location, vehicle, customer, and customer-price create/edit/archive/deactivate; BusinessSetting, PrinterProfile, and UserPrinterPreference changes |
 | Inventory | Entry, manual exit, transfer, positive/negative adjustment, and reversal |
 | Routes | Create/assignment, load confirmation, start, return, reconciliation approval, difference, closure, and correction |
-| Sales and finance | Sale confirmation/cancellation, CashClose creation, and persisted ReportSnapshot creation |
+| Sales and finance | Sale confirmation/cancellation, CashClose creation/correction/current-pointer replacement, and persisted ReportSnapshot creation |
 
 InventoryMovement and OutputAttempt are specialized immutable ledgers, but they do not
 replace the AuditEvent required for the related source mutation. Integration tests must
@@ -372,11 +372,36 @@ Reprints always reference this record.
 
 ### CashClose, CashCloseLine, and CashCloseSale
 
-CashClose stores an immutable unique close number, period start/end, business timezone,
-currency, gross total, partner rate, partner amount, remaining amount, rounding mode,
-creator, idempotency request, and creation time. CashCloseLine stores one row per
-reporting group with exact total. CashCloseSale links every contributing Sale and its
-included amount. These snapshots make the result reproducible after catalog changes.
+CashClose is immutable and stores an immutable unique close number, `period_kind`
+(`DAY | WEEK | MONTH`), local `anchor_date`, resolved `[period_start, period_end)` UTC
+instants, captured IANA `business_timezone`, currency, gross total, partner rate,
+partner amount, remaining amount, rounding mode, creator, idempotency request, and
+creation time. A correction additionally stores a unique nullable
+`supersedes_cash_close_id` self-reference and mandatory `correction_reason`; both are
+null for an initial close and both are present for a correction. A constraint trigger
+rejects a correction whose predecessor has a different exact period and prevents a
+predecessor from having more than one direct successor. CashCloseLine stores one row
+per reporting group with exact total. CashCloseSale links every contributing Sale and
+its included amount. No CashClose, line, or contributing-sale snapshot is updated or
+deleted when a correction occurs.
+
+The API derives boundaries from `period_kind` and `anchor_date` in the configured
+business timezone. DAY is local midnight to the next local midnight; WEEK is Monday
+local midnight to the next Monday; MONTH is the first local midnight to the next
+month's first local midnight. Boundaries are start-inclusive/end-exclusive and are
+resolved independently before conversion to UTC, including across offset changes.
+
+### CashCloseCurrentPeriod
+
+One mutable pointer row identifies the current immutable CashClose for an exact period:
+`business_timezone`, `period_start`, `period_end`, and `current_cash_close_id`. The
+period fields form the primary key, `current_cash_close_id` is unique, and a composite
+foreign key to CashClose `(id, business_timezone, period_start, period_end)` prevents a
+pointer from targeting a close for another period; CashClose therefore has a matching
+unique key across those four columns. `CHECK (period_end > period_start)`
+applies to both records. Current/superseded status and `superseded_by_cash_close_id` are
+derived by joining this pointer and the unique successor relationship; they are not
+mutable fields on CashClose.
 
 ### ReportSnapshot
 
@@ -477,7 +502,7 @@ The following operations use Serializable transactions and persisted idempotency
 2. Route-load confirmation.
 3. Route start, return, reconciliation approval, and closure.
 4. Sale confirmation and cancellation.
-5. Cash-close creation.
+5. Cash-close creation and correction.
 
 All affected balance rows are locked in `(stock_location_id, product_id)` order. The
 transaction contains the business record, balance changes, InventoryOperation and
@@ -486,6 +511,19 @@ none of them partially committed.
 
 Document generation and output attempts are separate transactions after their source
 record commits. Their failure never reverses or duplicates the source.
+
+Cash-close creation resolves the calendar period, acquires persisted idempotency,
+inserts the immutable close/lines/sale links, inserts the sole current-period pointer,
+writes AuditEvent, and completes idempotency in one Serializable transaction. An
+identical replay returns the stored result. A different request for an occupied period
+maps the pointer uniqueness failure to `CASH_CLOSE_PERIOD_ALREADY_CURRENT`.
+
+Cash-close correction acquires idempotency, locks the current-period pointer, verifies
+that it still points to the requested predecessor, inserts an immutable same-period
+successor and snapshots, compare-and-swaps the pointer, records the mandatory reason
+and old-to-new AuditEvent, and completes idempotency in one Serializable transaction.
+A stale or losing concurrent correction returns `CASH_CLOSE_NOT_CURRENT`; audit,
+pointer, or idempotency failure rolls back the entire correction.
 
 ## Role-Scoped Read Projections
 
@@ -498,10 +536,21 @@ These are query projections, not additional stored ledgers:
 - **DriverRouteHistory** applies `route.driver_id = authenticated_user.id` and includes
   every assigned route in every state plus its load, movements, sales, reconciliation,
   differences, return, and closure history.
+- **DocumentHistory** returns all DocumentOutput rows to Administrators. For Drivers it
+  joins through the immutable source and returns TICKET only when
+  `sale.driver_id = authenticated_user.id` and ROUTE_LOAD only when its Route has
+  `route.driver_id = authenticated_user.id` and the RouteLoad is CONFIRMED. Output
+  creator never grants or narrows access.
+- **OutputAttemptHistory** applies the same DocumentOutput-to-source predicate for both
+  list and direct-attempt reads, regardless of `OutputAttempt.actor_id`. TEST_PRINT has
+  no business source and appears only in Administrator history.
 - Administrators may query system-wide sale and route history. Driver-provided
-  `driver_id`, `sale_id`, or `route_id` values never broaden scope. Both list and
-  direct-detail queries apply the ownership predicate and use the contract's consistent
-  forbidden/not-found policy, with deny-path contract, integration, and E2E tests.
+  `driver_id`, `sale_id`, `route_id`, document/attempt IDs, filters, or cursors never
+  broaden scope. All list and direct-detail queries apply the ownership predicate and
+  use the contract's consistent forbidden/not-found policy, with deny-path contract,
+  integration, and E2E tests. Document and OutputAttempt lists use stable
+  `(created_at DESC, id DESC)` keyset pagination with opaque principal/filter-bound
+  cursors, default limit 25, and maximum limit 100.
 
 ## Required Database Constraints and Indexes
 
@@ -513,11 +562,18 @@ These are query projections, not additional stored ledgers:
 - Partial unique active route per driver and per vehicle.
 - One load and one reconciliation per route; one sale ticket and at most one cancellation
   per sale.
+- CashClose and CashCloseCurrentPeriod checks require `period_end > period_start`;
+  CashClose has a unique nullable predecessor link; a constraint trigger enforces
+  same-period non-branching supersession; and the current-period primary/composite keys
+  permit exactly one current immutable close per timezone/start/end tuple.
 - `btree_gist`-backed partial GiST exclusion of overlapping active CustomerPrice
   `[valid_from, valid_to)` ranges per customer/product, plus a valid-endpoint check.
 - Unique idempotency tuple and critical client operation UUID.
 - Search indexes for active products/customers, movement time/product/location, sale
   completion/customer/driver/route, route state/date/driver, and report period filters.
+- DocumentOutput indexes on `(created_at DESC, id DESC)`, type/state/source, and
+  source-ownership joins; OutputAttempt indexes on `(created_at DESC, id DESC)` and
+  `(document_output_id, created_at DESC, id DESC)`.
 - Restrictive historical foreign keys; no cascade delete from catalog/identity records
   into business history.
 

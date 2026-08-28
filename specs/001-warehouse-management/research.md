@@ -1,6 +1,6 @@
 # Phase 0 Research: Warehouse Management Operations
 
-**Date**: 2026-08-21
+**Date**: 2026-08-26
 **Feature**: [Warehouse Management Operations](./spec.md)
 
 This research resolves every technical unknown identified in the implementation plan.
@@ -99,13 +99,20 @@ end-to-end tests cover both allowed history and attempts to access another Drive
 records.
 
 Document authorization resolves the immutable source record before creating, reading,
-downloading, sharing, printing, reprinting, or recording an output attempt.
+downloading, sharing, printing, reprinting, recording an output attempt, or returning
+document/output-attempt list and detail history.
 Administrators may access all four document types. Drivers may access TICKET only when
 the source Sale belongs to the authenticated Driver and ROUTE_LOAD only when the source
 load is confirmed and its Route is assigned to that Driver. Drivers are denied
 CASH_CLOSE, REPORT, another Driver's Sale Ticket, and unassigned-route load documents.
-The same source predicate applies to request, status, content, and OutputAttempt paths;
-frontend-hidden actions never substitute for API enforcement.
+The same source predicate applies to request, status, content, DocumentOutput lists,
+OutputAttempt lists/direct IDs, and attempt writes; neither `DocumentOutput.created_by`
+nor `OutputAttempt.actor_id` grants access. TEST_PRINT has no source and is visible in
+history only to Administrators. Lists use stable keyset order `(created_at DESC, id
+DESC)`, default 25 and maximum 100 items, and opaque cursors bound to the authenticated
+principal and normalized filters. Filters always intersect mandatory scope; cursor or
+filter manipulation cannot enumerate forbidden records. Frontend-hidden actions never
+substitute for API enforcement.
 
 **Alternatives considered**:
 
@@ -280,6 +287,59 @@ database rounding prevents historical recalculation drift.
 **Sources**: [PostgreSQL numeric types](https://www.postgresql.org/docs/current/datatype-numeric.html),
 [PostgreSQL money type](https://www.postgresql.org/docs/current/datatype-money.html),
 [decimal.js](https://mikemcl.github.io/decimal.js/)
+
+## Reporting Calendar Period Resolution
+
+**Decision**: Reporting and cash-close requests identify `DAY`, `WEEK`, or `MONTH`
+plus a local anchor date. The API resolves the period in the captured configured IANA
+business timezone: a day is local midnight to the next local midnight, a week is
+Monday local midnight to the next Monday local midnight, and a month is the first local
+midnight to the next month's first local midnight. Every interval is `[start,end)`.
+Resolve the two local boundaries independently with `Temporal.ZonedDateTime`, using a
+pinned `@js-temporal/polyfill` until the Node baseline provides equivalent tested
+support, then persist/return the resulting UTC instants and captured timezone.
+
+**Rationale**: The API remains authoritative and clients cannot submit subtly different
+calendar boundaries. Resolving both local midnights independently handles offset changes
+and 23- or 25-hour local days without assuming every day is 24 elapsed hours. Persisted
+instants and timezone make saved financial outputs reproducible after configuration or
+timezone-database changes.
+
+**Alternatives considered**:
+
+- Client-computed `from`/`to` instants: rejected because browser and API calculations
+  can drift and malformed boundaries are difficult to distinguish from custom ranges.
+- Adding fixed 24-hour durations in UTC: rejected because it is incorrect across local
+  offset changes.
+- Configurable week starts: rejected because the approved business rule fixes Monday.
+
+**Sources**: [Temporal.ZonedDateTime](https://tc39.es/proposal-temporal/docs/zoneddatetime.html),
+[Temporal polyfill](https://github.com/js-temporal/temporal-polyfill)
+
+## Cash-Close Currentness and Supersession
+
+**Decision**: Keep every CashClose and its financial/source snapshots immutable. A
+separate CashCloseCurrentPeriod row keyed by exact resolved period identifies the sole
+current close. A normal create inserts both the immutable close and current pointer in
+one Serializable transaction. The same idempotency key and request hash replay the
+original response; a different create for an occupied period returns 409
+`CASH_CLOSE_PERIOD_ALREADY_CURRENT`. A correction is an explicit Administrator command
+against the current close with a mandatory reason. It locks the period pointer, inserts
+a replacement linked through `supersedes_cash_close_id`, compare-and-swaps the pointer,
+audits the old-to-new relationship, and commits idempotency atomically. A stale or
+concurrent correction returns 409 `CASH_CLOSE_NOT_CURRENT`.
+
+**Rationale**: A separate current pointer enforces one current result without changing
+the prior CashClose row. The correction chain preserves every calculation and source
+set, while the locked compare-and-swap prevents concurrent correction branches.
+
+**Alternatives considered**:
+
+- Mutable `is_current` or financial fields on CashClose: rejected because prior closes
+  must remain immutable and reproducible.
+- Multiple independent closes for the same period: rejected because users could not
+  identify the authoritative current result.
+- Deleting/replacing the old close: rejected by historical-integrity requirements.
 
 ## Frontend Application Stack
 

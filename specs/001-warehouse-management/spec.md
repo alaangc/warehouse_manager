@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-14
 
-**Last Updated**: 2026-08-20
+**Last Updated**: 2026-08-26
 
 **Status**: Draft
 
@@ -73,6 +73,21 @@ its screen examples as context and its recommendations as unapproved proposals.
 - Q: What should count as a failed first attempt during the usability test? → A: The
   attempt is one uninterrupted run; corrections before final submission are allowed,
   but a rejected final submission, restart, or assistance fails the attempt.
+
+### Session 2026-08-26
+
+- Q: How should day, week, and month reporting periods be bounded in the configured
+  business timezone? → A: Days start at local midnight, weeks run Monday through
+  Sunday, and months use calendar months; every period includes its start and excludes
+  the next period's start.
+- Q: When separate requests try to create a cash close for the same exact period, what
+  should the system do? → A: Allow one current cash close per exact period. Retries
+  reuse it, while a correction creates a linked superseding close without deleting the
+  original.
+- Q: Should authorized users be able to browse document records and their output-attempt
+  history, or access documents only from the related source record? → A: Provide
+  document lists and output-attempt history. Administrators see all; Drivers see only
+  their own sale tickets and assigned confirmed-route-load documents.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -211,6 +226,10 @@ reporting period, and compare every displayed result with the source records.
 3. **Given** completed activity, **When** an administrator reviews operations, **Then**
    sales by driver, best-selling products, inventory by branch, and the approved
    financial result are shown.
+4. **Given** a current cash close for an exact period, **When** the same request is
+   retried or a correction is required, **Then** an identical retry returns the
+   original result and an authorized correction creates one linked current close that
+   supersedes but does not delete the original.
 
 ---
 
@@ -238,6 +257,10 @@ from known records, save or share it where applicable, and simulate output failu
 4. **Given** a Driver, **When** the Driver requests a cash-close document, report
    document, another Driver's sale ticket, or a route-load document for an unassigned
    route, **Then** access is denied without creating or exposing the document.
+5. **Given** document outputs and attempts belonging to multiple Drivers, **When** an
+   authorized user browses document or output-attempt history, **Then** an Administrator
+   sees all records and a Driver sees only sale-ticket records for their own sales and
+   confirmed-route-load records for routes assigned to them.
 
 ---
 
@@ -303,7 +326,9 @@ without losing historical attribution.
   sale-ticket documents for their own sales, confirmed-route-load documents for their
   assigned routes, and limited printer settings. Drivers MUST NOT view another Driver's
   history or documents, access cash-close or report documents, or maintain products,
-  prices, users, general inventory, or unrelated movements.
+  prices, users, general inventory, or unrelated movements. Document and output-attempt
+  history lists, filters, and direct-record access MUST enforce these same source-based
+  restrictions.
 
 #### Products and Inventory
 
@@ -395,17 +420,27 @@ without losing historical attribution.
 #### Cash Closing and Reports
 
 - **FR-025**: Administrators MUST be able to create a cash close showing totals for
-  Sodas, Charcoal, Tostadas, other categories, and the overall total.
+  Sodas, Charcoal, Tostadas, other categories, and the overall total. Only one cash
+  close MUST be current for an exact start/end period. An identical idempotent retry
+  MUST return the original close, while a separate create request for a period that
+  already has a current close MUST be rejected as a conflict unless it is an authorized
+  correction.
 - **FR-026**: Each cash close MUST calculate the partner's share as 50 percent of gross
   sales and MUST calculate the remaining share as gross sales minus the partner share.
 - **FR-027**: A saved cash close MUST preserve its contributing records, calculated
-  values, rounding results, creator, and creation time so it can be reproduced.
+  values, rounding results, creator, and creation time so it can be reproduced. An
+  authorized correction MUST create a new immutable close linked to the close it
+  supersedes and MUST atomically make the new close current without deleting or
+  rewriting any prior close.
 - **FR-028**: Administrators MUST be able to review activity for a selected day, week,
   or month.
 - **FR-029**: Reports MUST provide sales by driver, best-selling products, inventory by
   branch, gross sales, the partner share, and the remaining share.
-- **FR-030**: Reporting periods MUST use one configured business timezone and consistent
-  period boundaries.
+- **FR-030**: Reporting periods MUST use the configured business timezone. A day MUST
+  start at local midnight and end at the next local midnight; a week MUST start Monday
+  at local midnight and end the next Monday at local midnight; and a month MUST start
+  on its first day at local midnight and end on the first day of the next month at
+  local midnight. Every period MUST include its start and exclude its end.
 
 #### Documents and Printing
 
@@ -413,7 +448,12 @@ without losing historical attribution.
   tickets, confirmed route loads, cash closes, and reports that match their stored
   source records. Administrators MUST be able to generate all four types. Drivers MUST
   be limited to sale tickets for their own sales and confirmed route loads for routes
-  assigned to them. Draft route loads MUST NOT produce an output document.
+  assigned to them. Draft route loads MUST NOT produce an output document. Authorized
+  users MUST be able to list and retrieve document records and their output-attempt
+  history under the same source-based rules: Administrators may access all records,
+  while Drivers may access only their own sale-ticket records and assigned confirmed-
+  route-load records. User-supplied filters or direct identifiers MUST NOT broaden
+  access or expose unauthorized metadata.
 - **FR-032**: Users MUST be able to save or share each generated portable document.
 - **FR-033**: Authorized users MUST be able to print sale tickets, confirmed route
   loads, and cash closes on a configured Bluetooth thermal printer. Administrators MUST
@@ -499,7 +539,8 @@ without losing historical attribution.
 - **Route Line**: Loaded, sold, expected-return, physical-return, difference, adjusted,
   and remaining quantities for one product within a route.
 - **Cash Close**: A preserved summary of category totals, overall total, partner share,
-  remaining amount, contributing records, creator, and time.
+  remaining amount, contributing records, creator, time, current/superseded state, and
+  optional link to the prior close it supersedes.
 - **Report**: A reproducible view of operational records for a selected period and
   reporting dimension.
 - **Document Output**: A generated or printed representation linked to its source

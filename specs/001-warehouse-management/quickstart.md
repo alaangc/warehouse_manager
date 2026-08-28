@@ -214,9 +214,14 @@ Expected:
    the second Driver's Ticket, an unassigned route load, CASH_CLOSE, REPORT, and a DRAFT
    route load through list filters, direct document IDs, content/share URLs,
    PRINT/REPRINT, and manipulated source IDs.
-6. As Administrator, retrieve both Drivers' records and deactivate a customer/product/
+6. Seed more than one page of DocumentOutput and OutputAttempt history across both
+   Drivers, all four document types, and TEST_PRINT. Browse both history collections as
+   Administrator and as the first Driver; follow the next cursor, apply type/state/
+   source/document/mode/time filters, reuse a cursor with changed filters, and directly
+   request an attempt belonging to an unauthorized source.
+7. As Administrator, retrieve both Drivers' records and deactivate a customer/product/
    user referenced by history.
-7. Attempt to deactivate a driver or vehicle assigned to an active route.
+8. Attempt to deactivate a driver or vehicle assigned to an active route.
 
 Expected:
 
@@ -228,6 +233,12 @@ Expected:
   creator. Forbidden or DRAFT-load requests return the defined 403/409 response without
   exposing metadata/bytes or creating a DocumentOutput, accepted OutputAttempt, storage
   write, or Bluetooth-device write. Reusing an existing output never bypasses access.
+- Administrator document/attempt history contains all records including TEST_PRINT.
+  Driver history contains every output and attempt for that Driver's own Sale Tickets
+  and assigned confirmed RouteLoads, including Administrator-created/recorded rows, but
+  excludes CASH_CLOSE, REPORT, other-Driver, unassigned-route, and TEST_PRINT rows.
+  Pagination has no gaps/duplicates; filter/cursor manipulation and direct unauthorized
+  attempt IDs return the safe 403 policy without revealing metadata.
 - Historical sales, movements, prices, and actor attribution remain available after
   archival.
 - Active assignment conflicts return 409 until resolved.
@@ -248,17 +259,34 @@ Expected:
 
 ### 6. Cash Close and Reports
 
-1. Create sales spanning all reporting groups and a business-day boundary.
-2. Generate day/week/month reports and a saved cash close.
-3. Change current prices/category names after the close and retrieve it again.
+1. Create sales spanning all reporting groups, Sunday/Monday, a month end, and a
+   business-timezone offset transition fixture.
+2. Generate DAY, WEEK, and MONTH reports from local anchor dates. Verify Sunday
+   23:59:59.999 belongs to the Monday-started week and the next Monday 00:00 belongs to
+   the next week; verify month-end and 23/25-hour local-day boundaries.
+3. Create a cash close, replay the identical request with its Idempotency-Key, then use
+   a new key to request another close for the same exact period.
+4. Correct the current close with a mandatory reason, retrieve both predecessor and
+   successor, and attempt a second correction against the now-superseded predecessor.
+5. Race two independent creates for an empty period and two corrections against one
+   current close; inject audit and current-pointer update failures.
+6. Change current prices/category names after the close and retrieve every version
+   again.
 
 Expected:
 
-- Period boundaries use the configured business timezone.
+- The API derives `[start,end)` instants from DAY/WEEK/MONTH plus the local anchor date
+  in the configured timezone; weeks start Monday and local boundaries remain correct
+  across offset changes.
 - Category totals sum to exact gross sales; partner amount is 50% of gross and the
   remaining amount is exact under the documented rounding rule.
-- The saved close remains byte-for-byte numerically reproducible from its snapshots and
-  contributing sale IDs after catalog changes.
+- Same-key replay returns the same close ID and body; a new-key duplicate returns 409
+  `CASH_CLOSE_PERIOD_ALREADY_CURRENT`.
+- A correction creates a linked immutable successor and atomically makes it current;
+  the predecessor remains byte-for-byte reproducible and directly retrievable. A stale
+  correction returns 409 `CASH_CLOSE_NOT_CURRENT`.
+- Concurrent create/correction races yield exactly one current close and no branch;
+  audit or pointer failure rolls back the entire attempted correction.
 
 ### 7. Documents, Sharing, and Printing
 

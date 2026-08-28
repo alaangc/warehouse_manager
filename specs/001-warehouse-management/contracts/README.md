@@ -28,8 +28,10 @@ types, and exercised with request/response validation in API integration tests.
   unexpected failures 500. All use RFC 9457 `application/problem+json`.
 - Mutable catalog resources carry `version`; updates submit `expectedVersion` and fail
   with 409 rather than silently overwriting a concurrent change.
-- List endpoints use cursor pagination. Stable ordering and cursor semantics are defined
-  per endpoint during implementation and included in generated descriptions/tests.
+- List endpoints use opaque keyset cursors with stable `(createdAt DESC, id DESC)`
+  ordering, default limit 25, and maximum limit 100. A cursor is bound to the
+  authenticated principal, role, and normalized filters and cannot be reused to change
+  scope.
 - Routes expose explicit transition commands rather than a generic state update.
 - Canonical PDF generation and output-attempt recording operate only on committed source
   records. Retrying output never retries the underlying sale, load, reconciliation, or
@@ -37,6 +39,24 @@ types, and exercised with request/response validation in API integration tests.
 - `TICKET` is the only customer-facing sale-document type and always derives from a
   committed `SALE`; there is no second customer-facing document type. Document request
   schemas constrain every document type to its valid source type.
+
+## Reporting Periods and Cash-Close Corrections
+
+Report and cash-close requests use `periodKind` (`DAY`, `WEEK`, or `MONTH`) plus a local
+`anchorDate`; clients do not author authoritative UTC boundaries. The API resolves the
+period in the configured IANA business timezone and returns the captured timezone and
+resolved `[periodStart, periodEnd)` instants. Days run local midnight to local midnight,
+weeks Monday to Monday, and months first-of-month to first-of-next-month. Each local
+boundary is resolved independently across timezone-offset changes.
+
+Only one CashClose is current for an exact timezone/start/end tuple. Replaying the same
+request under the same Idempotency-Key returns its original status/body. A separate
+create for an occupied period returns 409 `CASH_CLOSE_PERIOD_ALREADY_CURRENT`; reusing
+an idempotency key with changed content returns 409 `IDEMPOTENCY_KEY_REUSED`.
+`POST /cash-closes/{cashCloseId}/corrections` requires a reason and creates an immutable
+same-period successor. It atomically moves the current-period pointer without changing
+the predecessor snapshot. Targeting a non-current close or losing a concurrent
+correction returns 409 `CASH_CLOSE_NOT_CURRENT`.
 
 ## Compatibility Policy
 
@@ -84,6 +104,15 @@ CASH_CLOSE, or REPORT returns 403 without exposing or creating anything. An auth
 DRAFT RouteLoad request returns 409 `ROUTE_LOAD_NOT_CONFIRMED`; drafts have no output
 document. Authentication/source authorization runs before capability validation, so a
 Driver's REPORT print attempt returns 403 while an Administrator's returns 422.
+
+`GET /documents`, `GET /output-attempts`, and
+`GET /output-attempts/{outputAttemptId}` expose browsable history under the same source
+authorization. Administrators see all records, including TEST_PRINT attempts. Drivers
+see documents and attempts only when the immutable source is their own Sale or a
+CONFIRMED RouteLoad on an assigned Route, even when an Administrator created the output
+or recorded the attempt. TEST_PRINT has no source and is therefore excluded from Driver
+history. Type/state/source/document/mode/time filters intersect mandatory scope; direct
+IDs, filters, and cursors never broaden it or expose forbidden metadata.
 
 ## Acceptance-Test Boundaries
 

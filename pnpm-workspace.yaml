@@ -1,0 +1,8 @@
+packages:
+  - apps/*
+  - packages/*
+  - database
+
+onlyBuiltDependencies:
+  - argon2
+  - esbuild

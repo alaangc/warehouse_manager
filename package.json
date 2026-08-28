@@ -1,0 +1,51 @@
+{
+  "name": "warehouse-manager",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.28.1",
+  "engines": {
+    "node": ">=24 <25",
+    "pnpm": "10.28.1"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @warehouse/api --filter @warehouse/web dev",
+    "build": "pnpm -r build",
+    "build:api": "pnpm --filter @warehouse/api build",
+    "build:web": "pnpm --filter @warehouse/web build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "pnpm --filter @warehouse/contracts build && vitest run --config vitest.workspace.ts",
+    "test:unit": "pnpm --filter @warehouse/contracts build && vitest run --config vitest.workspace.ts --project api-unit --project web",
+    "test:api": "pnpm --filter @warehouse/contracts build && vitest run --config vitest.workspace.ts --project api-contract",
+    "test:integration": "pnpm --filter @warehouse/contracts build && vitest run --config vitest.workspace.ts --project api-integration",
+    "test:contract": "pnpm --filter @warehouse/contracts contract:check",
+    "test:e2e": "playwright test",
+    "contract:generate": "pnpm --filter @warehouse/contracts contract:generate",
+    "contract:lint": "pnpm --filter @warehouse/contracts contract:lint",
+    "contract:check-diff": "pnpm --filter @warehouse/contracts contract:check",
+    "db:migrate": "pnpm --filter @warehouse/api db:migrate",
+    "db:seed": "pnpm --filter @warehouse/api db:seed",
+    "db:test:up": "docker compose up -d postgres-test",
+    "db:test:reset": "docker compose down -v && docker compose up -d postgres-test",
+    "db:verify": "pnpm --filter @warehouse/api db:verify",
+    "db:recovery:test": "pnpm --filter @warehouse/api db:recovery:test"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "26.4.0",
+    "@playwright/test": "1.62.1",
+    "@redocly/cli": "2.48.0",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/react": "16.3.2",
+    "@vitest/coverage-v8": "4.1.11",
+    "eslint": "10.0.3",
+    "prettier": "3.9.6",
+    "tsx": "4.23.12",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.68.0",
+    "vitest": "4.1.11"
+  }
+}

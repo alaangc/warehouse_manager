@@ -1,0 +1,48 @@
+export type RouteState = 'PREPARING' | 'EN_ROUTE' | 'RETURNED' | 'CLOSED';
+
+export interface RouteResource {
+  id: string;
+  routeNumber: string;
+  state: RouteState;
+  originLocationId: string;
+  driverId: string;
+  vehicleId: string;
+  businessDate: string;
+  createdBy: string;
+  createdAt: string;
+  startedAt: string | null;
+  returnedAt: string | null;
+  closedAt: string | null;
+  closedBy: string | null;
+  version: number;
+}
+
+export interface RouteLoad {
+  id: string;
+  routeId: string;
+  state: 'DRAFT' | 'CONFIRMED';
+  recordedBy: string;
+  confirmedAt: string | null;
+  lines: { productId: string; quantity: string }[];
+  version: number;
+}
+
+export interface RouteDetail {
+  route: RouteResource;
+  load: RouteLoad | null;
+  balances: Array<{ id: string; productId: string; productName: string; quantity: string }>;
+  movements: Array<Record<string, unknown>>;
+  sales: Array<Record<string, unknown>>;
+  reconciliation: null | {
+    id: string;
+    state: 'APPROVED';
+    lines: Array<{
+      productId: string;
+      loadedQuantity: string;
+      soldQuantity: string;
+      physicalReturnQuantity: string;
+      differenceQuantity: string;
+      differenceReason: string | null;
+    }>;
+  };
+}

@@ -30,15 +30,15 @@ Foundational phases.
 **Purpose**: Create the independently buildable TypeScript workspace and local
 development environment selected in the implementation plan.
 
-- [ ] T001 Create the pnpm workspace manifests and planned directory skeleton in `package.json`, `pnpm-workspace.yaml`, `apps/api/`, `apps/web/`, `packages/contracts/`, `packages/config/`, `database/`, and `tests/e2e/`
-- [ ] T002 Pin Node.js 24 LTS and the pnpm release and add root lifecycle scripts in `.nvmrc`, `.npmrc`, and `package.json`
-- [ ] T003 [P] Configure strict TypeScript 6 ESM presets for browser, Node, and tests in `packages/config/tsconfig.base.json`, `packages/config/tsconfig.node.json`, and `packages/config/tsconfig.web.json`
-- [ ] T004 [P] Configure ESLint, Prettier, and repository-wide format/lint scripts in `eslint.config.js`, `.prettierrc.json`, `.prettierignore`, and `package.json`
-- [ ] T005 [P] Initialize the Express 5 API package and its build/dev scripts in `apps/api/package.json`, `apps/api/tsconfig.json`, and `apps/api/src/main.ts`
-- [ ] T006 [P] Initialize the React 19.2/Vite 8 application and its independent build scripts in `apps/web/package.json`, `apps/web/tsconfig.json`, `apps/web/vite.config.ts`, and `apps/web/src/main.tsx`
-- [ ] T007 [P] Initialize the Zod/OpenAPI contract package and generated-type exports in `packages/contracts/package.json`, `packages/contracts/tsconfig.json`, and `packages/contracts/src/index.ts`
-- [ ] T008 [P] Configure PostgreSQL 18 development and isolated test services in `compose.yaml` and `database/docker/init-test-db.sql`
-- [ ] T009 [P] Add safe environment templates, generated-document directories, and secret exclusions in `.env.example`, `apps/api/.env.example`, `.gitignore`, and `var/documents/.gitkeep`
+- [X] T001 Create the pnpm workspace manifests and planned directory skeleton in `package.json`, `pnpm-workspace.yaml`, `apps/api/`, `apps/web/`, `packages/contracts/`, `packages/config/`, `database/`, and `tests/e2e/`
+- [X] T002 Pin Node.js 24 LTS and the pnpm release and add root lifecycle scripts in `.nvmrc`, `.npmrc`, and `package.json`
+- [X] T003 [P] Configure strict TypeScript 6 ESM presets for browser, Node, and tests in `packages/config/tsconfig.base.json`, `packages/config/tsconfig.node.json`, and `packages/config/tsconfig.web.json`
+- [X] T004 [P] Configure ESLint, Prettier, and repository-wide format/lint scripts in `eslint.config.js`, `.prettierrc.json`, `.prettierignore`, and `package.json`
+- [X] T005 [P] Initialize the Express 5 API package with the pinned runtime dependencies, including `decimal.js` and `@js-temporal/polyfill`, and its build/dev scripts in `apps/api/package.json`, `apps/api/tsconfig.json`, and `apps/api/src/main.ts`
+- [X] T006 [P] Initialize the React 19.2/Vite 8 application and its independent build scripts in `apps/web/package.json`, `apps/web/tsconfig.json`, `apps/web/vite.config.ts`, and `apps/web/src/main.tsx`
+- [X] T007 [P] Initialize the Zod/OpenAPI contract package and generated-type exports in `packages/contracts/package.json`, `packages/contracts/tsconfig.json`, and `packages/contracts/src/index.ts`
+- [X] T008 [P] Configure PostgreSQL 18 development and isolated test services in `compose.yaml` and `database/docker/init-test-db.sql`
+- [X] T009 [P] Add safe environment templates, generated-document directories, and secret exclusions in `.env.example`, `apps/api/.env.example`, `.gitignore`, and `var/documents/.gitkeep`
 
 **Checkpoint**: `apps/api` and `apps/web` install, type-check, and build independently;
 the PostgreSQL development/test services start without application code.
@@ -52,27 +52,27 @@ authentication, contracts, auditing, and test harnesses needed by every story.
 
 **Critical**: No user-story implementation begins until this phase passes.
 
-- [ ] T010 [P] Configure Vitest projects and coverage thresholds for API, web, and shared packages in `vitest.workspace.ts`, `apps/api/vitest.config.ts`, and `apps/web/vitest.config.ts`
-- [ ] T011 [P] Configure Chromium, Firefox, and WebKit projects with isolated test data hooks in `playwright.config.ts` and `tests/e2e/support/test-fixtures.ts`
-- [ ] T012 [P] Build the PostgreSQL 18 Testcontainers harness and database reset helpers in `apps/api/tests/support/postgres-container.ts` and `apps/api/tests/support/reset-database.ts`
-- [ ] T013 [P] Implement strict startup environment validation for database, session, origin, timezone, currency, logging, and document storage in `apps/api/src/config/env.ts` and `apps/api/tests/unit/config/env.test.ts`
-- [ ] T014 Implement the Kysely/pg pool, database type entry point, and immutable ordered migrator in `apps/api/src/db/database.ts`, `apps/api/src/db/types.ts`, and `apps/api/src/db/migrate.ts`
-- [ ] T015 Create the base migration for the stable-UUID business-settings singleton, users, sessions, idempotency requests, append-only audit events, runtime/migration roles, and restrictive ledger privileges in `database/migrations/001_foundation.ts`
-- [ ] T016 Create deterministic development/test seeds for the 50% partner rate, America/Hermosillo timezone, Magdalena, Caborca, Administrator, and Driver fixtures in `database/seeds/001_foundation.ts`
-- [ ] T017 [P] Write failing exact-arithmetic tests for decimal parsing, quantity precision, line rounding, total summation, and 50% partner share in `apps/api/tests/unit/shared/money.test.ts`
-- [ ] T018 Implement the configured `decimal.js` money/quantity value objects and half-away-from-zero rounding policy in `apps/api/src/shared/money.ts` and `apps/api/src/shared/quantity.ts`
-- [ ] T019 [P] Write failing integration tests for Serializable retries, deadlock handling, idempotency replay/hash conflicts, mutation rollback when audit insertion fails, no success audit after mutation rollback, and bounded retry exhaustion in `apps/api/tests/integration/shared/transaction-idempotency.test.ts`
-- [ ] T020 Implement deterministic lock ordering and bounded Serializable transaction retries in `apps/api/src/db/serializable-transaction.ts`
-- [ ] T021 Implement persisted idempotency acquisition, canonical request hashing, completion, and replay in `apps/api/src/shared/idempotency/idempotency-repository.ts` and `apps/api/src/shared/idempotency/idempotency-service.ts`
-- [ ] T022 Implement the typed mutation-to-audit action registry and append-only AuditWriter with field allowlists, secret filtering, same-transaction participation, and rollback-on-audit-failure behavior in `apps/api/src/shared/audit/audit-actions.ts`, `apps/api/src/shared/audit/audit-service.ts`, and `apps/api/src/shared/audit/audit-types.ts`
-- [ ] T023 [P] Write failing Supertest coverage for login/session/logout, CSRF enforcement, same-origin checks, role denial, RFC 9457 errors, and sensitive-detail redaction in `apps/api/tests/contract/foundation/auth-errors.contract.test.ts`
-- [ ] T024 Implement request IDs, Pino redaction, safe RFC 9457 mapping, 404 handling, and health/readiness routes in `apps/api/src/http/request-context.ts`, `apps/api/src/http/logger.ts`, `apps/api/src/http/problem-handler.ts`, and `apps/api/src/http/health-routes.ts`
-- [ ] T025 Implement Argon2id login, PostgreSQL-backed opaque sessions, secure `__Host-` cookies, CSRF tokens, origin checks, rotation, logout, and throttling in `apps/api/src/auth/auth-service.ts`, `apps/api/src/auth/session-store.ts`, and `apps/api/src/auth/auth-routes.ts`
-- [ ] T026 Implement Administrator/Driver policy helpers and resource-level authorization middleware in `apps/api/src/auth/authorization.ts` and `apps/api/src/auth/policies.ts`
-- [ ] T027 Implement the shared Zod registry, decimal/UUID/pagination schemas, response serialization, and RFC 9457 schema in `packages/contracts/src/registry.ts`, `packages/contracts/src/common-schemas.ts`, and `packages/contracts/src/problem-schemas.ts`
-- [ ] T028 Generate and lint OpenAPI 3.1.2 plus frontend types, and compare generated semantics with the planning contract in `packages/contracts/scripts/generate-openapi.ts`, `packages/contracts/scripts/check-contract.ts`, `packages/contracts/openapi.yaml`, and `packages/contracts/src/generated/api-types.ts`
-- [ ] T029 Implement the credentialed frontend fetch adapter with CSRF/idempotency headers, Problem Details decoding, timeouts, cancellation, and explicit 401/403/409/422 handling in `apps/web/src/lib/api/client.ts`, `apps/web/src/lib/api/problem.ts`, and `apps/web/src/lib/api/idempotency.ts`
-- [ ] T030 Implement the React Router/MUI/TanStack Query application shell, authenticated-session bootstrap, role-aware navigation, and global loading/error boundaries in `apps/web/src/app/router.tsx`, `apps/web/src/app/providers.tsx`, `apps/web/src/app/layout.tsx`, and `apps/web/src/app/session.ts`
+- [X] T010 [P] Configure Vitest projects and coverage thresholds for API, web, and shared packages in `vitest.workspace.ts`, `apps/api/vitest.config.ts`, and `apps/web/vitest.config.ts`
+- [X] T011 [P] Configure Chromium, Firefox, and WebKit projects with isolated test data hooks in `playwright.config.ts` and `tests/e2e/support/test-fixtures.ts`
+- [X] T012 [P] Build the PostgreSQL 18 Testcontainers harness and database reset helpers in `apps/api/tests/support/postgres-container.ts` and `apps/api/tests/support/reset-database.ts`
+- [X] T013 [P] Implement strict startup environment validation for database, session, origin, timezone, currency, logging, and document storage in `apps/api/src/config/env.ts` and `apps/api/tests/unit/config/env.test.ts`
+- [X] T014 Implement the Kysely/pg pool, database type entry point, and immutable ordered migrator in `apps/api/src/db/database.ts`, `apps/api/src/db/types.ts`, and `apps/api/src/db/migrate.ts`
+- [X] T015 Create the base migration for the stable-UUID business-settings singleton, users, sessions, idempotency requests, append-only audit events, runtime/migration roles, and restrictive ledger privileges in `database/migrations/001_foundation.ts`
+- [X] T016 Create deterministic development/test seeds for the 50% partner rate, America/Hermosillo timezone, Magdalena, Caborca, Administrator, and Driver fixtures in `database/seeds/001_foundation.ts`
+- [X] T017 [P] Write failing exact-arithmetic tests for decimal parsing, quantity precision, line rounding, total summation, and 50% partner share in `apps/api/tests/unit/shared/money.test.ts`
+- [X] T018 Implement the configured `decimal.js` money/quantity value objects and half-away-from-zero rounding policy in `apps/api/src/shared/money.ts` and `apps/api/src/shared/quantity.ts`
+- [X] T019 [P] Write failing integration tests for Serializable retries, deadlock handling, idempotency replay/hash conflicts, mutation rollback when audit insertion fails, no success audit after mutation rollback, and bounded retry exhaustion in `apps/api/tests/integration/shared/transaction-idempotency.test.ts`
+- [X] T020 Implement deterministic lock ordering and bounded Serializable transaction retries in `apps/api/src/db/serializable-transaction.ts`
+- [X] T021 Implement persisted idempotency acquisition, canonical request hashing, completion, and replay in `apps/api/src/shared/idempotency/idempotency-repository.ts` and `apps/api/src/shared/idempotency/idempotency-service.ts`
+- [X] T022 Implement the typed mutation-to-audit action registry and append-only AuditWriter with field allowlists, secret filtering, same-transaction participation, and rollback-on-audit-failure behavior in `apps/api/src/shared/audit/audit-actions.ts`, `apps/api/src/shared/audit/audit-service.ts`, and `apps/api/src/shared/audit/audit-types.ts`
+- [X] T023 [P] Write failing Supertest coverage for login/session/logout, CSRF enforcement, same-origin checks, role denial, RFC 9457 errors, and sensitive-detail redaction in `apps/api/tests/contract/foundation/auth-errors.contract.test.ts`
+- [X] T024 Implement request IDs, Pino redaction, safe RFC 9457 mapping, 404 handling, and health/readiness routes in `apps/api/src/http/request-context.ts`, `apps/api/src/http/logger.ts`, `apps/api/src/http/problem-handler.ts`, and `apps/api/src/http/health-routes.ts`
+- [X] T025 Implement Argon2id login, PostgreSQL-backed opaque sessions, secure `__Host-` cookies, CSRF tokens, origin checks, rotation, logout, and throttling in `apps/api/src/auth/auth-service.ts`, `apps/api/src/auth/session-store.ts`, and `apps/api/src/auth/auth-routes.ts`
+- [X] T026 Implement Administrator/Driver policy helpers and resource-level authorization middleware in `apps/api/src/auth/authorization.ts` and `apps/api/src/auth/policies.ts`
+- [X] T027 Implement the shared Zod registry, decimal/UUID/pagination schemas, response serialization, and RFC 9457 schema in `packages/contracts/src/registry.ts`, `packages/contracts/src/common-schemas.ts`, and `packages/contracts/src/problem-schemas.ts`
+- [X] T028 Generate and lint OpenAPI 3.1.2 plus frontend types, and compare generated semantics with the planning contract in `packages/contracts/scripts/generate-openapi.ts`, `packages/contracts/scripts/check-contract.ts`, `packages/contracts/openapi.yaml`, and `packages/contracts/src/generated/api-types.ts`
+- [X] T029 Implement the credentialed frontend fetch adapter with CSRF/idempotency headers, Problem Details decoding, timeouts, cancellation, and explicit 401/403/409/422 handling in `apps/web/src/lib/api/client.ts`, `apps/web/src/lib/api/problem.ts`, and `apps/web/src/lib/api/idempotency.ts`
+- [X] T030 Implement the React Router/MUI/TanStack Query application shell, authenticated-session bootstrap, role-aware navigation, and global loading/error boundaries in `apps/web/src/app/router.tsx`, `apps/web/src/app/providers.tsx`, `apps/web/src/app/layout.tsx`, and `apps/web/src/app/session.ts`
 
 **Checkpoint**: Foundation contract tests pass; startup rejects invalid configuration;
 login, sessions, CSRF, RBAC, Problem Details, exact decimals, migrations, idempotency,
@@ -99,16 +99,16 @@ immutable movement history while an insufficient/concurrent decrement changes no
 
 ### Implementation for User Story 1
 
-- [ ] T036 [US1] Create catalog, vehicle, route-core, branch/route stock-location, balance, operation, movement, constraints, search indexes, and append-only grants in `database/migrations/002_catalog_inventory.ts`
-- [ ] T037 [P] [US1] Add product/unit/category/location builders and inventory assertion helpers in `apps/api/tests/support/catalog-factories.ts` and `apps/api/tests/support/inventory-assertions.ts`
+- [X] T036 [US1] Create catalog, vehicle, route-core, branch/route stock-location, balance, operation, movement, constraints, search indexes, and append-only grants in `database/migrations/002_catalog_inventory.ts`
+- [X] T037 [P] [US1] Add product/unit/category/location builders and inventory assertion helpers in `apps/api/tests/support/catalog-factories.ts` and `apps/api/tests/support/inventory-assertions.ts`
 - [ ] T038 [P] [US1] Implement catalog repositories with normalized uniqueness, optimistic versions, and archive-not-delete behavior in `apps/api/src/modules/catalog/catalog-repository.ts`
-- [ ] T039 [US1] Implement ordered balance locking, conditional decrements, immutable movement insertion, and ledger reproduction queries in `apps/api/src/modules/inventory/inventory-repository.ts`
+- [X] T039 [US1] Implement ordered balance locking, conditional decrements, immutable movement insertion, and ledger reproduction queries in `apps/api/src/modules/inventory/inventory-repository.ts`
 - [ ] T040 [US1] Implement product/unit/category/location/vehicle validation, lifecycle rules, active-route vehicle guards, and same-transaction audit emission in `apps/api/src/modules/catalog/catalog-service.ts`
-- [ ] T041 [US1] Implement atomic entry, manual exit, transfer, positive/negative adjustment, reversal, low-stock alert, idempotent retry, and same-transaction audit emission in `apps/api/src/modules/inventory/inventory-service.ts`
-- [ ] T042 [US1] Implement catalog/inventory Zod schemas, OpenAPI registrations, controllers, and `/api/v1` routes in `packages/contracts/src/catalog-schemas.ts`, `packages/contracts/src/inventory-schemas.ts`, and `apps/api/src/modules/inventory/inventory-routes.ts`
+- [X] T041 [US1] Implement atomic entry, manual exit, transfer, positive/negative adjustment, reversal, low-stock alert, idempotent retry, and same-transaction audit emission in `apps/api/src/modules/inventory/inventory-service.ts`
+- [X] T042 [US1] Implement catalog/inventory Zod schemas, OpenAPI registrations, controllers, and `/api/v1` routes in `packages/contracts/src/catalog-schemas.ts`, `packages/contracts/src/inventory-schemas.ts`, and `apps/api/src/modules/inventory/inventory-routes.ts`
 - [ ] T043 [P] [US1] Implement Administrator product, unit, category, location, and vehicle management screens in `apps/web/src/features/catalog/catalog-pages.tsx` and `apps/web/src/features/catalog/catalog-forms.tsx`
-- [ ] T044 [P] [US1] Implement role-filtered inventory search, branch/route balances, pagination, and low-stock alerts in `apps/web/src/features/inventory/inventory-page.tsx` and `apps/web/src/features/inventory/inventory-queries.ts`
-- [ ] T045 [US1] Implement entry, manual exit, transfer, adjustment, and reversal forms with explicit validation/conflict/server failure states in `apps/web/src/features/inventory/inventory-operation-form.tsx`
+- [X] T044 [P] [US1] Implement role-filtered inventory search, branch/route balances, pagination, and low-stock alerts in `apps/web/src/features/inventory/inventory-page.tsx` and `apps/web/src/features/inventory/inventory-queries.ts`
+- [X] T045 [US1] Implement entry, manual exit, transfer, adjustment, and reversal forms with explicit validation/conflict/server failure states in `apps/web/src/features/inventory/inventory-operation-form.tsx`
 - [ ] T046 [US1] Implement immutable movement-history views and complete the US1 contract, integration, component, and E2E pass in `apps/web/src/features/inventory/movement-history.tsx` and `tests/e2e/us1-inventory.spec.ts`
 
 **Checkpoint**: US1 is deployable as the inventory-control MVP and passes SC-001,
@@ -138,16 +138,16 @@ anonymous, unavailable, foreign-route, price-override, cancellation, and rollbac
 
 ### Implementation for User Story 2
 
-- [ ] T053 [US2] Provision `btree_gist` through the migration owner and create customer, customer-price, sale, sale-line, cancellation, and Sale Ticket tables with exact numeric/snapshot constraints, the CustomerPrice validity-endpoint check and partial GiST exclusion for active half-open ranges, one-Sale-Ticket-per-Sale uniqueness, and route-core foreign keys in `database/migrations/003_sales_core.ts`
-- [ ] T054 [P] [US2] Add seeded active/inactive customers, price intervals, vehicle, En Route route, route stock, and sale builders in `apps/api/tests/support/sales-factories.ts`
-- [ ] T055 [P] [US2] Implement customer-price lookup plus sale/Sale Ticket persistence and SQL-scoped Driver-own sale-history repositories in `apps/api/src/modules/customers/customer-price-repository.ts` and `apps/api/src/modules/sales/sale-repository.ts`
-- [ ] T056 [US2] Implement authoritative price selection, historical snapshots, decimal line calculations, and advisory availability quotes in `apps/api/src/modules/sales/pricing-service.ts`
-- [ ] T057 [US2] Implement Serializable sale confirmation with route authorization, all-lines stock locking, one Sale Ticket, movements, same-transaction audit, and idempotency in `apps/api/src/modules/sales/sale-service.ts`
-- [ ] T058 [US2] Implement Administrator-only cancellation with mandatory reason, exact inverse movements, state-dependent destination, preservation, single-cancellation enforcement, and same-transaction audit in `apps/api/src/modules/sales/cancellation-service.ts`
-- [ ] T059 [US2] Implement sale/customer Zod schemas, OpenAPI operations, controllers, SQL-scoped Driver-own list/detail history, another-Driver denial, and Administrator-wide history in `packages/contracts/src/sales-schemas.ts` and `apps/api/src/modules/sales/sales-routes.ts`
-- [ ] T060 [P] [US2] Implement existing-customer and active-route product lookup with quote-driven exact price display in `apps/web/src/features/sales/sale-queries.ts` and `apps/web/src/features/sales/customer-product-picker.tsx`
-- [ ] T061 [US2] Implement the multiline sale form with React Hook Form, non-editable prices, decimal-string totals, payment method, stable client operation ID, and explicit confirmation in `apps/web/src/features/sales/sale-form.tsx`
-- [ ] T062 [US2] Implement uncertain-response recovery, idempotent resubmission, sale detail, Sale Ticket result, Driver-own completed-sale history, and Administrator cancellation UI in `apps/web/src/features/sales/sale-result.tsx`, `apps/web/src/features/sales/driver-sale-history.tsx`, and `apps/web/src/features/sales/sale-cancellation-dialog.tsx`
+- [X] T053 [US2] Provision `btree_gist` through the migration owner and create customer, customer-price, sale, sale-line, cancellation, and Sale Ticket tables with exact numeric/snapshot constraints, the CustomerPrice validity-endpoint check and partial GiST exclusion for active half-open ranges, one-Sale-Ticket-per-Sale uniqueness, and route-core foreign keys in `database/migrations/003_sales_core.ts`
+- [X] T054 [P] [US2] Add seeded active/inactive customers, price intervals, vehicle, En Route route, route stock, and sale builders in `apps/api/tests/support/sales-factories.ts`
+- [X] T055 [P] [US2] Implement customer-price lookup plus sale/Sale Ticket persistence and SQL-scoped Driver-own sale-history repositories in `apps/api/src/modules/customers/customer-price-repository.ts` and `apps/api/src/modules/sales/sale-repository.ts`
+- [X] T056 [US2] Implement authoritative price selection, historical snapshots, decimal line calculations, and advisory availability quotes in `apps/api/src/modules/sales/pricing-service.ts`
+- [X] T057 [US2] Implement Serializable sale confirmation with route authorization, all-lines stock locking, one Sale Ticket, movements, same-transaction audit, and idempotency in `apps/api/src/modules/sales/sale-service.ts`
+- [X] T058 [US2] Implement Administrator-only cancellation with mandatory reason, exact inverse movements, state-dependent destination, preservation, single-cancellation enforcement, and same-transaction audit in `apps/api/src/modules/sales/cancellation-service.ts`
+- [X] T059 [US2] Implement sale/customer Zod schemas, OpenAPI operations, controllers, SQL-scoped Driver-own list/detail history, another-Driver denial, and Administrator-wide history in `packages/contracts/src/sales-schemas.ts` and `apps/api/src/modules/sales/sales-routes.ts`
+- [X] T060 [P] [US2] Implement existing-customer and active-route product lookup with quote-driven exact price display in `apps/web/src/features/sales/sale-queries.ts` and `apps/web/src/features/sales/customer-product-picker.tsx`
+- [X] T061 [US2] Implement the multiline sale form with React Hook Form, non-editable prices, decimal-string totals, payment method, stable client operation ID, and explicit confirmation in `apps/web/src/features/sales/sale-form.tsx`
+- [X] T062 [US2] Implement uncertain-response recovery, idempotent resubmission, sale detail, Sale Ticket result, Driver-own completed-sale history, and Administrator cancellation UI in `apps/web/src/features/sales/sale-result.tsx`, `apps/web/src/features/sales/driver-sale-history.tsx`, and `apps/web/src/features/sales/sale-cancellation-dialog.tsx`
 - [ ] T063 [US2] Complete generated contract/type synchronization and make all US2 unit, contract, integration, component, and E2E tests pass in `packages/contracts/openapi.yaml` and `tests/e2e/us2-sales.spec.ts`
 
 **Checkpoint**: US2 independently proves exact pricing, one-time stock deduction,
@@ -168,7 +168,7 @@ identity, difference adjustments/reasons, zero route inventory, and post-close l
 
 ### Tests for User Story 3
 
-- [ ] T064 [P] [US3] Write failing unit tests for the route transition table, actor permissions, load preconditions, signed difference convention, and reconciliation equation in `apps/api/tests/unit/routes/route-domain.test.ts`
+- [X] T064 [P] [US3] Write failing unit tests for the route transition table, actor permissions, load preconditions, signed difference convention, and reconciliation equation in `apps/api/tests/unit/routes/route-domain.test.ts`
 - [ ] T065 [P] [US3] Write failing OpenAPI/Supertest tests for route create/detail/list, draft/confirm load, start, return, reconciliation, close, complete route movement history, assigned-Driver access in every state, another-Driver denial, and invalid commands in `apps/api/tests/contract/routes/routes.contract.test.ts`
 - [ ] T066 [P] [US3] Write failing PostgreSQL tests for full-load rollback, simultaneous driver/vehicle assignment, route-stock movements, reconciliation adjustments, zero-at-close, immutable Closed routes, and same-transaction audit presence/failure rollback for every route mutation class in `apps/api/tests/integration/routes/route-lifecycle.test.ts`
 - [ ] T067 [P] [US3] Write failing authorization tests proving only the assigned Driver loads/starts/returns and reads that route's full history, another Driver cannot list/filter/directly access it, and only an Administrator creates/reconciles/closes in `apps/api/tests/integration/routes/route-authorization.test.ts`
@@ -177,15 +177,15 @@ identity, difference adjustments/reasons, zero route inventory, and post-close l
 
 ### Implementation for User Story 3
 
-- [ ] T070 [US3] Create route-load/line and route-reconciliation/line tables plus partial active driver/vehicle indexes and state/reason constraints in `database/migrations/004_route_lifecycle.ts`
-- [ ] T071 [P] [US3] Implement route, load, reconciliation, and SQL-scoped assigned-Driver history persistence with conditional state/version updates and complete movement projections in `apps/api/src/modules/routes/route-repository.ts`
-- [ ] T072 [US3] Implement Administrator route creation/assignment and Driver draft/full-load confirmation with atomic branch-to-route transfer and same-transaction audit events in `apps/api/src/modules/routes/route-load-service.ts`
-- [ ] T073 [US3] Implement assigned-Driver start/return commands with conditional transitions, idempotency, same-transaction audit events, and sale blocking after return in `apps/api/src/modules/routes/route-transition-service.ts`
-- [ ] T074 [US3] Implement Administrator reconciliation, shortage/overage adjustments, mandatory difference reasons, origin returns, zero-balance proof, closure locking, and same-transaction audit events in `apps/api/src/modules/routes/route-reconciliation-service.ts`
-- [ ] T075 [US3] Implement route Zod schemas, OpenAPI operations, controllers, SQL-scoped assigned-Driver list/detail authorization, another-Driver denial, and route-detail load/movement/sale/reconciliation/closure projections in `packages/contracts/src/route-schemas.ts` and `apps/api/src/modules/routes/route-routes.ts`
-- [ ] T076 [P] [US3] Implement Administrator route creation, assignment, list, and detail screens in `apps/web/src/features/routes/admin-route-pages.tsx`
-- [ ] T077 [P] [US3] Implement Driver draft load, confirmation, start, return, and active-route inventory screens in `apps/web/src/features/routes/driver-route-pages.tsx`
-- [ ] T078 [US3] Implement Administrator physical-return/reconciliation forms with calculated differences, required reasons, close confirmation, and conflict states in `apps/web/src/features/routes/reconciliation-page.tsx`
+- [X] T070 [US3] Create route-load/line and route-reconciliation/line tables plus partial active driver/vehicle indexes and state/reason constraints in `database/migrations/004_route_lifecycle.ts`
+- [X] T071 [P] [US3] Implement route, load, reconciliation, and SQL-scoped assigned-Driver history persistence with conditional state/version updates and complete movement projections in `apps/api/src/modules/routes/route-repository.ts`
+- [X] T072 [US3] Implement Administrator route creation/assignment and Driver draft/full-load confirmation with atomic branch-to-route transfer and same-transaction audit events in `apps/api/src/modules/routes/route-load-service.ts`
+- [X] T073 [US3] Implement assigned-Driver start/return commands with conditional transitions, idempotency, same-transaction audit events, and sale blocking after return in `apps/api/src/modules/routes/route-transition-service.ts`
+- [X] T074 [US3] Implement Administrator reconciliation, shortage/overage adjustments, mandatory difference reasons, origin returns, zero-balance proof, closure locking, and same-transaction audit events in `apps/api/src/modules/routes/route-reconciliation-service.ts`
+- [X] T075 [US3] Implement route Zod schemas, OpenAPI operations, controllers, SQL-scoped assigned-Driver list/detail authorization, another-Driver denial, and route-detail load/movement/sale/reconciliation/closure projections in `packages/contracts/src/route-schemas.ts` and `apps/api/src/modules/routes/route-routes.ts`
+- [X] T076 [P] [US3] Implement Administrator route creation, assignment, list, and detail screens in `apps/web/src/features/routes/admin-route-pages.tsx`
+- [X] T077 [P] [US3] Implement Driver draft load, confirmation, start, return, and active-route inventory screens in `apps/web/src/features/routes/driver-route-pages.tsx`
+- [X] T078 [US3] Implement Administrator physical-return/reconciliation forms with calculated differences, required reasons, close confirmation, and conflict states in `apps/web/src/features/routes/reconciliation-page.tsx`
 - [ ] T079 [US3] Implement assigned-Driver and Administrator route load/movement/sale/reconciliation/closure timeline history with Closed-route read-only behavior, then pass all US3 tests in `apps/web/src/features/routes/route-history.tsx` and `tests/e2e/us3-routes.spec.ts`
 
 **Checkpoint**: US3 independently proves every allowed/denied state transition,
@@ -213,12 +213,12 @@ are denied without altering data.
 
 ### Implementation for User Story 4
 
-- [ ] T084 [P] [US4] Extend customer repositories with normalized search, role-filtered projections, purchase history, archival, and optimistic updates in `apps/api/src/modules/customers/customer-repository.ts`
-- [ ] T085 [US4] Implement Administrator customer lifecycle rules, active-route selection restrictions, historical preservation, and same-transaction audit events in `apps/api/src/modules/customers/customer-service.ts`
-- [ ] T086 [US4] Implement non-overlapping customer-price creation, replacement, deactivation, standard fallback, SQLSTATE 23P01 conflict mapping, and same-transaction audit events in `apps/api/src/modules/customers/customer-price-service.ts`
-- [ ] T087 [US4] Implement customer/price/history Zod schemas, OpenAPI handlers, and Administrator/Driver response filtering in `packages/contracts/src/customer-schemas.ts` and `apps/api/src/modules/customers/customer-routes.ts`
-- [ ] T088 [P] [US4] Implement Administrator customer search, create/edit/archive forms, and conflict handling in `apps/web/src/features/customers/customer-pages.tsx` and `apps/web/src/features/customers/customer-form.tsx`
-- [ ] T089 [P] [US4] Implement per-product price lifecycle and preserved purchase-history views in `apps/web/src/features/customers/customer-prices.tsx` and `apps/web/src/features/customers/customer-history.tsx`
+- [X] T084 [P] [US4] Extend customer repositories with normalized search, role-filtered projections, purchase history, archival, and optimistic updates in `apps/api/src/modules/customers/customer-repository.ts`
+- [X] T085 [US4] Implement Administrator customer lifecycle rules, active-route selection restrictions, historical preservation, and same-transaction audit events in `apps/api/src/modules/customers/customer-service.ts`
+- [X] T086 [US4] Implement non-overlapping customer-price creation, replacement, deactivation, standard fallback, SQLSTATE 23P01 conflict mapping, and same-transaction audit events in `apps/api/src/modules/customers/customer-price-service.ts`
+- [X] T087 [US4] Implement customer/price/history Zod schemas, OpenAPI handlers, and Administrator/Driver response filtering in `packages/contracts/src/customer-schemas.ts` and `apps/api/src/modules/customers/customer-routes.ts`
+- [X] T088 [P] [US4] Implement Administrator customer search, create/edit/archive forms, and conflict handling in `apps/web/src/features/customers/customer-pages.tsx` and `apps/web/src/features/customers/customer-form.tsx`
+- [X] T089 [P] [US4] Implement per-product price lifecycle and preserved purchase-history views in `apps/web/src/features/customers/customer-prices.tsx` and `apps/web/src/features/customers/customer-history.tsx`
 - [ ] T090 [US4] Complete contract/type synchronization and pass all US4 contract, integration, component, and E2E tests in `packages/contracts/openapi.yaml` and `tests/e2e/us4-customers.spec.ts`
 
 **Checkpoint**: US4 works independently against existing sales and proves protected
@@ -229,33 +229,37 @@ customer maintenance, exact price fallback, archival, and reproducible history.
 ## Phase 7: User Story 5 - Close Cash and Review Operations (Priority: P2)
 
 **Goal**: Administrators produce exact, reproducible cash closes and operational
-reports for consistent business-timezone periods.
+reports for API-resolved local-calendar periods, with exactly one current immutable
+cash close per exact period and traceable superseding corrections.
 
-**Independent Test**: From fixed sales spanning reporting groups and a day boundary,
-produce day/week/month reports and a cash close, then change current catalog data and
-prove all saved inputs/results remain reproducible.
+**Independent Test**: From fixed sales spanning reporting groups, Sunday/Monday, month
+end, and an offset transition, produce DAY/WEEK/MONTH reports from local anchor dates;
+create/retry/conflict/correct a cash close, race independent creates and corrections,
+then change catalog data and prove every immutable version remains reproducible.
 
 ### Tests for User Story 5
 
-- [ ] T091 [P] [US5] Write failing unit tests for business-timezone boundaries, reporting groups, exact gross total, fixed 50% share, line/category sums, and rounding in `apps/api/tests/unit/reports/financial-calculations.test.ts`
-- [ ] T092 [P] [US5] Write failing OpenAPI/Supertest tests for cash-close create/list/detail, four report endpoints, report snapshots, decimal strings, filters, and Administrator-only access in `apps/api/tests/contract/reports/reports.contract.test.ts`
-- [ ] T093 [P] [US5] Write failing PostgreSQL tests for contributing-sale snapshots, cancelled-sale treatment, retry safety, concurrent close creation, timezone boundaries, catalog-change reproducibility, and same-transaction cash-close/report-snapshot audit presence/failure rollback in `apps/api/tests/integration/reports/cash-close-reporting.test.ts`
-- [ ] T094 [P] [US5] Write failing React tests for period controls, cash-close confirmation, exact totals, empty/error states, and report tables in `apps/web/tests/reports/reporting-ui.test.tsx`
-- [ ] T095 [P] [US5] Write the failing end-to-end day/week/month report and reproducible cash-close walkthrough in `tests/e2e/us5-reporting.spec.ts`
+- [ ] T091 [P] [US5] Write failing unit tests for DAY local-midnight, Monday-based WEEK, calendar MONTH, `[start,end)` inclusion, independent IANA boundary resolution across 23/25-hour offset transitions, invalid period inputs, reporting groups, exact gross total, fixed 50% share, line/category sums, and rounding in `apps/api/tests/unit/reports/reporting-period.test.ts` and `apps/api/tests/unit/reports/financial-calculations.test.ts`
+- [ ] T092 [P] [US5] Write failing OpenAPI/Supertest tests for `periodKind` plus `anchorDate` report requests; cash-close create/list/detail/correction; current/superseded fields and links; same-key replay; `CASH_CLOSE_PERIOD_ALREADY_CURRENT`, `CASH_CLOSE_NOT_CURRENT`, `IDEMPOTENCY_KEY_REUSED`, and `INVALID_REPORTING_PERIOD`; report snapshots, decimal strings, filters, pagination, and Administrator-only access in `apps/api/tests/contract/reports/reports.contract.test.ts`
+- [ ] T093 [P] [US5] Write failing PostgreSQL integration tests for resolved-period snapshots, cancelled-sale treatment, same-key replay, different-key duplicate conflict, exactly one current-period pointer, same-period non-branching supersession, stale correction rejection, concurrent create/correction races, pointer compare-and-swap, immutable predecessor retrieval, catalog-change reproducibility, and whole-transaction rollback when snapshot, pointer, idempotency, or audit writes fail in `apps/api/tests/integration/reports/cash-close-currentness.test.ts` and `apps/api/tests/integration/reports/cash-close-reporting.test.ts`
+- [ ] T094 [P] [US5] Write failing React tests for local anchor-date and period-kind controls, resolved boundary display, cash-close confirmation, current/superseded history, mandatory-reason correction, stale/duplicate conflict handling, exact totals, empty/error states, and report tables in `apps/web/tests/reports/reporting-ui.test.tsx` and `apps/web/tests/reports/cash-close-ui.test.tsx`
+- [ ] T095 [P] [US5] Write the failing end-to-end DAY/WEEK/MONTH boundary, identical retry, separate duplicate conflict, immutable correction chain, concurrent-currentness, and reproducible cash-close walkthrough in `tests/e2e/us5-reporting.spec.ts`
 
 ### Implementation for User Story 5
 
-- [ ] T096 [US5] Create cash-close/line/sale and report-snapshot tables with exact numeric fields, source links, indexes, and immutable snapshot constraints in `database/migrations/005_reporting.ts`
-- [ ] T097 [P] [US5] Implement cash-close/report repositories and indexed period/group aggregations in `apps/api/src/modules/reports/report-repository.ts`
-- [ ] T098 [US5] Implement exact cash-close calculation, fixed 50% gross share, stored rounding inputs/results, contributing-sale snapshots, idempotency, and same-transaction audit in `apps/api/src/modules/reports/cash-close-service.ts`
-- [ ] T099 [US5] Implement business-timezone day/week/month boundaries, sales-by-driver, best-product, inventory-by-branch, financial-summary, immutable report snapshots, and same-transaction audit for persisted snapshots in `apps/api/src/modules/reports/report-service.ts`
-- [ ] T100 [US5] Implement report/cash-close Zod schemas, OpenAPI operations, Administrator policies, controllers, and pagination in `packages/contracts/src/report-schemas.ts` and `apps/api/src/modules/reports/report-routes.ts`
-- [ ] T101 [P] [US5] Implement cash-close creation/list/detail screens with exact decimal display and source drill-down in `apps/web/src/features/reports/cash-close-pages.tsx`
-- [ ] T102 [P] [US5] Implement day/week/month report filters, operational tables, loading/empty/failure states, and report-snapshot action in `apps/web/src/features/reports/report-pages.tsx`
+- [ ] T096 [US5] Create immutable cash-close/line/sale and report-snapshot tables plus `CashCloseCurrentPeriod`, storing period kind, anchor date, captured timezone, resolved instants, unique nullable predecessor, mandatory correction reason, matching composite period keys, same-period/non-branching constraint trigger, exact numeric snapshots, current-pointer indexes, and restrictive history guarantees in `database/migrations/005_reporting.ts`
+- [ ] T097 [P] [US5] Implement indexed report/cash-close aggregations, immutable version reads, status and predecessor/successor projections, current-period insertion, pointer locking and compare-and-swap, and paginated current/superseded queries in `apps/api/src/modules/reports/report-repository.ts` and `apps/api/src/modules/reports/cash-close-repository.ts`
+- [ ] T098 [US5] Implement Serializable cash-close creation and correction with exact 50% gross calculations, stored inputs/results and contributing sales, persisted idempotency, one-current-period conflict mapping, mandatory correction reason, immutable same-period successor insertion, atomic pointer replacement, stale-correction rejection, and same-transaction old-to-new audit in `apps/api/src/modules/reports/cash-close-service.ts`
+- [ ] T099 [US5] Implement authoritative `periodKind`/`anchorDate` resolution with pinned `@js-temporal/polyfill`, local-midnight DAY, Monday WEEK, calendar MONTH, independently resolved `[start,end)` IANA boundaries, plus sales-by-driver, best-product, inventory-by-branch, financial-summary, immutable report snapshots, and same-transaction snapshot audit in `apps/api/src/modules/reports/reporting-period.ts` and `apps/api/src/modules/reports/report-service.ts`
+- [ ] T100 [US5] Implement report/cash-close Zod schemas and OpenAPI operations for calendar-period requests, resolved boundaries, current/superseded status and links, correction reasons, stable 409/422 codes, Administrator policies, controllers, and pagination in `packages/contracts/src/report-schemas.ts` and `apps/api/src/modules/reports/report-routes.ts`
+- [ ] T101 [P] [US5] Implement cash-close creation/list/detail/correction screens with exact decimal display, source drill-down, current/superseded labels, immutable version navigation, mandatory reason, and explicit idempotency/stale/duplicate conflict states in `apps/web/src/features/reports/cash-close-pages.tsx`
+- [ ] T102 [P] [US5] Implement DAY/WEEK/MONTH plus local anchor-date report controls, resolved business-timezone boundary display, operational tables, loading/empty/validation/failure states, and report-snapshot action in `apps/web/src/features/reports/report-pages.tsx`
 - [ ] T103 [US5] Complete contract/type synchronization and pass all US5 calculation, contract, integration, component, and E2E tests in `packages/contracts/openapi.yaml` and `tests/e2e/us5-reporting.spec.ts`
 
 **Checkpoint**: US5 independently proves exact/reproducible finance, fixed reporting
-groups, timezone boundaries, period filters, and Administrator-only access.
+groups, Monday/local-midnight calendar boundaries including offset changes, one current
+cash close per exact period, immutable non-branching corrections, rollback/retry safety,
+and Administrator-only access.
 
 ---
 
@@ -300,38 +304,42 @@ printer configuration.
 **Goal**: Authorized users generate canonical PDFs from committed records and download
 or share all four document types; only Sale Tickets, confirmed route loads, and cash
 closes print on approved BLE hardware, with explicit retry/unknown states that never
-repeat the source transaction. Reports remain portable-only.
+repeat the source transaction. Users can browse source-authorized document and
+output-attempt history; reports remain portable-only.
 
 **Independent Test**: Generate and download/share Sale Ticket/confirmed-route-load/
 cash-close/report PDFs; print the first three, reject report PRINT/REPRINT before a
 device write, simulate generation and partial-print failures, explicitly retry output,
-and prove no sale/load/close is duplicated or rolled back.
+and prove no sale/load/close is duplicated or rolled back. Seed multiple pages of
+documents/attempts and prove Administrator-wide versus Driver source-scoped list,
+filter, cursor, and direct-attempt behavior including Administrator-only TEST_PRINT.
 
 ### Tests for User Story 6
 
 - [ ] T118 [P] [US6] Write failing unit tests for Sale Ticket/confirmed-route-load/cash-close/report PDF snapshots, stable filenames/hashes, all three printable ESC/POS templates, Spanish encoding, paper widths, chunk ordering, disconnect handling, and UNKNOWN/reprint rules in `apps/api/tests/unit/documents/pdf-rendering.test.ts` and `apps/web/tests/printers/printer-adapter.test.ts`
-- [ ] T119 [P] [US6] Write failing OpenAPI/Supertest tests for the sole TICKET sale-document type, all four valid document/source pairs, confirmed-only ROUTE_LOAD output, invalid pairs, portable status/content, required printer profiles, and the complete role/source matrix: Administrator access to all four portable types and three printable types; Driver access to own-sale TICKET and assigned confirmed ROUTE_LOAD including Administrator-created outputs; Driver 403 for another Driver's TICKET, unassigned ROUTE_LOAD, CASH_CLOSE, and REPORT; authorized DRAFT-load 409 `ROUTE_LOAD_NOT_CONFIRMED`; Administrator REPORT PRINT/REPRINT 422; and authorization before reuse/capability validation with no accepted attempt in `apps/api/tests/contract/documents/documents.contract.test.ts`
-- [ ] T120 [P] [US6] Write failing direct-SQL tests for the confirmed-RouteLoad DocumentOutput constraint trigger, transition races, valid source pairs, OutputAttempt composite document-type references, printer requirements, TEST_PRINT null document, and REPORT PRINT/REPRINT rejection; add integration tests that reapply immutable Sale/Route ownership to create/reuse/list/detail/content/share/print/reprint/attempt-history operations, reject manipulated IDs and filters without metadata or bytes, create no output/attempt/storage/device side effect on denial, preserve source records across output retries, and reuse canonical authorized output in `apps/api/tests/integration/documents/document-output.test.ts` and `apps/api/tests/integration/documents/document-authorization.test.ts`
-- [ ] T121 [P] [US6] Write failing React tests for status polling, download/share of all four Administrator-authorized types, Driver actions for own-sale TICKET and assigned confirmed ROUTE_LOAD including Administrator-created outputs, hidden and server-denied unrelated/CASH_CLOSE/REPORT/DRAFT actions, printable capability states, Administrator REPORT 422 handling, unsupported Bluetooth, explicit reprint, and UNKNOWN states in `apps/web/tests/documents/document-output-ui.test.tsx`
-- [ ] T122 [P] [US6] Write the failing cross-browser E2E flow for four Administrator PDFs, Driver own/assigned access to new and Administrator-created outputs, list/direct-ID/content/share/print/reprint/manipulated-filter denials for another Driver's TICKET, unassigned load, CASH_CLOSE, REPORT, and DRAFT load with no metadata/output/attempt/storage/device side effects; add Chromium fake-transport tests for all three printable types, Administrator REPORT rejection before device write, and explicit UNKNOWN reprint in `tests/e2e/us6-documents-printing.spec.ts`
+- [ ] T119 [P] [US6] Write failing OpenAPI/Supertest tests for the sole TICKET sale-document type, four valid document/source pairs, confirmed-only ROUTE_LOAD output, portable status/content, `GET /documents`, `GET /output-attempts`, and output-attempt detail; default limit 25 and maximum 100, stable opaque cursors, type/state/source/document/mode/time filters, all four Administrator portable and three printable types, Driver own-sale TICKET and assigned confirmed ROUTE_LOAD including Administrator-created outputs, Administrator-only TEST_PRINT history, direct/filter/cursor denial for other sources, DRAFT 409, REPORT print 422, and authorization before reuse/capability checks in `apps/api/tests/contract/documents/documents.contract.test.ts` and `apps/api/tests/contract/documents/document-history.contract.test.ts`
+- [ ] T120 [P] [US6] Write failing direct-SQL tests for confirmed-RouteLoad DocumentOutput races, valid source pairs, history indexes, OutputAttempt composite references, printer requirements, TEST_PRINT null document, and REPORT print rejection; add integration tests for stable `(created_at DESC, id DESC)` keyset pagination without gaps/duplicates, principal/role/filter-bound cursor rejection, immutable Sale/confirmed-RouteLoad source authorization on document/attempt list and direct reads regardless of creator or attempt actor, Driver exclusion of CASH_CLOSE/REPORT/other-route/TEST_PRINT, no metadata/bytes/side effects on denial, retry isolation, and authorized canonical reuse in `apps/api/tests/integration/documents/document-output.test.ts`, `apps/api/tests/integration/documents/document-history.test.ts`, and `apps/api/tests/integration/documents/document-authorization.test.ts`
+- [ ] T121 [P] [US6] Write failing React tests for status polling, download/share, paginated document/output-attempt history, filters and next-cursor states, attempt detail, Administrator TEST_PRINT visibility, Driver source-scoped Administrator-created records, hidden and server-denied unrelated/CASH_CLOSE/REPORT/DRAFT/TEST_PRINT history and actions, printable capability states, REPORT 422, unsupported Bluetooth, explicit reprint, and UNKNOWN states in `apps/web/tests/documents/document-output-ui.test.tsx` and `apps/web/tests/documents/document-history-ui.test.tsx`
+- [ ] T122 [P] [US6] Write the failing cross-browser E2E flow for four Administrator PDFs; multiple pages of document/attempt history; Driver own/assigned access to new and Administrator-created outputs; cursor traversal; filters; direct attempt detail; manipulated cursor/filter/direct-ID/content/share/print/reprint denial for another Driver's TICKET, unassigned load, CASH_CLOSE, REPORT, TEST_PRINT, and DRAFT load without metadata or side effects; plus Chromium fake-transport coverage for the three printable types, REPORT rejection before device write, and explicit UNKNOWN reprint in `tests/e2e/us6-documents-printing.spec.ts` and `tests/e2e/us6-document-history.spec.ts`
 
 ### Implementation for User Story 6
 
-- [ ] T123 [US6] Create DocumentOutput with four valid source-pair checks, source foreign keys, canonical uniqueness, unique `(id, document_type)`, and a constraint trigger that rejects direct or racing ROUTE_LOAD inserts unless the referenced load is CONFIRMED; then upgrade OutputAttempt with copied document type, composite foreign key, printer/mode/nullability checks, and database rejection of REPORT PRINT/REPRINT in `database/migrations/007_document_output.ts`
-- [ ] T124 [P] [US6] Implement document/output repositories and immutable source snapshot loaders for Sale Tickets, confirmed route loads, cash closes, and report snapshots; centralize source-scoped TICKET `Sale.driver_id` and ROUTE_LOAD `Route.driver_id` plus CONFIRMED predicates and reapply them to create/reuse/list/detail/content/share/print/reprint and OutputAttempt-history queries regardless of `DocumentOutput.created_by` in `apps/api/src/modules/documents/document-repository.ts`
+- [ ] T123 [US6] Create DocumentOutput with four valid source-pair checks, source foreign keys, canonical uniqueness, unique `(id, document_type)`, stable history indexes, and a constraint trigger rejecting direct or racing ROUTE_LOAD inserts unless CONFIRMED; then upgrade OutputAttempt with copied document type, composite foreign key, `(created_at DESC, id DESC)` and document-history indexes, printer/mode/nullability checks, and database rejection of REPORT PRINT/REPRINT in `database/migrations/007_document_output.ts`
+- [ ] T124 [P] [US6] Implement immutable source loaders plus document and output-attempt repositories with stable keyset pages, opaque principal/role/normalized-filter-bound cursors, default 25/max 100 limits, filters, and direct attempt reads; centralize TICKET `Sale.driver_id` and confirmed ROUTE_LOAD `Route.driver_id` authorization across create/reuse/list/detail/content/share/print/reprint/history regardless of output creator or attempt actor, with TEST_PRINT visible only to Administrators, in `apps/api/src/modules/documents/document-repository.ts`, `apps/api/src/modules/documents/output-attempt-repository.ts`, and `apps/api/src/shared/pagination/scoped-cursor.ts`
 - [ ] T125 [P] [US6] Implement PDFKit Sale Ticket, route-load, cash-close, and report renderers with escaped data, exact values, stable filenames, and content hashes in `apps/api/src/modules/documents/pdf-renderers.ts`
 - [ ] T126 [US6] Implement post-commit canonical document generation, status, storage, download/share, and retry behavior that authorizes from the immutable source before output reuse or side effects, locks and rejects DRAFT loads before DocumentOutput insertion, leaks no denied metadata, and creates no DocumentOutput or accepted OutputAttempt when authorization/source-state validation fails in `apps/api/src/modules/documents/document-service.ts`
-- [ ] T127 [US6] Implement document Zod/OpenAPI routes with oneOf validation for four document/source pairs, source-derived role policies on every metadata/content/output-attempt route, GENERATE/DOWNLOAD/SHARE versus PRINT/REPRINT versus TEST_PRINT request shapes, 403 for Driver source/type denial, 409 `ROUTE_LOAD_NOT_CONFIRMED` for an otherwise authorized DRAFT load, 422 for Administrator REPORT PRINT/REPRINT, authorization-before-capability validation, printer requirements, no persistence on rejection, and PDF streaming headers in `packages/contracts/src/document-schemas.ts` and `apps/api/src/modules/documents/document-routes.ts`
+- [ ] T127 [US6] Implement document Zod/OpenAPI routes for four source pairs, document list, output-attempt list/detail, cursor/filter validation, source-derived role policies on every metadata/content/history/output route, GENERATE/DOWNLOAD/SHARE versus PRINT/REPRINT versus TEST_PRINT shapes, Driver source/type denial, Administrator-only TEST_PRINT history, DRAFT 409, REPORT print 422, authorization-before-capability validation, printer requirements, no persistence on rejection, and PDF streaming headers in `packages/contracts/src/document-schemas.ts`, `packages/contracts/src/output-attempt-schemas.ts`, and `apps/api/src/modules/documents/document-routes.ts`
 - [ ] T128 [P] [US6] Extend the existing Web Bluetooth adapter from connect/test to committed TICKET/ROUTE_LOAD/CASH_CLOSE BLE/GATT printing with filtered UUIDs, user gestures, chunking, and ambiguous-disconnect UNKNOWN state in `apps/web/src/features/printers/web-bluetooth-adapter.ts`
 - [ ] T129 [P] [US6] Implement ESC/POS formatting for Sale Ticket, route-load, and cash-close output on 58/80mm paper with accented Spanish text, line wrapping, and reprint labels in `apps/web/src/features/printers/escpos-formatter.ts`
-- [ ] T130 [P] [US6] Implement canonical document request/status/download views that expose only the caller's source-authorized documents, support Administrator-created outputs for an authorized Driver, omit DRAFT-load output actions, and show explicit 403/409/generation-failure/retry states in `apps/web/src/features/documents/document-center.tsx`
+- [ ] T130 [P] [US6] Implement canonical request/status/download plus paginated document/output-attempt history and attempt-detail views with type/state/source/document/mode/time filters, cursor traversal, Administrator TEST_PRINT visibility, source-scoped Administrator-created outputs for Drivers, omitted DRAFT/forbidden actions, and explicit 403/409/generation/cursor/retry states in `apps/web/src/features/documents/document-center.tsx` and `apps/web/src/features/documents/document-history.tsx`
 - [ ] T131 [P] [US6] Implement download fallback and user-gesture Web Share with `navigator.canShare` checks in `apps/web/src/features/documents/document-actions.tsx`
 - [ ] T132 [US6] Implement role-and-source-capability-driven print/test/reprint UI that offers Drivers only own-sale TICKET and assigned confirmed ROUTE_LOAD actions, never offers DRAFT-load or REPORT printing, records STARTED/SUCCEEDED/FAILED/UNKNOWN attempts only after API acceptance, handles authoritative 403/409/422 responses, and never resubmits source mutations in `apps/web/src/features/printers/print-dialog.tsx`
 - [ ] T133 [US6] Execute and record the BLE printer/browser/OS/protocol/encoding/failure matrix for Sale Ticket, confirmed route load, and cash close plus negative evidence that REPORT printing is rejected before device access in `specs/001-warehouse-management/evidence/printer-acceptance.md`
 
-**Checkpoint**: US6 passes portable output, output-capability, isolation/retry, and
-approved physical-printer tests; REPORT remains portable-only, and incompatible
-hardware blocks FR-033/FR-047 rather than being silently accepted.
+**Checkpoint**: US6 passes portable output, source-scoped history/pagination,
+output-capability, isolation/retry, and approved physical-printer tests; REPORT remains
+portable-only, TEST_PRINT history remains Administrator-only, and incompatible hardware
+blocks FR-033/FR-047 rather than being silently accepted.
 
 ---
 
@@ -348,7 +356,7 @@ the evidence required by the constitution.
 - [ ] T139 Reuse the T138 acceptance fixture to run the warmed 25-user closed-loop profile with at least 400 uncached measurements evenly rotating Sale Ticket/confirmed-route-load/cash-close/report PDFs from distinct committed or confirmed sources and record environment, seed, mix, elapsed times, percentiles, and the SC-007 pass count in `tests/e2e/performance-success-criteria.spec.ts` and `specs/001-warehouse-management/evidence/document-performance.md`
 - [ ] T140 Run the complete critical workflow suite on Chromium, Firefox, and WebKit and capture failures/retries in `specs/001-warehouse-management/evidence/cross-browser-e2e.md`
 - [ ] T141 [P] Audit keyboard navigation, labels, focus/error behavior, and responsive layouts; freeze the standardized 15-minute introduction and versioned start-screen fixtures; then score five Drivers from handoff through a visibly available Sale Ticket for an exactly 10-line sale and five Administrators through mandatory-reason reconciliation and zero-inventory CLOSED state for a Returned route with exactly one difference. Permit ordinary corrections before final submission within the uninterrupted run, but fail the first attempt on rejected final submission, any restart, or any assistance; record role, fixture/script version, start/end timestamps, elapsed time, first-attempt result, assistance, failure reason, all-five Driver under-two-minute results, and at-least-9-of-10 first-attempt evidence in `apps/web/tests/accessibility/workflow-accessibility.test.tsx` and `specs/001-warehouse-management/evidence/usability.md`
-- [ ] T142 [P] Add observable failure-state metrics/log checks for transactions, serialization exhaustion, authentication, document generation, and printer attempts in `apps/api/src/observability/operations.ts` and `apps/api/tests/integration/observability/failure-signals.test.ts`
+- [ ] T142 [P] Add observable failure-state metrics/log checks for transactions, serialization exhaustion, authentication, cash-close duplicate/stale/concurrent-pointer conflicts, document generation, history-cursor rejection, and printer attempts in `apps/api/src/observability/operations.ts` and `apps/api/tests/integration/observability/failure-signals.test.ts`
 - [ ] T143 [P] Add dependency/license/security scanning and ensure no licensed MUI X tier or browser secret enters the build in `.github/workflows/security.yml` and `scripts/check-browser-bundle-secrets.ts`
 - [ ] T144 Execute every bootstrap, static, contract, test, migration, recovery, acceptance, and performance step from quickstart in a clean environment and record results in `specs/001-warehouse-management/evidence/quickstart-results.md`
 - [ ] T145 Complete reviewer traceability from FR-001–FR-050 and SC-001–SC-012 to code/tests, verify every data-model audit-matrix mutation has same-transaction presence and failure-rollback evidence, record constitution compliance or time-bounded exceptions, and sign the release gate in `specs/001-warehouse-management/evidence/constitution-compliance.md`

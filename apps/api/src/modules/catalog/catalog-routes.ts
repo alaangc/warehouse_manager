@@ -1,0 +1,504 @@
+import {
+  CategoryUpdateSchema,
+  CategoryWriteSchema,
+  LocationUpdateSchema,
+  LocationWriteSchema,
+  ProductUpdateSchema,
+  ProductWriteSchema,
+  UnitUpdateSchema,
+  UnitWriteSchema,
+  VehicleUpdateSchema,
+  VehicleWriteSchema,
+} from '@warehouse/contracts';
+import { Router, type Request, type RequestHandler } from 'express';
+import type { Transaction } from 'kysely';
+import type { ZodType } from 'zod';
+import { requireAuthenticated, requireRole } from '../../auth/authorization.js';
+import type { AppDatabase } from '../../db/database.js';
+import type { Database, JsonValue } from '../../db/types.js';
+import { HttpProblem } from '../../http/problem-handler.js';
+import { AuditWriter } from '../../shared/audit/audit-service.js';
+import { CatalogRepository } from './catalog-repository.js';
+import { CatalogService } from './catalog-service.js';
+
+interface MutationRecord {
+  id: string;
+}
+
+async function auditedMutation<T extends MutationRecord>(
+  database: AppDatabase,
+  actorId: string,
+  requestId: string,
+  entityType: string,
+  mutate: (transaction: Transaction<Database>) => Promise<T>,
+  reason?: string | null,
+): Promise<T> {
+  return database.transaction().execute(async (transaction) => {
+    const result = await mutate(transaction);
+    const values = Object.fromEntries(
+      Object.entries(result as unknown as Record<string, unknown>)
+        .filter(
+          ([, value]) => value === null || ['string', 'number', 'boolean'].includes(typeof value),
+        )
+        .map(([field, value]) => [field, value as JsonValue]),
+    );
+    await new AuditWriter().write(transaction, {
+      actorId,
+      action: 'CATALOG_CHANGED',
+      entityType,
+      entityId: result.id,
+      ...(reason ? { reason } : {}),
+      after: values,
+      requestId,
+    });
+    return result;
+  });
+}
+
+function pathId(value: string | string[] | undefined): string {
+  if (typeof value !== 'string') throw new HttpProblem(422, 'ID_INVALID', 'Validation Failed');
+  return value;
+}
+
+function requestIdentifier(request: Request): string {
+  return typeof request.id === 'string' || typeof request.id === 'number'
+    ? String(request.id)
+    : 'unknown';
+}
+
+function mapWriteError(error: unknown): never {
+  if (error && typeof error === 'object' && 'code' in error) {
+    if (error.code === '23505') {
+      throw new HttpProblem(
+        409,
+        'CATALOG_DUPLICATE',
+        'Conflict',
+        'The normalized identifier is already in use.',
+      );
+    }
+    if (error.code === 'CATALOG_REFERENCE_INVALID') {
+      throw new HttpProblem(422, 'CATALOG_REFERENCE_INVALID', 'Validation Failed');
+    }
+    if (error.code === 'ARCHIVE_REASON_REQUIRED') {
+      throw new HttpProblem(422, 'ARCHIVE_REASON_REQUIRED', 'Validation Failed');
+    }
+    if (error.code === 'VEHICLE_ASSIGNED') {
+      throw new HttpProblem(409, 'VEHICLE_ASSIGNED', 'Conflict');
+    }
+  }
+  throw error;
+}
+
+function writeHandler<T>(
+  schema: ZodType<T>,
+  action: (input: T, request: Parameters<RequestHandler>[0]) => Promise<unknown>,
+  status = 201,
+): RequestHandler {
+  return async (request, response, next) => {
+    try {
+      const result = await action(schema.parse(request.body), request);
+      response.status(status).json({ data: result });
+    } catch (error) {
+      try {
+        mapWriteError(error);
+      } catch (mapped) {
+        next(mapped);
+      }
+    }
+  };
+}
+
+export function createCatalogRouter(database: AppDatabase): Router {
+  const router = Router();
+  const productService = new CatalogService(database);
+  router.use(requireAuthenticated);
+
+  router.get('/locations', async (_request, response, next) => {
+    try {
+      response.json({
+        data: await database
+          .selectFrom('location')
+          .select(['id', 'code', 'name', 'active', 'version'])
+          .orderBy('name')
+          .execute(),
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+  router.post(
+    '/locations',
+    requireRole('ADMINISTRATOR'),
+    writeHandler(LocationWriteSchema, (input, request) =>
+      auditedMutation(
+        database,
+        request.principal!.id,
+        requestIdentifier(request),
+        'LOCATION',
+        async (transaction) => {
+          const location = await transaction
+            .insertInto('location')
+            .values({ code: input.code.toUpperCase(), name: input.name, archived_at: null })
+            .returningAll()
+            .executeTakeFirstOrThrow();
+          await transaction
+            .insertInto('stock_location')
+            .values({ kind: 'BRANCH', branch_id: location.id, route_id: null })
+            .execute();
+          return location;
+        },
+      ),
+    ),
+  );
+  router.patch(
+    '/locations/:locationId',
+    requireRole('ADMINISTRATOR'),
+    writeHandler(
+      LocationUpdateSchema,
+      (input, request) =>
+        auditedMutation(
+          database,
+          request.principal!.id,
+          requestIdentifier(request),
+          'LOCATION',
+          async (transaction) => {
+            const updated = await transaction
+              .updateTable('location')
+              .set({
+                code: input.code.toUpperCase(),
+                name: input.name,
+                active: input.active,
+                archived_at: input.active ? null : new Date(),
+                updated_at: new Date(),
+                version: input.expectedVersion + 1,
+              })
+              .where('id', '=', pathId(request.params.locationId))
+              .where('version', '=', input.expectedVersion)
+              .returningAll()
+              .executeTakeFirst();
+            if (!updated) throw new HttpProblem(409, 'OPTIMISTIC_CONFLICT', 'Conflict');
+            return updated;
+          },
+          input.reason,
+        ),
+      200,
+    ),
+  );
+
+  router.get('/categories', async (_request, response, next) => {
+    try {
+      const rows = await database.selectFrom('category').selectAll().orderBy('name').execute();
+      response.json({
+        data: rows.map((row) => ({
+          id: row.id,
+          name: row.name,
+          reportingGroup: row.reporting_group,
+          active: row.active,
+          version: row.version,
+        })),
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+  router.post(
+    '/categories',
+    requireRole('ADMINISTRATOR'),
+    writeHandler(CategoryWriteSchema, (input, request) =>
+      auditedMutation(
+        database,
+        request.principal!.id,
+        requestIdentifier(request),
+        'CATEGORY',
+        (transaction) =>
+          transaction
+            .insertInto('category')
+            .values({ name: input.name, reporting_group: input.reportingGroup, archived_at: null })
+            .returningAll()
+            .executeTakeFirstOrThrow(),
+      ),
+    ),
+  );
+  router.patch(
+    '/categories/:categoryId',
+    requireRole('ADMINISTRATOR'),
+    writeHandler(
+      CategoryUpdateSchema,
+      (input, request) =>
+        auditedMutation(
+          database,
+          request.principal!.id,
+          requestIdentifier(request),
+          'CATEGORY',
+          async (transaction) => {
+            const updated = await transaction
+              .updateTable('category')
+              .set({
+                name: input.name,
+                reporting_group: input.reportingGroup,
+                active: input.active,
+                archived_at: input.active ? null : new Date(),
+                updated_at: new Date(),
+                version: input.expectedVersion + 1,
+              })
+              .where('id', '=', pathId(request.params.categoryId))
+              .where('version', '=', input.expectedVersion)
+              .returningAll()
+              .executeTakeFirst();
+            if (!updated) throw new HttpProblem(409, 'OPTIMISTIC_CONFLICT', 'Conflict');
+            return updated;
+          },
+          input.reason,
+        ),
+      200,
+    ),
+  );
+
+  router.get('/units', async (_request, response, next) => {
+    try {
+      const rows = await database.selectFrom('unit').selectAll().orderBy('name').execute();
+      response.json({
+        data: rows.map((row) => ({
+          id: row.id,
+          code: row.code,
+          name: row.name,
+          quantityScale: row.quantity_scale,
+          active: row.active,
+          version: row.version,
+        })),
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+  router.post(
+    '/units',
+    requireRole('ADMINISTRATOR'),
+    writeHandler(UnitWriteSchema, (input, request) =>
+      auditedMutation(
+        database,
+        request.principal!.id,
+        requestIdentifier(request),
+        'UNIT',
+        (transaction) =>
+          transaction
+            .insertInto('unit')
+            .values({
+              code: input.code.toUpperCase(),
+              name: input.name,
+              quantity_scale: input.quantityScale,
+              archived_at: null,
+            })
+            .returningAll()
+            .executeTakeFirstOrThrow(),
+      ),
+    ),
+  );
+  router.patch(
+    '/units/:unitId',
+    requireRole('ADMINISTRATOR'),
+    writeHandler(
+      UnitUpdateSchema,
+      (input, request) =>
+        auditedMutation(
+          database,
+          request.principal!.id,
+          requestIdentifier(request),
+          'UNIT',
+          async (transaction) => {
+            const updated = await transaction
+              .updateTable('unit')
+              .set({
+                code: input.code.toUpperCase(),
+                name: input.name,
+                quantity_scale: input.quantityScale,
+                active: input.active,
+                archived_at: input.active ? null : new Date(),
+                updated_at: new Date(),
+                version: input.expectedVersion + 1,
+              })
+              .where('id', '=', pathId(request.params.unitId))
+              .where('version', '=', input.expectedVersion)
+              .returningAll()
+              .executeTakeFirst();
+            if (!updated) throw new HttpProblem(409, 'OPTIMISTIC_CONFLICT', 'Conflict');
+            return updated;
+          },
+          input.reason,
+        ),
+      200,
+    ),
+  );
+
+  router.get('/vehicles', async (_request, response, next) => {
+    try {
+      response.json({
+        data: await database.selectFrom('vehicle').selectAll().orderBy('name').execute(),
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+  router.post(
+    '/vehicles',
+    requireRole('ADMINISTRATOR'),
+    writeHandler(VehicleWriteSchema, (input, request) =>
+      auditedMutation(
+        database,
+        request.principal!.id,
+        requestIdentifier(request),
+        'VEHICLE',
+        (transaction) =>
+          transaction
+            .insertInto('vehicle')
+            .values({
+              code: input.code.toUpperCase(),
+              name: input.name,
+              registration: input.registration ?? null,
+              archived_at: null,
+            })
+            .returningAll()
+            .executeTakeFirstOrThrow(),
+      ),
+    ),
+  );
+  router.patch(
+    '/vehicles/:vehicleId',
+    requireRole('ADMINISTRATOR'),
+    writeHandler(
+      VehicleUpdateSchema,
+      (input, request) =>
+        auditedMutation(
+          database,
+          request.principal!.id,
+          requestIdentifier(request),
+          'VEHICLE',
+          async (transaction) => {
+            const id = pathId(request.params.vehicleId);
+            if (!input.active) {
+              const activeRoute = await transaction
+                .selectFrom('route')
+                .select('id')
+                .where('vehicle_id', '=', id)
+                .where('state', '!=', 'CLOSED')
+                .executeTakeFirst();
+              if (activeRoute) throw new HttpProblem(409, 'VEHICLE_ASSIGNED', 'Conflict');
+            }
+            const updated = await transaction
+              .updateTable('vehicle')
+              .set({
+                code: input.code.toUpperCase(),
+                name: input.name,
+                registration: input.registration ?? null,
+                active: input.active,
+                archived_at: input.active ? null : new Date(),
+                updated_at: new Date(),
+                version: input.expectedVersion + 1,
+              })
+              .where('id', '=', id)
+              .where('version', '=', input.expectedVersion)
+              .returningAll()
+              .executeTakeFirst();
+            if (!updated) throw new HttpProblem(409, 'OPTIMISTIC_CONFLICT', 'Conflict');
+            return updated;
+          },
+          input.reason,
+        ),
+      200,
+    ),
+  );
+
+  router.get('/products', async (request, response, next) => {
+    try {
+      let query = database.selectFrom('product').selectAll().orderBy('name').limit(100);
+      const search = request.query.search;
+      if (typeof search === 'string')
+        query = query.where((eb) =>
+          eb.or([eb('name', 'ilike', `%${search}%`), eb('sku', 'ilike', `%${search}%`)]),
+        );
+      const rows = await query.execute();
+      response.json({
+        data: rows.map((row) => ({
+          id: row.id,
+          sku: row.sku,
+          name: row.name,
+          description: row.description,
+          categoryId: row.category_id,
+          unitId: row.unit_id,
+          standardUnitPrice: Number(row.standard_unit_price).toFixed(4),
+          lowStockThreshold: Number(row.low_stock_threshold).toFixed(3),
+          active: row.active,
+          version: row.version,
+        })),
+        page: { hasNextPage: false, nextCursor: null },
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+  router.post(
+    '/products',
+    requireRole('ADMINISTRATOR'),
+    writeHandler(ProductWriteSchema, (input, request) =>
+      productService.createProduct(input, request.principal!.id, requestIdentifier(request)),
+    ),
+  );
+  router.get('/products/:productId', async (request, response, next) => {
+    try {
+      const product = await database
+        .selectFrom('product')
+        .selectAll()
+        .where('id', '=', pathId(request.params.productId))
+        .executeTakeFirst();
+      if (!product) throw new HttpProblem(404, 'PRODUCT_NOT_FOUND', 'Not Found');
+      response.json({ data: product });
+    } catch (error) {
+      next(error);
+    }
+  });
+  router.patch(
+    '/products/:productId',
+    requireRole('ADMINISTRATOR'),
+    writeHandler(
+      ProductUpdateSchema,
+      (input, request) =>
+        auditedMutation(
+          database,
+          request.principal!.id,
+          requestIdentifier(request),
+          'PRODUCT',
+          async (transaction) => {
+            await new CatalogRepository(transaction).requireActiveReferences(
+              input.categoryId,
+              input.unitId,
+            );
+            const updated = await transaction
+              .updateTable('product')
+              .set({
+                sku: input.sku.toUpperCase(),
+                name: input.name,
+                description: input.description ?? null,
+                category_id: input.categoryId,
+                unit_id: input.unitId,
+                standard_unit_price: input.standardUnitPrice,
+                low_stock_threshold: input.lowStockThreshold,
+                active: input.active,
+                archived_at: input.active ? null : new Date(),
+                updated_at: new Date(),
+                version: input.expectedVersion + 1,
+              })
+              .where('id', '=', pathId(request.params.productId))
+              .where('version', '=', input.expectedVersion)
+              .returningAll()
+              .executeTakeFirst();
+            if (!updated) throw new HttpProblem(409, 'OPTIMISTIC_CONFLICT', 'Conflict');
+            return updated;
+          },
+          input.reason,
+        ),
+      200,
+    ),
+  );
+
+  return router;
+}
