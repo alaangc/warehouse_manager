@@ -11,11 +11,11 @@ import {
   VehicleWriteSchema,
 } from '@warehouse/contracts';
 import { Router, type Request, type RequestHandler } from 'express';
-import type { Transaction } from 'kysely';
+import type { Selectable, Transaction } from 'kysely';
 import type { ZodType } from 'zod';
 import { requireAuthenticated, requireRole } from '../../auth/authorization.js';
 import type { AppDatabase } from '../../db/database.js';
-import type { Database, JsonValue } from '../../db/types.js';
+import type { Database, JsonValue, ProductTable } from '../../db/types.js';
 import { HttpProblem } from '../../http/problem-handler.js';
 import { AuditWriter } from '../../shared/audit/audit-service.js';
 import { CatalogRepository } from './catalog-repository.js';
@@ -105,6 +105,21 @@ function writeHandler<T>(
         next(mapped);
       }
     }
+  };
+}
+
+function mapProduct(row: Selectable<ProductTable>) {
+  return {
+    id: row.id,
+    sku: row.sku,
+    name: row.name,
+    description: row.description,
+    categoryId: row.category_id,
+    unitId: row.unit_id,
+    standardUnitPrice: Number(row.standard_unit_price).toFixed(4),
+    lowStockThreshold: Number(row.low_stock_threshold).toFixed(3),
+    active: row.active,
+    version: row.version,
   };
 }
 
@@ -418,18 +433,7 @@ export function createCatalogRouter(database: AppDatabase): Router {
         );
       const rows = await query.execute();
       response.json({
-        data: rows.map((row) => ({
-          id: row.id,
-          sku: row.sku,
-          name: row.name,
-          description: row.description,
-          categoryId: row.category_id,
-          unitId: row.unit_id,
-          standardUnitPrice: Number(row.standard_unit_price).toFixed(4),
-          lowStockThreshold: Number(row.low_stock_threshold).toFixed(3),
-          active: row.active,
-          version: row.version,
-        })),
+        data: rows.map((row) => mapProduct(row)),
         page: { hasNextPage: false, nextCursor: null },
       });
     } catch (error) {
@@ -440,7 +444,9 @@ export function createCatalogRouter(database: AppDatabase): Router {
     '/products',
     requireRole('ADMINISTRATOR'),
     writeHandler(ProductWriteSchema, (input, request) =>
-      productService.createProduct(input, request.principal!.id, requestIdentifier(request)),
+      productService
+        .createProduct(input, request.principal!.id, requestIdentifier(request))
+        .then((row) => mapProduct(row)),
     ),
   );
   router.get('/products/:productId', async (request, response, next) => {
@@ -451,7 +457,7 @@ export function createCatalogRouter(database: AppDatabase): Router {
         .where('id', '=', pathId(request.params.productId))
         .executeTakeFirst();
       if (!product) throw new HttpProblem(404, 'PRODUCT_NOT_FOUND', 'Not Found');
-      response.json({ data: product });
+      response.json({ data: mapProduct(product) });
     } catch (error) {
       next(error);
     }
@@ -468,6 +474,7 @@ export function createCatalogRouter(database: AppDatabase): Router {
           requestIdentifier(request),
           'PRODUCT',
           async (transaction) => {
+            productService.requireArchiveReason(input.active, input.reason);
             await new CatalogRepository(transaction).requireActiveReferences(
               input.categoryId,
               input.unitId,
@@ -495,7 +502,7 @@ export function createCatalogRouter(database: AppDatabase): Router {
             return updated;
           },
           input.reason,
-        ),
+        ).then((row) => mapProduct(row)),
       200,
     ),
   );
