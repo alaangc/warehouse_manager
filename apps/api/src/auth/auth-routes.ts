@@ -100,9 +100,9 @@ export function createAuthRouter(auth: AuthenticationGateway, environment: Envir
     }
   });
   router.get('/auth/session', (request, response, next) => {
-    if (!request.principal)
+    if (!request.principal || !request.csrfToken)
       return next(new HttpProblem(401, 'AUTHENTICATION_REQUIRED', 'Authentication Required'));
-    response.json({ data: request.principal });
+    response.set('X-CSRF-Token', request.csrfToken).json({ data: request.principal });
   });
   router.post('/auth/logout', async (request, response, next) => {
     try {

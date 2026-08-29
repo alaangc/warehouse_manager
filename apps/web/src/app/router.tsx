@@ -9,6 +9,7 @@ import { SaleForm } from '../features/sales/sale-form.js';
 import { DriverSaleHistory } from '../features/sales/driver-sale-history.js';
 import { RoutesPage } from '../features/routes/routes-page.js';
 import { CustomerPages } from '../features/customers/customer-pages.js';
+import { LoginPage } from '../features/auth/login-page.js';
 
 function RouteError() {
   const error = useRouteError();
@@ -24,6 +25,11 @@ function RouteError() {
 }
 
 export const router = createBrowserRouter([
+  {
+    path: '/login',
+    element: <LoginPage />,
+    errorElement: <RouteError />,
+  },
   {
     path: '/',
     element: <AppLayout />,

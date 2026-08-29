@@ -15,6 +15,7 @@ const principal = {
   active: true,
 };
 const csrf = 'c'.repeat(43);
+const resumedCsrf = 'r'.repeat(64);
 const sessionId = 's'.repeat(43);
 
 class FakeAuth implements AuthenticationGateway {
@@ -26,10 +27,12 @@ class FakeAuth implements AuthenticationGateway {
     return { id: sessionId, csrfToken: csrf, principal };
   }
   async findSession(id: string) {
-    return this.sessions.has(id) ? { id, csrfToken: '', csrfHash: 'csrf-hash', principal } : null;
+    return this.sessions.has(id)
+      ? { id, csrfToken: resumedCsrf, csrfHash: resumedCsrf, principal }
+      : null;
   }
   matchesCsrf(_hash: string, token: string) {
-    return token === csrf;
+    return token === csrf || token === resumedCsrf;
   }
   async logout(id: string) {
     this.sessions.delete(id);
@@ -61,7 +64,9 @@ describe('foundation HTTP contract', () => {
     expect(login.headers['x-csrf-token']).toBe(csrf);
     expect(login.headers['set-cookie']?.[0]).toContain('__Host-wm_session=');
     const cookie = login.headers['set-cookie']![0]!.split(';')[0]!;
-    expect((await request(app).get('/api/v1/auth/session').set('Cookie', cookie)).status).toBe(200);
+    const restoredSession = await request(app).get('/api/v1/auth/session').set('Cookie', cookie);
+    expect(restoredSession.status).toBe(200);
+    expect(restoredSession.headers['x-csrf-token']).toBe(resumedCsrf);
     expect(
       (
         await request(app)
@@ -76,7 +81,7 @@ describe('foundation HTTP contract', () => {
           .post('/api/v1/auth/logout')
           .set('Origin', env.APP_ORIGIN)
           .set('Cookie', cookie)
-          .set('X-CSRF-Token', csrf)
+          .set('X-CSRF-Token', restoredSession.headers['x-csrf-token'] as string)
       ).status,
     ).toBe(204);
   });

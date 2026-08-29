@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import type { AppDatabase } from '../db/database.js';
 
 export const SESSION_COOKIE = '__Host-wm_session';
@@ -22,6 +22,12 @@ export type CreatedSession = { id: string; csrfToken: string; principal: Session
 
 function digest(value: string): string {
   return createHash('sha256').update(value).digest('hex');
+}
+
+function secretsMatch(left: string, right: string): boolean {
+  const leftBytes = Buffer.from(left);
+  const rightBytes = Buffer.from(right);
+  return leftBytes.length === rightBytes.length && timingSafeEqual(leftBytes, rightBytes);
 }
 
 export class SessionStore {
@@ -95,7 +101,9 @@ export class SessionStore {
   }
 
   matchesCsrf(hash: string, token: string): boolean {
-    return digest(token) === hash;
+    // Login returns the original token. Session restoration returns its persisted digest,
+    // which is itself an opaque synchronizer token and keeps the original secret unrecoverable.
+    return secretsMatch(hash, token) || secretsMatch(hash, digest(token));
   }
 
   async revoke(id: string, reason = 'LOGOUT'): Promise<void> {
