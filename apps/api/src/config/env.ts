@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { z } from 'zod';
 
 const EnvironmentSchema = z
@@ -12,7 +13,7 @@ const EnvironmentSchema = z
     LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
     DOCUMENT_STORAGE_PATH: z.string().min(1),
   })
-  .strict();
+  .strip();
 
 export type Environment = z.infer<typeof EnvironmentSchema>;
 

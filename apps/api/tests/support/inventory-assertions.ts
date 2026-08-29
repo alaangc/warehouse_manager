@@ -1,5 +1,6 @@
 import { expect } from 'vitest';
 import type { AppDatabase } from '../../src/db/database.js';
+import { parseExactDecimal } from '../../src/shared/money.js';
 
 export async function expectLedgerMatchesBalance(
   database: AppDatabase,
@@ -25,11 +26,10 @@ export async function expectLedgerMatchesBalance(
     .execute();
   const reproduced = movements.reduce(
     (sum, movement) =>
-      sum +
-      (movement.destination_stock_location_id === stockLocationId
-        ? Number(movement.quantity)
-        : -Number(movement.quantity)),
-    0,
+      movement.destination_stock_location_id === stockLocationId
+        ? sum.plus(parseExactDecimal(movement.quantity))
+        : sum.minus(parseExactDecimal(movement.quantity)),
+    parseExactDecimal('0'),
   );
-  expect(Number(balance.quantity)).toBeCloseTo(reproduced, 3);
+  expect(parseExactDecimal(balance.quantity).equals(reproduced)).toBe(true);
 }

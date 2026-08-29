@@ -29,4 +29,11 @@ describe('loadEnvironment', () => {
       'BUSINESS_TIMEZONE',
     );
   });
+
+  it('ignores unrelated operating-system environment variables', () => {
+    expect(loadEnvironment({ ...valid, PATH: '/usr/bin', SHELL: '/bin/zsh' })).toMatchObject({
+      NODE_ENV: 'test',
+      PORT: 3000,
+    });
+  });
 });

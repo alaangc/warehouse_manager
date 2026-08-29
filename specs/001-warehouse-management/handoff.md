@@ -1,10 +1,29 @@
 # Handoff Document: warehouse_manager Project Continuation
 
-## Just Completed (previous session)
+## Just Completed (current session)
+
+**T032 is DONE** — `apps/api/tests/integration/inventory/inventory-ledger.test.ts`
+is now a real PostgreSQL 18/Testcontainers suite. It proves movement/balance
+reproduction, low-stock threshold evaluation, compensating reversal links, mandatory
+reason rollback, multi-line atomicity, archived-history retention, restrictive deletes,
+same-transaction audits, and complete catalog/inventory rollback when audit insertion
+is deliberately failed. The full integration suite passes 16/16 and T032 is checked
+off in `tasks.md`.
+
+The root `README.md` now contains a verified Docker-based local setup and test guide.
+During the smoke test, two startup blockers were fixed: PostgreSQL 18's Compose volume
+now mounts at `/var/lib/postgresql`, and API configuration loads `apps/api/.env` while
+ignoring unrelated operating-system environment variables. Migrations, seeding, API
+health on port 3000, and Vite on port 5173 were verified. The development PostgreSQL
+container was left running for the user.
+
+**Next session = T033** (line 96 of `tasks.md`): real concurrent last-unit,
+deterministic-lock, negative-balance, rollback, and idempotent-retry tests in
+`apps/api/tests/integration/inventory/inventory-concurrency.test.ts`.
+
+## Previously Completed
 
 **T031 is DONE** — the real US1 contract suite (`apps/api/tests/contract/inventory/inventory.contract.test.ts`, 740 lines: 2 schema tests + 12 HTTP tests) is fully green against real Postgres (testcontainers). All gates passed: contract 23/23, integration 14/14, `pnpm typecheck`, `pnpm lint`, prettier. T031 is checked off in `tasks.md` and committed (no push).
-
-**Next session = T032** (line 95 of `tasks.md`): real-DB integration tests in `apps/api/tests/integration/inventory/inventory-ledger.test.ts` (currently a 13-line stub) for movement/balance atomicity, required reasons, archival history, low-stock thresholds, compensating reversals, and same-transaction audit presence/failure-rollback. Copy the real-DB pattern from `apps/api/tests/integration/customers/customer-pricing.test.ts` (beforeAll: `startPostgres()` → `createDatabase(uri)` → `resetDatabase(database)` → `migrateToLatest(database, <migrations dir>)` → `seedFoundation(database)`; afterAll: `database.destroy()` + `container.container.stop()`).
 
 ## What the previous session did (T031 details)
 
@@ -45,7 +64,7 @@ The user's docker CLI uses the `desktop-linux` context (`unix://$HOME/.docker/ru
 
 ## Current project state
 
-Phase 1 + Phase 2 genuinely done (T019's "integration" is mock-only — DB behaviors unproven; fix when convenient). US1: API functionally complete; **T031 done**; T032/T033 (integration stubs), T034 (web 17-line stub), T035 (E2E 7-line self-skipping stub), T038/T040 (thin catalog repo/service — logic inlined in `catalog-routes.ts`, ~513 lines), T043 (catalog UI create-only), T046 (movement history basic) remain. US2/US3/US4 implementations exist but missing some integration/E2E tests. US5/US6/US7 + Polish: zero code.
+Phase 1 + Phase 2 genuinely done (T019's "integration" is mock-only — DB behaviors unproven; fix when convenient). US1: API functionally complete; **T031 and T032 done**; T033 (integration stub), T034 (web 17-line stub), T035 (E2E 7-line self-skipping stub), T038/T040 (thin catalog repo/service — logic inlined in `catalog-routes.ts`, ~513 lines), T043 (catalog UI create-only), T046 (movement history basic) remain. US2/US3/US4 implementations exist but missing some integration/E2E tests. US5/US6/US7 + Polish: zero code.
 
 ## Seeded fixtures (foundation)
 
@@ -53,13 +72,13 @@ admin `00000000-0000-4000-8000-000000000010` (username `admin`, password `develo
 
 ## Key files
 
-- `specs/001-warehouse-management/tasks.md` — checkboxes (T032 line 95, T033 96, T034 97, T035 98, T038 104, T040 106, T043 109, T046 112)
+- `specs/001-warehouse-management/tasks.md` — checkboxes (T033 line 96, T034 97, T035 98, T038 104, T040 106, T043 109, T046 112)
 - `specs/001-warehouse-management/{spec,plan,data-model}.md`, `contracts/openapi.yaml` (planning copy, authoritative)
 - `packages/contracts/openapi.yaml` — 56 paths, global session security; `Product`/`InventoryBalance`/`Unit`/… camelCase + `additionalProperties: false`
 - `apps/api/tests/contract/inventory/inventory.contract.test.ts` — 740 lines, 14 tests, all green; contains the real-DB `beforeAll` pattern and `authed()` supertest helper
 - `apps/api/src/modules/catalog/catalog-routes.ts` — `mapProduct` added; product routes fully camelCase; units/categories/locations/vehicles still raw (T038/T040)
 - `apps/api/src/modules/customers/customer-repository.ts` — `toCustomerResource` = the reference mapper pattern
-- `apps/api/tests/integration/inventory/inventory-ledger.test.ts` — T032 target; pattern source: `apps/api/tests/integration/customers/customer-pricing.test.ts`
+- `apps/api/tests/integration/inventory/inventory-ledger.test.ts` — completed T032 real-PostgreSQL ledger lifecycle suite
 - `apps/api/src/modules/inventory/{inventory-routes,inventory-service}.ts` — balance/movement behavior
 - `vitest.workspace.ts` — projects: api-unit, api-contract, api-integration, web
 
@@ -68,4 +87,4 @@ admin `00000000-0000-4000-8000-000000000010` (username `admin`, password `develo
 - **Approved**: one-task-per-session workflow (definition of done: tests green → flip checkbox → update this handoff → commit, no push)
 - **Approved (earlier)**: US1-first priority order
 - **Decided this session** (in T031's spirit): product response shape + product archive-reason as API fixes (required for the contract test to be green; product-scoped only — the wider catalog gaps deliberately deferred to T038/T040)
-- **Deferred sequence**: T032 → T033 → T034 → T035 → T038/T040 (per-entity mappers + archive reasons) → T043 → T046 → US1 checkpoint, then US2/US3 test gaps, then US5→US7→US6 builds, then Polish/CI.
+- **Deferred sequence**: T033 → T034 → T035 → T038/T040 (per-entity mappers + archive reasons) → T043 → T046 → US1 checkpoint, then US2/US3 test gaps, then US5→US7→US6 builds, then Polish/CI.

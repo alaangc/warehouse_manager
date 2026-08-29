@@ -13,7 +13,7 @@ services:
       timeout: 3s
       retries: 20
     volumes:
-      - warehouse-data:/var/lib/postgresql/data
+      - warehouse-data:/var/lib/postgresql
       - ./database/docker/init-test-db.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
 
   postgres-test:
