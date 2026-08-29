@@ -1,17 +1,251 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import type { ReactElement } from 'react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { ProductForm } from '../../src/features/catalog/catalog-forms.js';
 import { InventoryOperationForm } from '../../src/features/inventory/inventory-operation-form.js';
+import { InventoryPage } from '../../src/features/inventory/inventory-page.js';
+import { MovementHistory } from '../../src/features/inventory/movement-history.js';
+import { setCsrfToken } from '../../src/lib/api/client.js';
 
-describe('inventory operation UI', () => {
-  it('shows a validation error for a quantity with too many decimals', async () => {
-    render(
-      <QueryClientProvider client={new QueryClient()}>
-        <InventoryOperationForm />
-      </QueryClientProvider>,
+const productId = '00000000-0000-4000-8000-000000000101';
+const categoryId = '00000000-0000-4000-8000-000000000102';
+const unitId = '00000000-0000-4000-8000-000000000103';
+const magdalenaBranchId = '00000000-0000-4000-8000-000000000104';
+const caborcaBranchId = '00000000-0000-4000-8000-000000000105';
+const routeId = '00000000-0000-4000-8000-000000000106';
+
+const queryClients: QueryClient[] = [];
+
+function jsonResponse(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': status >= 400 ? 'application/problem+json' : 'application/json' },
+  });
+}
+
+function renderWithQuery(ui: ReactElement) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  queryClients.push(queryClient);
+  return {
+    queryClient,
+    ...render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>),
+  };
+}
+
+function fillInventoryEntry() {
+  fireEvent.change(screen.getByLabelText('Branch ID'), {
+    target: { value: magdalenaBranchId },
+  });
+  fireEvent.change(screen.getByLabelText('Product ID'), { target: { value: productId } });
+  fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '2.500' } });
+  fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'Initial receiving' } });
+}
+
+afterEach(() => {
+  cleanup();
+  for (const queryClient of queryClients) queryClient.clear();
+  queryClients.length = 0;
+  vi.unstubAllGlobals();
+  setCsrfToken(null);
+});
+
+describe('inventory and catalog UI', () => {
+  it('submits exact product values and converts an empty description to null', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ data: { id: productId } }, 201));
+    vi.stubGlobal('fetch', fetchMock);
+    renderWithQuery(<ProductForm />);
+
+    fireEvent.change(screen.getByLabelText(/SKU/), { target: { value: 'WIDGET-01' } });
+    fireEvent.change(screen.getByLabelText(/Name/), { target: { value: 'Widget' } });
+    fireEvent.change(screen.getByLabelText(/Category ID/), { target: { value: categoryId } });
+    fireEvent.change(screen.getByLabelText(/Unit ID/), { target: { value: unitId } });
+    fireEvent.change(screen.getByLabelText(/Standard unit price/), {
+      target: { value: '12.3456' },
+    });
+    fireEvent.change(screen.getByLabelText(/Low stock threshold/), {
+      target: { value: '3.250' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save product' }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    const [url, request] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('/api/v1/products');
+    expect(request).toMatchObject({ method: 'POST', credentials: 'include' });
+    expect(JSON.parse(String(request.body))).toEqual({
+      sku: 'WIDGET-01',
+      name: 'Widget',
+      categoryId,
+      unitId,
+      standardUnitPrice: '12.3456',
+      lowStockThreshold: '3.250',
+      description: null,
+    });
+  });
+
+  it('renders low-stock alerts and refetches when the alert filter changes', async () => {
+    const lowStock = {
+      id: 'balance-low',
+      productId,
+      productName: 'Low widget',
+      quantity: '2.000',
+      lowStockAlert: true,
+      version: 2,
+      updatedAt: '2026-08-29T12:00:00.000Z',
+      stockLocation: {
+        id: 'stock-magdalena',
+        kind: 'BRANCH',
+        label: 'Magdalena',
+        branchId: magdalenaBranchId,
+        routeId: null,
+      },
+    };
+    const available = {
+      ...lowStock,
+      id: 'balance-available',
+      productId: '00000000-0000-4000-8000-000000000107',
+      productName: 'Available widget',
+      quantity: '20.000',
+      lowStockAlert: false,
+    };
+    const fetchMock = vi.fn((input: RequestInfo | URL) => {
+      const filtered = String(input).includes('alertsOnly=true');
+      return Promise.resolve(jsonResponse({ data: filtered ? [lowStock] : [lowStock, available] }));
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    renderWithQuery(<InventoryPage />);
+
+    expect(await screen.findByText('Low widget')).toBeInTheDocument();
+    expect(screen.getByText('Available widget')).toBeInTheDocument();
+    expect(screen.getByText('Low stock')).toBeInTheDocument();
+    expect(screen.getByText('Available')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('switch', { name: 'Show low-stock alerts only' }));
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/v1/inventory/balances?alertsOnly=true',
+        expect.objectContaining({ credentials: 'include' }),
+      ),
     );
+    await waitFor(() => expect(screen.queryByText('Available widget')).not.toBeInTheDocument());
+    expect(screen.getByText('Low widget')).toBeInTheDocument();
+  });
+
+  it('shows a validation error for a quantity with too many decimals', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    renderWithQuery(<InventoryOperationForm />);
+
     fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '1.2345' } });
     fireEvent.click(screen.getByRole('button', { name: 'Confirm operation' }));
+
     expect(await screen.findByText(/up to 3 decimals/i)).toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('submits an inventory entry with a stable idempotency key', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ data: { id: 'operation-1' } }, 201));
+    vi.stubGlobal('fetch', fetchMock);
+    renderWithQuery(<InventoryOperationForm />);
+    fillInventoryEntry();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm operation' }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    const [url, request] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('/api/v1/inventory/operations');
+    expect(request).toMatchObject({ method: 'POST', credentials: 'include' });
+    expect(JSON.parse(String(request.body))).toEqual({
+      operationType: 'ENTRY',
+      branchId: magdalenaBranchId,
+      reason: 'Initial receiving',
+      lines: [{ productId, quantity: '2.500' }],
+    });
+    const headers = request.headers as Headers;
+    expect(headers.get('Idempotency-Key')).toMatch(/^[0-9a-f-]{36}$/i);
+  });
+
+  it('shows the API conflict detail without treating it as a successful operation', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse(
+        {
+          type: '/problems/insufficient-inventory',
+          title: 'Conflict',
+          status: 409,
+          code: 'INSUFFICIENT_INVENTORY',
+          detail: 'The requested quantity is no longer available.',
+        },
+        409,
+      ),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    renderWithQuery(<InventoryOperationForm />);
+    fillInventoryEntry();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm operation' }));
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('The requested quantity is no longer available.');
+    expect(screen.getByDisplayValue('2.500')).toBeInTheDocument();
+  });
+
+  it('renders movement history and applies the assigned-route filter', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse({
+        data: [
+          {
+            id: 'movement-1',
+            operation_id: 'operation-1',
+            operationType: 'TRANSFER',
+            product_id: productId,
+            quantity: '4.000',
+            reason: 'Route replenishment',
+            occurred_at: '2026-08-29T12:00:00.000Z',
+          },
+        ],
+      }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    renderWithQuery(<MovementHistory routeId={routeId} />);
+
+    expect(await screen.findByText('TRANSFER')).toBeInTheDocument();
+    expect(screen.getByText(productId)).toBeInTheDocument();
+    expect(screen.getByText('4.000')).toBeInTheDocument();
+    expect(screen.getByText('Route replenishment')).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledWith(
+      `/api/v1/inventory/movements?routeId=${routeId}`,
+      expect.objectContaining({ credentials: 'include' }),
+    );
+  });
+
+  it('keeps source and destination branch identifiers distinct in transfer payloads', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ data: { id: 'operation-2' } }, 201));
+    vi.stubGlobal('fetch', fetchMock);
+    renderWithQuery(<InventoryOperationForm />);
+
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Operation' }));
+    fireEvent.click(await screen.findByRole('option', { name: 'Transfer' }));
+    fireEvent.change(screen.getByLabelText('Source branch ID'), {
+      target: { value: magdalenaBranchId },
+    });
+    fireEvent.change(screen.getByLabelText('Destination branch ID'), {
+      target: { value: caborcaBranchId },
+    });
+    fireEvent.change(screen.getByLabelText('Product ID'), { target: { value: productId } });
+    fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '1.000' } });
+    fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'Branch rebalance' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm operation' }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    const [url, request] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('/api/v1/inventory/transfers');
+    expect(JSON.parse(String(request.body))).toEqual({
+      sourceBranchId: magdalenaBranchId,
+      destinationBranchId: caborcaBranchId,
+      reason: 'Branch rebalance',
+      lines: [{ productId, quantity: '1.000' }],
+    });
   });
 });
