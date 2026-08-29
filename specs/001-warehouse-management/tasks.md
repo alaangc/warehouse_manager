@@ -93,7 +93,7 @@ immutable movement history while an insufficient/concurrent decrement changes no
 
 - [X] T031 [P] [US1] Write failing OpenAPI/Supertest tests for product/unit/category/location/vehicle CRUD, inventory balance/history filters, assigned-route-only Driver movement access, entry/exit/adjustment/transfer/reversal commands, decimal strings, and Administrator/Driver authorization in `apps/api/tests/contract/inventory/inventory.contract.test.ts`
 - [X] T032 [P] [US1] Write failing PostgreSQL integration tests for movement/balance atomicity, required reasons, archival history, low-stock thresholds, compensating reversals, and same-transaction audit presence/failure rollback for catalog and inventory mutations in `apps/api/tests/integration/inventory/inventory-ledger.test.ts`
-- [ ] T033 [P] [US1] Write failing concurrent last-unit, deterministic-lock, negative-balance, transaction-rollback, and idempotent-retry tests in `apps/api/tests/integration/inventory/inventory-concurrency.test.ts`
+- [X] T033 [P] [US1] Write failing concurrent last-unit, deterministic-lock, negative-balance, transaction-rollback, and idempotent-retry tests in `apps/api/tests/integration/inventory/inventory-concurrency.test.ts`
 - [ ] T034 [P] [US1] Write failing React component tests for product forms, inventory filters, alerts, operation forms, conflict errors, and movement history in `apps/web/tests/inventory/inventory-ui.test.tsx`
 - [ ] T035 [P] [US1] Write the failing independent inventory walkthrough for Administrator and denied Driver actions in `tests/e2e/us1-inventory.spec.ts`
 
