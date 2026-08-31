@@ -52,7 +52,7 @@ function RouteCard({ route, balanceCount }: { route: RouteResource; balanceCount
   return (
     <Paper
       component={Link}
-      to="/routes"
+      to={`/routes?routeId=${encodeURIComponent(route.id)}`}
       variant="outlined"
       sx={{
         color: 'text.primary',

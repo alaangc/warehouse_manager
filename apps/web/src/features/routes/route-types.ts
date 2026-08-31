@@ -30,9 +30,28 @@ export interface RouteLoad {
 export interface RouteDetail {
   route: RouteResource;
   load: RouteLoad | null;
-  balances: Array<{ id: string; productId: string; productName: string; quantity: string }>;
+  balances: Array<{
+    id: string;
+    productId: string;
+    productName: string;
+    quantity: string;
+    version?: number;
+    updatedAt?: string;
+    lowStockAlert?: boolean;
+  }>;
   movements: Array<Record<string, unknown>>;
-  sales: Array<Record<string, unknown>>;
+  sales: Array<{
+    id: string;
+    saleNumber: string;
+    status: 'COMPLETED' | 'CANCELLED';
+    customerId: string;
+    driverId: string;
+    routeId: string;
+    paymentMethod: string;
+    total: string;
+    completedAt: string;
+    cancelledAt: string | null;
+  }>;
   reconciliation: null | {
     id: string;
     state: 'APPROVED';

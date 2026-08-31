@@ -11,11 +11,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import { apiRequest } from '../../lib/api/client.js';
 import { localizedErrorMessage } from '../../lib/api/localized-error.js';
-import { formatDecimal } from '../../i18n/format.js';
 import { idempotencyKey } from '../../lib/api/idempotency.js';
 import { RouteHistory } from './route-history.js';
+import { RouteOverview } from './route-overview.js';
 import { useRouteDetail, useRoutes } from './route-queries.js';
 
 interface LoadValues {
@@ -26,13 +27,19 @@ export function DriverRoutePages() {
   const { t } = useTranslation();
   const routes = useRoutes();
   const client = useQueryClient();
-  const [selected, setSelected] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [selected, setSelected] = useState<string | null>(() => searchParams.get('routeId'));
   useEffect(() => {
-    if (!selected && routes.data?.data.length) {
+    if (
+      routes.data?.data.length &&
+      (!selected || !routes.data.data.some((route) => route.id === selected))
+    ) {
       const active = routes.data.data.find((route) => route.state !== 'CLOSED');
-      setSelected((active ?? routes.data.data[0])!.id);
+      const routeId = (active ?? routes.data.data[0])!.id;
+      setSelected(routeId);
+      setSearchParams({ routeId }, { replace: true });
     }
-  }, [routes.data, selected]);
+  }, [routes.data, selected, setSearchParams]);
   const detail = useRouteDetail(selected);
   const form = useForm<LoadValues>({
     defaultValues: { lines: [{ productId: '', quantity: '1' }] },
@@ -80,7 +87,10 @@ export function DriverRoutePages() {
         select
         label={t('routes.assignedRoute')}
         value={selected ?? ''}
-        onChange={(event) => setSelected(event.target.value)}
+        onChange={(event) => {
+          setSelected(event.target.value);
+          setSearchParams({ routeId: event.target.value }, { replace: true });
+        }}
       >
         {routes.data?.data.map((route) => (
           <MenuItem key={route.id} value={route.id}>
@@ -88,6 +98,7 @@ export function DriverRoutePages() {
           </MenuItem>
         ))}
       </TextField>
+      {current && <RouteOverview detail={current} />}
       {current?.route.state === 'PREPARING' && (
         <Stack
           component="form"
@@ -140,17 +151,9 @@ export function DriverRoutePages() {
         </Stack>
       )}
       {current?.route.state === 'EN_ROUTE' && (
-        <>
-          <Typography variant="h6">{t('routes.availableInventory')}</Typography>
-          {current.balances.map((balance) => (
-            <Typography key={balance.id}>
-              {balance.productName}: {formatDecimal(balance.quantity)}
-            </Typography>
-          ))}
-          <Button variant="contained" onClick={() => command.mutate('return')}>
-            {t('routes.markReturned')}
-          </Button>
-        </>
+        <Button variant="contained" onClick={() => command.mutate('return')}>
+          {t('routes.markReturned')}
+        </Button>
       )}
       {current && <RouteHistory detail={current} />}
     </Stack>

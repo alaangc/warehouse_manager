@@ -89,11 +89,12 @@ afterEach(() => {
 
 describe('role-aware dashboard', () => {
   it('shows the administrator real route and inventory summary without requesting sales', async () => {
+    const returnedRoute = route('RETURNED', crypto.randomUUID());
     const fetchMock = vi.fn((input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith('/routes'))
         return jsonResponse({
-          data: [route('EN_ROUTE'), route('RETURNED', crypto.randomUUID())],
+          data: [route('EN_ROUTE'), returnedRoute],
           page: { hasNextPage: false, nextCursor: null },
         });
       if (url.endsWith('/inventory/balances'))
@@ -106,6 +107,10 @@ describe('role-aware dashboard', () => {
 
     expect(await screen.findByRole('heading', { name: 'Hello, Administrator!' })).toBeVisible();
     expect(await screen.findByText('R-RETURNED')).toBeVisible();
+    expect(screen.getByRole('link', { name: /R-RETURNED/ })).toHaveAttribute(
+      'href',
+      `/routes?routeId=${returnedRoute.id}`,
+    );
     expect(screen.getByText('Open routes').previousElementSibling).toHaveTextContent('2');
     await waitFor(() =>
       expect(screen.getByText('Low-stock balances shown').previousElementSibling).toHaveTextContent(
