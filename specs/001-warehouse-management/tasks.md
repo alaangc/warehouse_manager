@@ -95,7 +95,7 @@ immutable movement history while an insufficient/concurrent decrement changes no
 - [X] T032 [P] [US1] Write failing PostgreSQL integration tests for movement/balance atomicity, required reasons, archival history, low-stock thresholds, compensating reversals, and same-transaction audit presence/failure rollback for catalog and inventory mutations in `apps/api/tests/integration/inventory/inventory-ledger.test.ts`
 - [X] T033 [P] [US1] Write failing concurrent last-unit, deterministic-lock, negative-balance, transaction-rollback, and idempotent-retry tests in `apps/api/tests/integration/inventory/inventory-concurrency.test.ts`
 - [X] T034 [P] [US1] Write failing React component tests for product forms, inventory filters, alerts, operation forms, conflict errors, and movement history in `apps/web/tests/inventory/inventory-ui.test.tsx`
-- [ ] T035 [P] [US1] Write the failing independent inventory walkthrough for Administrator and denied Driver actions in `tests/e2e/us1-inventory.spec.ts`
+- [X] T035 [P] [US1] Write the failing independent inventory walkthrough for Administrator and denied Driver actions in `tests/e2e/us1-inventory.spec.ts`
 
 ### Implementation for User Story 1
 
