@@ -43,11 +43,23 @@ export const es: DeepTranslation<typeof en> = {
   },
   auth: {
     checkingSession: 'Verificando sesión',
+    secureAccess: 'Acceso operativo seguro',
+    brandDescription:
+      'Inventario, rutas, clientes y ventas en un solo espacio de trabajo confiable.',
+    featureInventory: 'Inventario actualizado por sucursal y ruta activa',
+    featureTraceability: 'Movimientos rastreables e historial comercial protegido',
+    featureAccess: 'Acceso por roles para administradores y conductores',
+    welcomeBack: 'Te damos la bienvenida',
     signInToContinue: 'Inicia sesión para continuar.',
     username: 'Usuario',
+    usernamePlaceholder: 'Ingresa tu usuario',
     password: 'Contraseña',
+    passwordPlaceholder: 'Ingresa tu contraseña',
+    showPassword: 'Mostrar contraseña',
+    hidePassword: 'Ocultar contraseña',
     signIn: 'Iniciar sesión',
     signingIn: 'Iniciando sesión…',
+    securityNote: 'Tu sesión está protegida y el servidor verifica cada acceso.',
     signOut: 'Cerrar sesión',
     signingOut: 'Cerrando sesión…',
     sessionCheckFailed:

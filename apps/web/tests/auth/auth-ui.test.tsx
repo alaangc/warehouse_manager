@@ -132,6 +132,26 @@ describe('authentication UI', () => {
     expect(await screen.findByText('Incorrect username or password.')).toBeInTheDocument();
   });
 
+  it('supports password visibility and an immediate language switch on the login screen', async () => {
+    renderApp(
+      <MemoryRouter initialEntries={['/login']}>
+        <LoginPage />
+      </MemoryRouter>,
+      { user: null, loading: false, error: null },
+    );
+
+    const password = screen.getByLabelText(/Password/);
+    expect(password).toHaveAttribute('type', 'password');
+    fireEvent.click(screen.getByRole('button', { name: 'Show password' }));
+    expect(password).toHaveAttribute('type', 'text');
+    fireEvent.click(screen.getByRole('button', { name: 'Hide password' }));
+    expect(password).toHaveAttribute('type', 'password');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Spanish' }));
+    expect(await screen.findByRole('heading', { name: 'Te damos la bienvenida' })).toBeVisible();
+    expect(screen.getByLabelText(/Usuario/)).toBeVisible();
+  });
+
   it('restores the CSRF token with the session and uses it to log out', async () => {
     const fetchMock = vi
       .fn()
