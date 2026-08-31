@@ -101,7 +101,7 @@ immutable movement history while an insufficient/concurrent decrement changes no
 
 - [X] T036 [US1] Create catalog, vehicle, route-core, branch/route stock-location, balance, operation, movement, constraints, search indexes, and append-only grants in `database/migrations/002_catalog_inventory.ts`
 - [X] T037 [P] [US1] Add product/unit/category/location builders and inventory assertion helpers in `apps/api/tests/support/catalog-factories.ts` and `apps/api/tests/support/inventory-assertions.ts`
-- [ ] T038 [P] [US1] Implement catalog repositories with normalized uniqueness, optimistic versions, and archive-not-delete behavior in `apps/api/src/modules/catalog/catalog-repository.ts`
+- [X] T038 [P] [US1] Implement catalog repositories with normalized uniqueness, optimistic versions, and archive-not-delete behavior in `apps/api/src/modules/catalog/catalog-repository.ts`
 - [X] T039 [US1] Implement ordered balance locking, conditional decrements, immutable movement insertion, and ledger reproduction queries in `apps/api/src/modules/inventory/inventory-repository.ts`
 - [ ] T040 [US1] Implement product/unit/category/location/vehicle validation, lifecycle rules, active-route vehicle guards, and same-transaction audit emission in `apps/api/src/modules/catalog/catalog-service.ts`
 - [X] T041 [US1] Implement atomic entry, manual exit, transfer, positive/negative adjustment, reversal, low-stock alert, idempotent retry, and same-transaction audit emission in `apps/api/src/modules/inventory/inventory-service.ts`

@@ -85,6 +85,9 @@ function mapWriteError(error: unknown): never {
     if (error.code === 'VEHICLE_ASSIGNED') {
       throw new HttpProblem(409, 'VEHICLE_ASSIGNED', 'Conflict');
     }
+    if (error.code === 'OPTIMISTIC_CONFLICT') {
+      throw new HttpProblem(409, 'OPTIMISTIC_CONFLICT', 'Conflict');
+    }
   }
   throw error;
 }
@@ -150,18 +153,7 @@ export function createCatalogRouter(database: AppDatabase): Router {
         request.principal!.id,
         requestIdentifier(request),
         'LOCATION',
-        async (transaction) => {
-          const location = await transaction
-            .insertInto('location')
-            .values({ code: input.code.toUpperCase(), name: input.name, archived_at: null })
-            .returningAll()
-            .executeTakeFirstOrThrow();
-          await transaction
-            .insertInto('stock_location')
-            .values({ kind: 'BRANCH', branch_id: location.id, route_id: null })
-            .execute();
-          return location;
-        },
+        (transaction) => new CatalogRepository(transaction).createLocation(input),
       ),
     ),
   );
@@ -176,24 +168,11 @@ export function createCatalogRouter(database: AppDatabase): Router {
           request.principal!.id,
           requestIdentifier(request),
           'LOCATION',
-          async (transaction) => {
-            const updated = await transaction
-              .updateTable('location')
-              .set({
-                code: input.code.toUpperCase(),
-                name: input.name,
-                active: input.active,
-                archived_at: input.active ? null : new Date(),
-                updated_at: new Date(),
-                version: input.expectedVersion + 1,
-              })
-              .where('id', '=', pathId(request.params.locationId))
-              .where('version', '=', input.expectedVersion)
-              .returningAll()
-              .executeTakeFirst();
-            if (!updated) throw new HttpProblem(409, 'OPTIMISTIC_CONFLICT', 'Conflict');
-            return updated;
-          },
+          (transaction) =>
+            new CatalogRepository(transaction).updateLocation(
+              pathId(request.params.locationId),
+              input,
+            ),
           input.reason,
         ),
       200,
@@ -225,12 +204,7 @@ export function createCatalogRouter(database: AppDatabase): Router {
         request.principal!.id,
         requestIdentifier(request),
         'CATEGORY',
-        (transaction) =>
-          transaction
-            .insertInto('category')
-            .values({ name: input.name, reporting_group: input.reportingGroup, archived_at: null })
-            .returningAll()
-            .executeTakeFirstOrThrow(),
+        (transaction) => new CatalogRepository(transaction).createCategory(input),
       ),
     ),
   );
@@ -245,24 +219,11 @@ export function createCatalogRouter(database: AppDatabase): Router {
           request.principal!.id,
           requestIdentifier(request),
           'CATEGORY',
-          async (transaction) => {
-            const updated = await transaction
-              .updateTable('category')
-              .set({
-                name: input.name,
-                reporting_group: input.reportingGroup,
-                active: input.active,
-                archived_at: input.active ? null : new Date(),
-                updated_at: new Date(),
-                version: input.expectedVersion + 1,
-              })
-              .where('id', '=', pathId(request.params.categoryId))
-              .where('version', '=', input.expectedVersion)
-              .returningAll()
-              .executeTakeFirst();
-            if (!updated) throw new HttpProblem(409, 'OPTIMISTIC_CONFLICT', 'Conflict');
-            return updated;
-          },
+          (transaction) =>
+            new CatalogRepository(transaction).updateCategory(
+              pathId(request.params.categoryId),
+              input,
+            ),
           input.reason,
         ),
       200,
@@ -295,17 +256,7 @@ export function createCatalogRouter(database: AppDatabase): Router {
         request.principal!.id,
         requestIdentifier(request),
         'UNIT',
-        (transaction) =>
-          transaction
-            .insertInto('unit')
-            .values({
-              code: input.code.toUpperCase(),
-              name: input.name,
-              quantity_scale: input.quantityScale,
-              archived_at: null,
-            })
-            .returningAll()
-            .executeTakeFirstOrThrow(),
+        (transaction) => new CatalogRepository(transaction).createUnit(input),
       ),
     ),
   );
@@ -320,25 +271,8 @@ export function createCatalogRouter(database: AppDatabase): Router {
           request.principal!.id,
           requestIdentifier(request),
           'UNIT',
-          async (transaction) => {
-            const updated = await transaction
-              .updateTable('unit')
-              .set({
-                code: input.code.toUpperCase(),
-                name: input.name,
-                quantity_scale: input.quantityScale,
-                active: input.active,
-                archived_at: input.active ? null : new Date(),
-                updated_at: new Date(),
-                version: input.expectedVersion + 1,
-              })
-              .where('id', '=', pathId(request.params.unitId))
-              .where('version', '=', input.expectedVersion)
-              .returningAll()
-              .executeTakeFirst();
-            if (!updated) throw new HttpProblem(409, 'OPTIMISTIC_CONFLICT', 'Conflict');
-            return updated;
-          },
+          (transaction) =>
+            new CatalogRepository(transaction).updateUnit(pathId(request.params.unitId), input),
           input.reason,
         ),
       200,
@@ -363,17 +297,7 @@ export function createCatalogRouter(database: AppDatabase): Router {
         request.principal!.id,
         requestIdentifier(request),
         'VEHICLE',
-        (transaction) =>
-          transaction
-            .insertInto('vehicle')
-            .values({
-              code: input.code.toUpperCase(),
-              name: input.name,
-              registration: input.registration ?? null,
-              archived_at: null,
-            })
-            .returningAll()
-            .executeTakeFirstOrThrow(),
+        (transaction) => new CatalogRepository(transaction).createVehicle(input),
       ),
     ),
   );
@@ -388,35 +312,11 @@ export function createCatalogRouter(database: AppDatabase): Router {
           request.principal!.id,
           requestIdentifier(request),
           'VEHICLE',
-          async (transaction) => {
-            const id = pathId(request.params.vehicleId);
-            if (!input.active) {
-              const activeRoute = await transaction
-                .selectFrom('route')
-                .select('id')
-                .where('vehicle_id', '=', id)
-                .where('state', '!=', 'CLOSED')
-                .executeTakeFirst();
-              if (activeRoute) throw new HttpProblem(409, 'VEHICLE_ASSIGNED', 'Conflict');
-            }
-            const updated = await transaction
-              .updateTable('vehicle')
-              .set({
-                code: input.code.toUpperCase(),
-                name: input.name,
-                registration: input.registration ?? null,
-                active: input.active,
-                archived_at: input.active ? null : new Date(),
-                updated_at: new Date(),
-                version: input.expectedVersion + 1,
-              })
-              .where('id', '=', id)
-              .where('version', '=', input.expectedVersion)
-              .returningAll()
-              .executeTakeFirst();
-            if (!updated) throw new HttpProblem(409, 'OPTIMISTIC_CONFLICT', 'Conflict');
-            return updated;
-          },
+          (transaction) =>
+            new CatalogRepository(transaction).updateVehicle(
+              pathId(request.params.vehicleId),
+              input,
+            ),
           input.reason,
         ),
       200,
@@ -475,31 +375,10 @@ export function createCatalogRouter(database: AppDatabase): Router {
           'PRODUCT',
           async (transaction) => {
             productService.requireArchiveReason(input.active, input.reason);
-            await new CatalogRepository(transaction).requireActiveReferences(
-              input.categoryId,
-              input.unitId,
+            return new CatalogRepository(transaction).updateProduct(
+              pathId(request.params.productId),
+              input,
             );
-            const updated = await transaction
-              .updateTable('product')
-              .set({
-                sku: input.sku.toUpperCase(),
-                name: input.name,
-                description: input.description ?? null,
-                category_id: input.categoryId,
-                unit_id: input.unitId,
-                standard_unit_price: input.standardUnitPrice,
-                low_stock_threshold: input.lowStockThreshold,
-                active: input.active,
-                archived_at: input.active ? null : new Date(),
-                updated_at: new Date(),
-                version: input.expectedVersion + 1,
-              })
-              .where('id', '=', pathId(request.params.productId))
-              .where('version', '=', input.expectedVersion)
-              .returningAll()
-              .executeTakeFirst();
-            if (!updated) throw new HttpProblem(409, 'OPTIMISTIC_CONFLICT', 'Conflict');
-            return updated;
           },
           input.reason,
         ).then((row) => mapProduct(row)),

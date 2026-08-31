@@ -271,6 +271,31 @@ describe('inventory and catalog HTTP contract', () => {
       });
     expect(archiveWithoutReason.status).toBe(422);
     expect(archiveWithoutReason.body.code).toBe('ARCHIVE_REASON_REQUIRED');
+
+    const archived = await authed(admin)
+      .patch(`/api/v1/products/${(updated.body.data as { id: string }).id}`)
+      .send({
+        sku: (updated.body.data as { sku: string }).sku,
+        name: 'Renamed product',
+        categoryId: (category.body.data as { id: string }).id,
+        unitId: (unit.body.data as { id: string }).id,
+        standardUnitPrice: '13.0000',
+        lowStockThreshold: '3.000',
+        active: false,
+        expectedVersion: (updated.body.data as { version: number }).version,
+        reason: 'Discontinued product',
+      });
+    expect(archived.status).toBe(200);
+    expect(archived.body.data.active).toBe(false);
+    expect(archived.body.data.version).toBe((updated.body.data as { version: number }).version + 1);
+
+    const archivedRow = await database
+      .selectFrom('product')
+      .select(['active', 'archived_at'])
+      .where('id', '=', (product.body.data as { id: string }).id)
+      .executeTakeFirstOrThrow();
+    expect(archivedRow.active).toBe(false);
+    expect(archivedRow.archived_at).toBeInstanceOf(Date);
   });
 
   it('rejects duplicate catalog identifiers and numeric money', async () => {

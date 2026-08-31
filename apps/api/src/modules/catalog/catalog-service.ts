@@ -20,24 +20,7 @@ export class CatalogService {
     requestId: string,
   ) {
     return runSerializable(this.database, async (transaction) => {
-      await new CatalogRepository(transaction).requireActiveReferences(
-        input.categoryId,
-        input.unitId,
-      );
-      const product = await transaction
-        .insertInto('product')
-        .values({
-          sku: input.sku.trim().toUpperCase(),
-          name: input.name.trim(),
-          description: input.description ?? null,
-          category_id: input.categoryId,
-          unit_id: input.unitId,
-          standard_unit_price: input.standardUnitPrice,
-          low_stock_threshold: input.lowStockThreshold,
-          archived_at: null,
-        })
-        .returningAll()
-        .executeTakeFirstOrThrow();
+      const product = await new CatalogRepository(transaction).createProduct(input);
       await new AuditWriter().write(transaction, {
         actorId,
         action: 'CATALOG_CHANGED',
