@@ -17,6 +17,19 @@ export interface InventoryBalance {
     routeId: string | null;
   };
 }
+
+export interface InventoryProduct {
+  id: string;
+  sku: string;
+  name: string;
+  description: string | null;
+  categoryId: string;
+  unitId: string;
+  standardUnitPrice: string;
+  lowStockThreshold: string;
+  active: boolean;
+  version: number;
+}
 export interface InventoryMovement {
   id: string;
   operationId: string;
@@ -56,7 +69,19 @@ export function useInventoryBalances(
   });
 }
 
-export function useInventoryMovements(filters: InventoryMovementFilters = {}) {
+export function useInventoryProduct(productId: string) {
+  return useQuery({
+    queryKey: ['product', productId],
+    queryFn: () =>
+      apiRequest<{ data: InventoryProduct }>(`/products/${encodeURIComponent(productId)}`),
+    enabled: Boolean(productId),
+  });
+}
+
+export function useInventoryMovements(
+  filters: InventoryMovementFilters = {},
+  options: { enabled?: boolean } = {},
+) {
   const query = new URLSearchParams();
   const filterKeys = ['productId', 'branchId', 'routeId', 'operationType', 'from', 'to'] as const;
   for (const key of filterKeys) {
@@ -70,5 +95,6 @@ export function useInventoryMovements(filters: InventoryMovementFilters = {}) {
       apiRequest<{ data: InventoryMovement[] }>(
         `/inventory/movements${search ? `?${search}` : ''}`,
       ),
+    enabled: options.enabled ?? true,
   });
 }

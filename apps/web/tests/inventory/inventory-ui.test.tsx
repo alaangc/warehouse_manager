@@ -2,10 +2,18 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import type { SessionUser } from '@warehouse/contracts';
+import { SessionContext } from '../../src/app/session.js';
 import { ProductForm } from '../../src/features/catalog/catalog-forms.js';
 import { InventoryOperationForm } from '../../src/features/inventory/inventory-operation-form.js';
 import { InventoryPage } from '../../src/features/inventory/inventory-page.js';
 import { MovementHistory } from '../../src/features/inventory/movement-history.js';
+import { ProductDetailPage } from '../../src/features/inventory/product-detail-page.js';
+import {
+  quantityFromScaled,
+  scaledQuantity,
+} from '../../src/features/inventory/inventory-quantity.js';
 import { setCsrfToken } from '../../src/lib/api/client.js';
 
 const productId = '00000000-0000-4000-8000-000000000101';
@@ -14,6 +22,13 @@ const unitId = '00000000-0000-4000-8000-000000000103';
 const magdalenaBranchId = '00000000-0000-4000-8000-000000000104';
 const caborcaBranchId = '00000000-0000-4000-8000-000000000105';
 const routeId = '00000000-0000-4000-8000-000000000106';
+const administrator: SessionUser = {
+  id: '00000000-0000-4000-8000-000000000108',
+  username: 'admin',
+  displayName: 'Administrator',
+  role: 'ADMINISTRATOR',
+  active: true,
+};
 
 const queryClients: QueryClient[] = [];
 
@@ -24,14 +39,20 @@ function jsonResponse(body: unknown, status = 200) {
   });
 }
 
-function renderWithQuery(ui: ReactElement) {
+function renderWithQuery(ui: ReactElement, initialEntry = '/') {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
   queryClients.push(queryClient);
   return {
     queryClient,
-    ...render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>),
+    ...render(
+      <QueryClientProvider client={queryClient}>
+        <SessionContext.Provider value={{ user: administrator, loading: false, error: null }}>
+          <MemoryRouter initialEntries={[initialEntry]}>{ui}</MemoryRouter>
+        </SessionContext.Provider>
+      </QueryClientProvider>,
+    ),
   };
 }
 
@@ -53,6 +74,12 @@ afterEach(() => {
 });
 
 describe('inventory and catalog UI', () => {
+  it('converts positive and negative fixed-scale quantities exactly', () => {
+    expect(scaledQuantity('9007199254740993.125')).toBe(9007199254740993125n);
+    expect(scaledQuantity('-0.500')).toBe(-500n);
+    expect(quantityFromScaled(-500n)).toBe('-0.500');
+  });
+
   it('submits exact product values and converts an empty description to null', async () => {
     const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ data: { id: productId } }, 201));
     vi.stubGlobal('fetch', fetchMock);
@@ -131,6 +158,102 @@ describe('inventory and catalog UI', () => {
     );
     await waitFor(() => expect(screen.queryByText('Available widget')).not.toBeInTheDocument());
     expect(screen.getByText('Low widget')).toBeInTheDocument();
+  });
+
+  it('renders real product detail, exact values, locations, and recent movements', async () => {
+    const fetchMock = vi.fn((input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith(`/products/${productId}`))
+        return Promise.resolve(
+          jsonResponse({
+            data: {
+              id: productId,
+              sku: 'WIDGET-01',
+              name: 'Low widget',
+              description: 'A traceable inventory product.',
+              categoryId,
+              unitId,
+              standardUnitPrice: '12.3456',
+              lowStockThreshold: '3.250',
+              active: true,
+              version: 2,
+            },
+          }),
+        );
+      if (url.includes('/inventory/balances'))
+        return Promise.resolve(
+          jsonResponse({
+            data: [
+              {
+                id: 'balance-low',
+                productId,
+                productName: 'Low widget',
+                quantity: '2.000',
+                lowStockAlert: true,
+                version: 2,
+                updatedAt: '2026-08-29T12:00:00.000Z',
+                stockLocation: {
+                  id: 'stock-magdalena',
+                  kind: 'BRANCH',
+                  label: 'Magdalena',
+                  branchId: magdalenaBranchId,
+                  routeId: null,
+                },
+              },
+            ],
+          }),
+        );
+      if (url.endsWith('/categories'))
+        return Promise.resolve(jsonResponse({ data: [{ id: categoryId, name: 'Sodas' }] }));
+      if (url.endsWith('/units'))
+        return Promise.resolve(jsonResponse({ data: [{ id: unitId, name: 'Piece' }] }));
+      if (url.includes('/inventory/movements'))
+        return Promise.resolve(
+          jsonResponse({
+            data: [
+              {
+                id: 'movement-1',
+                operationId: 'operation-1',
+                operationType: 'ENTRY',
+                productId,
+                source: null,
+                destination: {
+                  id: 'stock-magdalena',
+                  kind: 'BRANCH',
+                  label: 'Magdalena',
+                  branchId: magdalenaBranchId,
+                  routeId: null,
+                },
+                quantity: '2.000',
+                sourceBalanceAfter: null,
+                destinationBalanceAfter: '2.000',
+                actorId: administrator.id,
+                reason: 'Initial stock',
+                occurredAt: '2026-08-29T12:00:00.000Z',
+                relatedEntityType: 'INVENTORY_OPERATION',
+                relatedEntityId: 'operation-1',
+                reversesMovementId: null,
+              },
+            ],
+          }),
+        );
+      throw new Error(`Unexpected request: ${url}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderWithQuery(
+      <Routes>
+        <Route path="/inventory/products/:productId" element={<ProductDetailPage />} />
+      </Routes>,
+      `/inventory/products/${productId}`,
+    );
+
+    expect(await screen.findByRole('heading', { name: 'Low widget' })).toBeVisible();
+    expect(screen.getByText('MXN 12.3456')).toBeVisible();
+    expect(screen.getByText('Sodas')).toBeVisible();
+    expect(screen.getByText('Piece')).toBeVisible();
+    expect(screen.getAllByText('Magdalena')).not.toHaveLength(0);
+    expect(await screen.findByText('Entry')).toBeVisible();
   });
 
   it('shows a validation error for a quantity with too many decimals', async () => {

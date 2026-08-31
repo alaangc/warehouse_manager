@@ -471,6 +471,7 @@ describe('inventory and catalog HTTP contract', () => {
     expect(balances.body.data[0].quantity).toBe('8.000');
     expect(balances.body.data[0].lowStockAlert).toBe(true);
     expect(balances.body.data[0].stockLocation.branchId).toBe(magdalena.id);
+    expect(balances.body.data[0].stockLocation.label).toBe('Magdalena');
 
     const movements = await authed(admin).get(`/api/v1/inventory/movements?productId=${productId}`);
     expect(movements.status).toBe(200);

@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import { formatDateTime, formatDecimal } from '../../i18n/format.js';
 import { localizedErrorMessage } from '../../lib/api/localized-error.js';
 import { useInventoryMovements } from './inventory-queries.js';
@@ -39,9 +40,12 @@ function instant(value: string): string | undefined {
 
 export function MovementHistory({ routeId }: { routeId?: string }) {
   const { t } = useTranslation();
-  const [productId, setProductId] = useState('');
+  const [searchParams] = useSearchParams();
+  const [productId, setProductId] = useState(() => searchParams.get('productId') ?? '');
   const [branchId, setBranchId] = useState('');
-  const [selectedRouteId, setSelectedRouteId] = useState(routeId ?? '');
+  const [selectedRouteId, setSelectedRouteId] = useState(
+    () => routeId ?? searchParams.get('routeId') ?? '',
+  );
   const [operationType, setOperationType] = useState('');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
