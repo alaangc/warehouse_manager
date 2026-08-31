@@ -3114,7 +3114,7 @@ components:
     InventoryMovement:
       type: object
       additionalProperties: false
-      required: [id, operationId, operationType, productId, quantity, actorId, occurredAt, relatedEntityType, relatedEntityId]
+      required: [id, operationId, operationType, productId, quantity, actorId, occurredAt, relatedEntityType, relatedEntityId, reversesMovementId]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
@@ -3153,6 +3153,10 @@ components:
           type: string
         relatedEntityId:
           $ref: '#/components/schemas/Uuid'
+        reversesMovementId:
+          oneOf:
+            - $ref: '#/components/schemas/Uuid'
+            - type: 'null'
     InventoryMovementListResponse:
       type: object
       required: [data, page]

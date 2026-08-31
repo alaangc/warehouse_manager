@@ -31,7 +31,7 @@ export function createServer(environment: Environment, options: ServerOptions = 
   app.use(
     '/api/v1',
     originProtection(environment.APP_ORIGIN),
-    sessionMiddleware(auth),
+    sessionMiddleware(auth, environment),
     csrfProtection(auth),
   );
   app.use('/api/v1', createAuthRouter(auth, environment));

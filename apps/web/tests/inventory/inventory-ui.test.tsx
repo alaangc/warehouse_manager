@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ProductForm } from '../../src/features/catalog/catalog-forms.js';
@@ -197,12 +197,32 @@ describe('inventory and catalog UI', () => {
         data: [
           {
             id: 'movement-1',
-            operation_id: 'operation-1',
+            operationId: 'operation-1',
             operationType: 'TRANSFER',
-            product_id: productId,
+            productId,
+            source: {
+              id: 'stock-magdalena',
+              kind: 'BRANCH',
+              label: 'Magdalena',
+              branchId: magdalenaBranchId,
+              routeId: null,
+            },
+            destination: {
+              id: 'stock-caborca',
+              kind: 'BRANCH',
+              label: 'Caborca',
+              branchId: caborcaBranchId,
+              routeId: null,
+            },
             quantity: '4.000',
+            sourceBalanceAfter: '6.000',
+            destinationBalanceAfter: '4.000',
+            actorId: '00000000-0000-4000-8000-000000000108',
             reason: 'Route replenishment',
-            occurred_at: '2026-08-29T12:00:00.000Z',
+            occurredAt: '2026-08-29T12:00:00.000Z',
+            relatedEntityType: 'INVENTORY_OPERATION',
+            relatedEntityId: 'operation-1',
+            reversesMovementId: null,
           },
         ],
       }),
@@ -211,9 +231,12 @@ describe('inventory and catalog UI', () => {
     renderWithQuery(<MovementHistory routeId={routeId} />);
 
     expect(await screen.findByText('Transfer')).toBeInTheDocument();
-    expect(screen.getByText(productId)).toBeInTheDocument();
-    expect(screen.getByText('4.000')).toBeInTheDocument();
-    expect(screen.getByText('Route replenishment')).toBeInTheDocument();
+    const movementRow = screen.getByRole('row', { name: /Route replenishment/ });
+    expect(within(movementRow).getByText(productId)).toBeInTheDocument();
+    expect(within(movementRow).getAllByText('4.000')).toHaveLength(2);
+    expect(within(movementRow).getByText('Magdalena')).toBeInTheDocument();
+    expect(within(movementRow).getByText('Caborca')).toBeInTheDocument();
+    expect(within(movementRow).getByText('6.000')).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith(
       `/api/v1/inventory/movements?routeId=${routeId}`,
       expect.objectContaining({ credentials: 'include' }),

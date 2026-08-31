@@ -19,12 +19,29 @@ export interface InventoryBalance {
 }
 export interface InventoryMovement {
   id: string;
-  operation_id: string;
+  operationId: string;
   operationType: string;
-  product_id: string;
+  productId: string;
+  source: InventoryBalance['stockLocation'] | null;
+  destination: InventoryBalance['stockLocation'] | null;
   quantity: string;
+  sourceBalanceAfter: string | null;
+  destinationBalanceAfter: string | null;
+  actorId: string;
   reason: string | null;
-  occurred_at: string;
+  occurredAt: string;
+  relatedEntityType: string;
+  relatedEntityId: string;
+  reversesMovementId: string | null;
+}
+
+export interface InventoryMovementFilters {
+  productId?: string;
+  branchId?: string;
+  routeId?: string;
+  operationType?: string;
+  from?: string;
+  to?: string;
 }
 
 export function useInventoryBalances(
@@ -39,12 +56,19 @@ export function useInventoryBalances(
   });
 }
 
-export function useInventoryMovements(routeId?: string) {
+export function useInventoryMovements(filters: InventoryMovementFilters = {}) {
+  const query = new URLSearchParams();
+  const filterKeys = ['productId', 'branchId', 'routeId', 'operationType', 'from', 'to'] as const;
+  for (const key of filterKeys) {
+    const value = filters[key];
+    if (value !== undefined && value !== '') query.set(key, value);
+  }
+  const search = query.toString();
   return useQuery({
-    queryKey: ['inventory-movements', routeId],
+    queryKey: ['inventory-movements', filters],
     queryFn: () =>
       apiRequest<{ data: InventoryMovement[] }>(
-        `/inventory/movements${routeId ? `?routeId=${encodeURIComponent(routeId)}` : ''}`,
+        `/inventory/movements${search ? `?${search}` : ''}`,
       ),
   });
 }

@@ -62,7 +62,8 @@ describe('foundation HTTP contract', () => {
       .send({ username: 'admin', password: 'correct-password' });
     expect(login.status).toBe(200);
     expect(login.headers['x-csrf-token']).toBe(csrf);
-    expect(login.headers['set-cookie']?.[0]).toContain('__Host-wm_session=');
+    expect(login.headers['set-cookie']?.[0]).toContain('wm_session=');
+    expect(login.headers['set-cookie']?.[0]).not.toContain('Secure');
     const cookie = login.headers['set-cookie']![0]!.split(';')[0]!;
     const restoredSession = await request(app).get('/api/v1/auth/session').set('Cookie', cookie);
     expect(restoredSession.status).toBe(200);
@@ -84,6 +85,22 @@ describe('foundation HTTP contract', () => {
           .set('X-CSRF-Token', restoredSession.headers['x-csrf-token'] as string)
       ).status,
     ).toBe(204);
+  });
+
+  it('uses a secure host-prefixed session cookie outside the test environment', async () => {
+    const productionEnvironment: Environment = { ...env, NODE_ENV: 'production' };
+    const app = createServer(productionEnvironment, {
+      auth: new FakeAuth(),
+      database: fakeDatabase,
+    });
+    const login = await request(app)
+      .post('/api/v1/auth/login')
+      .set('Origin', productionEnvironment.APP_ORIGIN)
+      .send({ username: 'admin', password: 'correct-password' });
+
+    expect(login.status).toBe(200);
+    expect(login.headers['set-cookie']?.[0]).toContain('__Host-wm_session=');
+    expect(login.headers['set-cookie']?.[0]).toContain('Secure');
   });
 
   it('returns safe Problem Details for cross-origin, validation, and authentication failures', async () => {

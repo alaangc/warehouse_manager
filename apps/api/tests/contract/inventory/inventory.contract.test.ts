@@ -475,8 +475,39 @@ describe('inventory and catalog HTTP contract', () => {
     const movements = await authed(admin).get(`/api/v1/inventory/movements?productId=${productId}`);
     expect(movements.status).toBe(200);
     expect(movements.body.data).toHaveLength(1);
-    expect(movements.body.data[0].operationType).toBe('ENTRY');
-    expect(movements.body.data[0].reason).toBe('Initial stock');
+    expect(movements.body.data[0]).toMatchObject({
+      operationId: (entry.body.data as { id: string }).id,
+      operationType: 'ENTRY',
+      productId,
+      source: null,
+      destination: {
+        kind: 'BRANCH',
+        label: 'Magdalena',
+        branchId: magdalena.id,
+        routeId: null,
+      },
+      quantity: '8.000',
+      sourceBalanceAfter: null,
+      destinationBalanceAfter: '8.000',
+      actorId: admin.id,
+      reason: 'Initial stock',
+      relatedEntityType: 'INVENTORY_OPERATION',
+      relatedEntityId: (entry.body.data as { id: string }).id,
+      reversesMovementId: null,
+    });
+    expect(movements.body.data[0].occurredAt).toMatch(/T/);
+
+    const filteredMovements = await authed(admin).get(
+      `/api/v1/inventory/movements?branchId=${magdalena.id}&operationType=ENTRY`,
+    );
+    expect(filteredMovements.status).toBe(200);
+    expect(filteredMovements.body.data).toHaveLength(1);
+
+    const invalidMovementFilter = await authed(admin).get(
+      '/api/v1/inventory/movements?branchId=not-a-uuid',
+    );
+    expect(invalidMovementFilter.status).toBe(422);
+    expect(invalidMovementFilter.body.code).toBe('QUERY_UUID_INVALID');
 
     const alertsOnly = await authed(admin).get(
       `/api/v1/inventory/balances?productId=${productId}&alertsOnly=true`,

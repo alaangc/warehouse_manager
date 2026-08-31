@@ -1,4 +1,4 @@
-import type { Locator, Page, Response } from '@playwright/test';
+import type { Page, Response } from '@playwright/test';
 import { expect, test } from './support/test-fixtures.js';
 
 const password = 'development-password-change-me';
@@ -18,12 +18,6 @@ async function login(page: Page, username: 'admin' | 'driver') {
   await page.getByLabel('Password').fill(password);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page.getByRole('heading', { name: 'Overview' })).toBeVisible();
-}
-
-function formFollowing(page: Page, heading: string): Locator {
-  return page
-    .getByRole('heading', { name: heading, exact: true })
-    .locator('xpath=following-sibling::form[1]');
 }
 
 function matchingResponse(page: Page, path: string, method = 'POST'): Promise<Response> {
@@ -100,25 +94,31 @@ test('administrator inventory workflow is atomic and Driver mutations are denied
   await login(administratorPage, 'admin');
   await administratorPage.goto('/catalog');
 
-  const unitForm = formFollowing(administratorPage, 'Units');
+  const unitForm = administratorPage.getByRole('form', { name: 'Units management form' });
+  const unitName = `Unit ${suffix}`;
   await unitForm.getByLabel('Code').fill(`U${suffix}`);
-  await unitForm.getByLabel('Name').fill(`Unit ${suffix}`);
+  await unitForm.getByLabel('Name').fill(unitName);
   await unitForm.getByLabel('Quantity decimals').fill('3');
-  const unitId = await submitCreated(administratorPage, '/units', () =>
+  await submitCreated(administratorPage, '/units', () =>
     unitForm.getByRole('button', { name: 'Add' }).click(),
   );
 
-  const categoryForm = formFollowing(administratorPage, 'Categories');
-  await categoryForm.getByLabel('Name').fill(`Category ${suffix}`);
-  const categoryId = await submitCreated(administratorPage, '/categories', () =>
+  const categoryForm = administratorPage.getByRole('form', {
+    name: 'Categories management form',
+  });
+  const categoryName = `Category ${suffix}`;
+  await categoryForm.getByLabel('Name').fill(categoryName);
+  await submitCreated(administratorPage, '/categories', () =>
     categoryForm.getByRole('button', { name: 'Add' }).click(),
   );
 
-  const productForm = formFollowing(administratorPage, 'Products');
+  const productForm = administratorPage.getByRole('form', { name: 'Product form' });
   await productForm.getByLabel('SKU').fill(`SKU${suffix}`);
   await productForm.getByLabel('Name').fill(productName);
-  await productForm.getByLabel('Category ID').fill(categoryId);
-  await productForm.getByLabel('Unit ID').fill(unitId);
+  await productForm.getByRole('combobox', { name: 'Category' }).click();
+  await administratorPage.getByRole('option', { name: categoryName }).click();
+  await productForm.getByRole('combobox', { name: 'Unit' }).click();
+  await administratorPage.getByRole('option', { name: `U${suffix} — ${unitName}` }).click();
   await productForm.getByLabel('Standard unit price').fill('12.3456');
   await productForm.getByLabel('Low stock threshold').fill('2.000');
   const productId = await submitCreated(administratorPage, '/products', () =>
@@ -201,6 +201,16 @@ test('administrator inventory workflow is atomic and Driver mutations are denied
   ]) {
     await expect(administratorPage.getByRole('cell', { name: reason })).toBeVisible();
   }
+  const transferMovement = administratorPage.getByRole('row').filter({ hasText: reasons.transfer });
+  await expect(transferMovement).toContainText('Magdalena');
+  await expect(transferMovement).toContainText('Caborca');
+  await expect(transferMovement).toContainText('7.000');
+  await expect(transferMovement).toContainText('3.000');
+  await expect(transferMovement).toContainText(productId);
+  const reversalMovement = administratorPage.getByRole('row').filter({ hasText: reasons.reversal });
+  await expect(reversalMovement).toContainText('Caborca');
+  await expect(reversalMovement).toContainText('1.000');
+  await expect(reversalMovement).toContainText('INVENTORY_REVERSAL');
 
   await login(driverPage, 'driver');
   await driverPage.goto('/inventory/operations/new');
@@ -215,12 +225,8 @@ test('administrator inventory workflow is atomic and Driver mutations are denied
   await expect(driverPage.getByRole('alert')).toContainText(/role|permission/i);
 
   await driverPage.goto('/catalog');
-  const deniedCategoryForm = formFollowing(driverPage, 'Categories');
-  await deniedCategoryForm.getByLabel('Name').fill(`Denied ${suffix}`);
-  const deniedCatalogResponse = matchingResponse(driverPage, '/categories');
-  await deniedCategoryForm.getByRole('button', { name: 'Add' }).click();
-  expect((await deniedCatalogResponse).status()).toBe(403);
-  await expect(deniedCategoryForm.getByRole('alert')).toContainText(/role|permission/i);
+  await expect(driverPage.getByText('Driver access is read only.')).toBeVisible();
+  await expect(driverPage.getByRole('form')).toHaveCount(0);
 
   await administratorPage.goto('/inventory');
   const unchangedRows = administratorPage.getByRole('row').filter({ hasText: productName });

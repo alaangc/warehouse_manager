@@ -11,6 +11,11 @@ const Login = z
   .object({ username: z.string().trim().min(1).max(120), password: z.string().min(8).max(1024) })
   .strict();
 const unsafeMethods = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+const TEST_SESSION_COOKIE = 'wm_session';
+
+function sessionCookieName(environment: Environment): string {
+  return environment.NODE_ENV === 'test' ? TEST_SESSION_COOKIE : SESSION_COOKIE;
+}
 
 function parseCookie(value: string | undefined, name: string): string | undefined {
   return value
@@ -32,10 +37,13 @@ export function originProtection(origin: string): RequestHandler {
   };
 }
 
-export function sessionMiddleware(auth: AuthenticationGateway): RequestHandler {
+export function sessionMiddleware(
+  auth: AuthenticationGateway,
+  environment: Environment,
+): RequestHandler {
   return async (request, _response, next) => {
     try {
-      const id = parseCookie(request.header('Cookie'), SESSION_COOKIE);
+      const id = parseCookie(request.header('Cookie'), sessionCookieName(environment));
       if (!id) return next();
       const session = await auth.findSession(id);
       if (session) {
@@ -67,6 +75,7 @@ export function csrfProtection(auth: AuthenticationGateway): RequestHandler {
 
 export function createAuthRouter(auth: AuthenticationGateway, environment: Environment): Router {
   const router = Router();
+  const cookieName = sessionCookieName(environment);
   const limiter = rateLimit({
     windowMs: 60_000,
     limit: 10,
@@ -90,7 +99,7 @@ export function createAuthRouter(auth: AuthenticationGateway, environment: Envir
     try {
       const input = Login.parse(request.body);
       const session = await auth.login(input.username, input.password);
-      response.cookie(SESSION_COOKIE, session.id, {
+      response.cookie(cookieName, session.id, {
         ...sessionCookieOptions,
         secure: environment.NODE_ENV !== 'test',
       });
@@ -110,7 +119,7 @@ export function createAuthRouter(auth: AuthenticationGateway, environment: Envir
         throw new HttpProblem(401, 'AUTHENTICATION_REQUIRED', 'Authentication Required');
       await auth.logout(request.sessionId);
       response
-        .clearCookie(SESSION_COOKIE, {
+        .clearCookie(cookieName, {
           path: '/',
           secure: environment.NODE_ENV !== 'test',
           sameSite: 'strict',

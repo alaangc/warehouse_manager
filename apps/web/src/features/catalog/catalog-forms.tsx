@@ -143,7 +143,7 @@ export function SimpleCatalogForm({
   return (
     <Stack
       component="form"
-      aria-label={t('catalog.managementForm')}
+      aria-label={t('catalog.managementForm', { entity: t(`catalog.${kind}`) })}
       spacing={2}
       onSubmit={(event) => void submit(record?.active ?? true)(event)}
     >

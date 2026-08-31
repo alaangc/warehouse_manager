@@ -109,7 +109,7 @@ immutable movement history while an insufficient/concurrent decrement changes no
 - [X] T043 [P] [US1] Implement Administrator product, unit, category, location, and vehicle management screens in `apps/web/src/features/catalog/catalog-pages.tsx` and `apps/web/src/features/catalog/catalog-forms.tsx`
 - [X] T044 [P] [US1] Implement role-filtered inventory search, branch/route balances, pagination, and low-stock alerts in `apps/web/src/features/inventory/inventory-page.tsx` and `apps/web/src/features/inventory/inventory-queries.ts`
 - [X] T045 [US1] Implement entry, manual exit, transfer, adjustment, and reversal forms with explicit validation/conflict/server failure states in `apps/web/src/features/inventory/inventory-operation-form.tsx`
-- [ ] T046 [US1] Implement immutable movement-history views and complete the US1 contract, integration, component, and E2E pass in `apps/web/src/features/inventory/movement-history.tsx` and `tests/e2e/us1-inventory.spec.ts`
+- [X] T046 [US1] Implement immutable movement-history views and complete the US1 contract, integration, component, and E2E pass in `apps/web/src/features/inventory/movement-history.tsx` and `tests/e2e/us1-inventory.spec.ts`
 
 **Checkpoint**: US1 is deployable as the inventory-control MVP and passes SC-001,
 SC-002, and applicable authorization/audit checks independently; the exact SC-006
