@@ -51,6 +51,51 @@ export function normalizeCatalogName(value: string): string {
 export class CatalogRepository {
   constructor(private readonly database: Transaction<Database>) {}
 
+  getLocationForUpdate(id: string) {
+    return this.database
+      .selectFrom('location')
+      .selectAll()
+      .where('id', '=', id)
+      .forUpdate()
+      .executeTakeFirst();
+  }
+
+  getCategoryForUpdate(id: string) {
+    return this.database
+      .selectFrom('category')
+      .selectAll()
+      .where('id', '=', id)
+      .forUpdate()
+      .executeTakeFirst();
+  }
+
+  getUnitForUpdate(id: string) {
+    return this.database
+      .selectFrom('unit')
+      .selectAll()
+      .where('id', '=', id)
+      .forUpdate()
+      .executeTakeFirst();
+  }
+
+  getVehicleForUpdate(id: string) {
+    return this.database
+      .selectFrom('vehicle')
+      .selectAll()
+      .where('id', '=', id)
+      .forUpdate()
+      .executeTakeFirst();
+  }
+
+  getProductForUpdate(id: string) {
+    return this.database
+      .selectFrom('product')
+      .selectAll()
+      .where('id', '=', id)
+      .forUpdate()
+      .executeTakeFirst();
+  }
+
   async createLocation(input: LocationInput) {
     const location = await this.database
       .insertInto('location')

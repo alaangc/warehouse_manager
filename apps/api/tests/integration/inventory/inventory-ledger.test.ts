@@ -241,6 +241,137 @@ describe('inventory ledger lifecycle in PostgreSQL 18', () => {
     ).toBeUndefined();
   });
 
+  it('validates and audits catalog lifecycle changes for every catalog type', async () => {
+    const catalog = new CatalogService(database);
+    const requestId = crypto.randomUUID();
+    const location = await catalog.createLocation(
+      { code: `LOC-${crypto.randomUUID().slice(0, 12)}`, name: 'Lifecycle location' },
+      actorId,
+      requestId,
+    );
+    const category = await catalog.createCategory(
+      { name: `Lifecycle category ${crypto.randomUUID()}`, reportingGroup: 'OTHER' },
+      actorId,
+      requestId,
+    );
+    const unit = await catalog.createUnit(
+      {
+        code: `UNIT-${crypto.randomUUID().slice(0, 12)}`,
+        name: 'Lifecycle unit',
+        quantityScale: 0,
+      },
+      actorId,
+      requestId,
+    );
+    const vehicle = await catalog.createVehicle(
+      { code: `VEH-${crypto.randomUUID().slice(0, 12)}`, name: 'Lifecycle vehicle' },
+      actorId,
+      requestId,
+    );
+    const product = await catalog.createProduct(
+      {
+        sku: `LIFE-${crypto.randomUUID()}`,
+        name: 'Lifecycle product',
+        categoryId: category.id,
+        unitId: unit.id,
+        standardUnitPrice: '4.0000',
+        lowStockThreshold: '1.000',
+      },
+      actorId,
+      requestId,
+    );
+
+    const createdAudits = await database
+      .selectFrom('audit_event')
+      .selectAll()
+      .where('entity_id', 'in', [location.id, category.id, unit.id, vehicle.id, product.id])
+      .execute();
+    expect(createdAudits).toHaveLength(5);
+    expect(
+      createdAudits.every(
+        (audit) =>
+          audit.action === 'CATALOG_CHANGED' &&
+          audit.actor_id === actorId &&
+          audit.request_id === requestId &&
+          audit.before_values === null &&
+          audit.after_values !== null,
+      ),
+    ).toBe(true);
+
+    await expect(
+      catalog.updateLocation(
+        location.id,
+        {
+          code: location.code,
+          name: location.name,
+          active: false,
+          expectedVersion: location.version,
+        },
+        actorId,
+        crypto.randomUUID(),
+      ),
+    ).rejects.toMatchObject({ code: 'ARCHIVE_REASON_REQUIRED' });
+
+    const archivedLocation = await catalog.updateLocation(
+      location.id,
+      {
+        code: location.code,
+        name: 'Archived lifecycle location',
+        active: false,
+        expectedVersion: location.version,
+        reason: 'Location consolidated',
+      },
+      actorId,
+      crypto.randomUUID(),
+    );
+    expect(archivedLocation.active).toBe(false);
+
+    const archiveAudit = await database
+      .selectFrom('audit_event')
+      .selectAll()
+      .where('entity_type', '=', 'LOCATION')
+      .where('entity_id', '=', location.id)
+      .where('reason', '=', 'Location consolidated')
+      .executeTakeFirstOrThrow();
+    expect(archiveAudit.before_values).toMatchObject({
+      name: 'Lifecycle location',
+      active: true,
+      version: location.version,
+    });
+    expect(archiveAudit.after_values).toMatchObject({
+      name: 'Archived lifecycle location',
+      active: false,
+      version: location.version + 1,
+    });
+
+    await catalog.updateCategory(
+      category.id,
+      {
+        name: category.name,
+        reportingGroup: category.reporting_group,
+        active: false,
+        expectedVersion: category.version,
+        reason: 'No longer used',
+      },
+      actorId,
+      crypto.randomUUID(),
+    );
+    await expect(
+      catalog.createProduct(
+        {
+          sku: `INVALID-${crypto.randomUUID()}`,
+          name: 'Invalid reference product',
+          categoryId: category.id,
+          unitId: unit.id,
+          standardUnitPrice: '1.0000',
+          lowStockThreshold: '0.000',
+        },
+        actorId,
+        crypto.randomUUID(),
+      ),
+    ).rejects.toMatchObject({ code: 'CATALOG_REFERENCE_INVALID' });
+  });
+
   it('rolls back catalog and inventory mutations when their same-transaction audit write fails', async () => {
     const fixture = await createCatalogFixture(database);
     const catalog = new CatalogService(database);
@@ -294,6 +425,32 @@ describe('inventory ledger lifecycle in PostgreSQL 18', () => {
         .where('sku', '=', failedSku)
         .executeTakeFirst(),
     ).toBeUndefined();
+
+    await expect(
+      catalog.updateProduct(
+        successfulProduct.id,
+        {
+          sku: successfulProduct.sku,
+          name: 'Must also roll back the update',
+          description: successfulProduct.description,
+          categoryId: successfulProduct.category_id,
+          unitId: successfulProduct.unit_id,
+          standardUnitPrice: successfulProduct.standard_unit_price,
+          lowStockThreshold: successfulProduct.low_stock_threshold,
+          active: true,
+          expectedVersion: successfulProduct.version,
+        },
+        actorId,
+        crypto.randomUUID(),
+      ),
+    ).rejects.toThrow('injected audit failure');
+    expect(
+      await database
+        .selectFrom('product')
+        .select(['name', 'version'])
+        .where('id', '=', successfulProduct.id)
+        .executeTakeFirstOrThrow(),
+    ).toEqual({ name: successfulProduct.name, version: successfulProduct.version });
 
     const rejectedContext = context();
     await expect(

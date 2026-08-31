@@ -415,6 +415,7 @@ describe('inventory and catalog HTTP contract', () => {
         name: 'Contract van',
         active: false,
         expectedVersion: (vehicle.body.data as { version: number }).version,
+        reason: 'Vehicle retired',
       });
     expect(archive.status).toBe(409);
     expect(archive.body.code).toBe('VEHICLE_ASSIGNED');

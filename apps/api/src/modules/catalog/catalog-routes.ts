@@ -11,49 +11,13 @@ import {
   VehicleWriteSchema,
 } from '@warehouse/contracts';
 import { Router, type Request, type RequestHandler } from 'express';
-import type { Selectable, Transaction } from 'kysely';
+import type { Selectable } from 'kysely';
 import type { ZodType } from 'zod';
 import { requireAuthenticated, requireRole } from '../../auth/authorization.js';
 import type { AppDatabase } from '../../db/database.js';
-import type { Database, JsonValue, ProductTable } from '../../db/types.js';
+import type { ProductTable } from '../../db/types.js';
 import { HttpProblem } from '../../http/problem-handler.js';
-import { AuditWriter } from '../../shared/audit/audit-service.js';
-import { CatalogRepository } from './catalog-repository.js';
 import { CatalogService } from './catalog-service.js';
-
-interface MutationRecord {
-  id: string;
-}
-
-async function auditedMutation<T extends MutationRecord>(
-  database: AppDatabase,
-  actorId: string,
-  requestId: string,
-  entityType: string,
-  mutate: (transaction: Transaction<Database>) => Promise<T>,
-  reason?: string | null,
-): Promise<T> {
-  return database.transaction().execute(async (transaction) => {
-    const result = await mutate(transaction);
-    const values = Object.fromEntries(
-      Object.entries(result as unknown as Record<string, unknown>)
-        .filter(
-          ([, value]) => value === null || ['string', 'number', 'boolean'].includes(typeof value),
-        )
-        .map(([field, value]) => [field, value as JsonValue]),
-    );
-    await new AuditWriter().write(transaction, {
-      actorId,
-      action: 'CATALOG_CHANGED',
-      entityType,
-      entityId: result.id,
-      ...(reason ? { reason } : {}),
-      after: values,
-      requestId,
-    });
-    return result;
-  });
-}
 
 function pathId(value: string | string[] | undefined): string {
   if (typeof value !== 'string') throw new HttpProblem(422, 'ID_INVALID', 'Validation Failed');
@@ -128,7 +92,7 @@ function mapProduct(row: Selectable<ProductTable>) {
 
 export function createCatalogRouter(database: AppDatabase): Router {
   const router = Router();
-  const productService = new CatalogService(database);
+  const catalogService = new CatalogService(database);
   router.use(requireAuthenticated);
 
   router.get('/locations', async (_request, response, next) => {
@@ -148,13 +112,7 @@ export function createCatalogRouter(database: AppDatabase): Router {
     '/locations',
     requireRole('ADMINISTRATOR'),
     writeHandler(LocationWriteSchema, (input, request) =>
-      auditedMutation(
-        database,
-        request.principal!.id,
-        requestIdentifier(request),
-        'LOCATION',
-        (transaction) => new CatalogRepository(transaction).createLocation(input),
-      ),
+      catalogService.createLocation(input, request.principal!.id, requestIdentifier(request)),
     ),
   );
   router.patch(
@@ -163,17 +121,11 @@ export function createCatalogRouter(database: AppDatabase): Router {
     writeHandler(
       LocationUpdateSchema,
       (input, request) =>
-        auditedMutation(
-          database,
+        catalogService.updateLocation(
+          pathId(request.params.locationId),
+          input,
           request.principal!.id,
           requestIdentifier(request),
-          'LOCATION',
-          (transaction) =>
-            new CatalogRepository(transaction).updateLocation(
-              pathId(request.params.locationId),
-              input,
-            ),
-          input.reason,
         ),
       200,
     ),
@@ -199,13 +151,7 @@ export function createCatalogRouter(database: AppDatabase): Router {
     '/categories',
     requireRole('ADMINISTRATOR'),
     writeHandler(CategoryWriteSchema, (input, request) =>
-      auditedMutation(
-        database,
-        request.principal!.id,
-        requestIdentifier(request),
-        'CATEGORY',
-        (transaction) => new CatalogRepository(transaction).createCategory(input),
-      ),
+      catalogService.createCategory(input, request.principal!.id, requestIdentifier(request)),
     ),
   );
   router.patch(
@@ -214,17 +160,11 @@ export function createCatalogRouter(database: AppDatabase): Router {
     writeHandler(
       CategoryUpdateSchema,
       (input, request) =>
-        auditedMutation(
-          database,
+        catalogService.updateCategory(
+          pathId(request.params.categoryId),
+          input,
           request.principal!.id,
           requestIdentifier(request),
-          'CATEGORY',
-          (transaction) =>
-            new CatalogRepository(transaction).updateCategory(
-              pathId(request.params.categoryId),
-              input,
-            ),
-          input.reason,
         ),
       200,
     ),
@@ -251,13 +191,7 @@ export function createCatalogRouter(database: AppDatabase): Router {
     '/units',
     requireRole('ADMINISTRATOR'),
     writeHandler(UnitWriteSchema, (input, request) =>
-      auditedMutation(
-        database,
-        request.principal!.id,
-        requestIdentifier(request),
-        'UNIT',
-        (transaction) => new CatalogRepository(transaction).createUnit(input),
-      ),
+      catalogService.createUnit(input, request.principal!.id, requestIdentifier(request)),
     ),
   );
   router.patch(
@@ -266,14 +200,11 @@ export function createCatalogRouter(database: AppDatabase): Router {
     writeHandler(
       UnitUpdateSchema,
       (input, request) =>
-        auditedMutation(
-          database,
+        catalogService.updateUnit(
+          pathId(request.params.unitId),
+          input,
           request.principal!.id,
           requestIdentifier(request),
-          'UNIT',
-          (transaction) =>
-            new CatalogRepository(transaction).updateUnit(pathId(request.params.unitId), input),
-          input.reason,
         ),
       200,
     ),
@@ -292,13 +223,7 @@ export function createCatalogRouter(database: AppDatabase): Router {
     '/vehicles',
     requireRole('ADMINISTRATOR'),
     writeHandler(VehicleWriteSchema, (input, request) =>
-      auditedMutation(
-        database,
-        request.principal!.id,
-        requestIdentifier(request),
-        'VEHICLE',
-        (transaction) => new CatalogRepository(transaction).createVehicle(input),
-      ),
+      catalogService.createVehicle(input, request.principal!.id, requestIdentifier(request)),
     ),
   );
   router.patch(
@@ -307,17 +232,11 @@ export function createCatalogRouter(database: AppDatabase): Router {
     writeHandler(
       VehicleUpdateSchema,
       (input, request) =>
-        auditedMutation(
-          database,
+        catalogService.updateVehicle(
+          pathId(request.params.vehicleId),
+          input,
           request.principal!.id,
           requestIdentifier(request),
-          'VEHICLE',
-          (transaction) =>
-            new CatalogRepository(transaction).updateVehicle(
-              pathId(request.params.vehicleId),
-              input,
-            ),
-          input.reason,
         ),
       200,
     ),
@@ -344,7 +263,7 @@ export function createCatalogRouter(database: AppDatabase): Router {
     '/products',
     requireRole('ADMINISTRATOR'),
     writeHandler(ProductWriteSchema, (input, request) =>
-      productService
+      catalogService
         .createProduct(input, request.principal!.id, requestIdentifier(request))
         .then((row) => mapProduct(row)),
     ),
@@ -368,20 +287,14 @@ export function createCatalogRouter(database: AppDatabase): Router {
     writeHandler(
       ProductUpdateSchema,
       (input, request) =>
-        auditedMutation(
-          database,
-          request.principal!.id,
-          requestIdentifier(request),
-          'PRODUCT',
-          async (transaction) => {
-            productService.requireArchiveReason(input.active, input.reason);
-            return new CatalogRepository(transaction).updateProduct(
-              pathId(request.params.productId),
-              input,
-            );
-          },
-          input.reason,
-        ).then((row) => mapProduct(row)),
+        catalogService
+          .updateProduct(
+            pathId(request.params.productId),
+            input,
+            request.principal!.id,
+            requestIdentifier(request),
+          )
+          .then((row) => mapProduct(row)),
       200,
     ),
   );
