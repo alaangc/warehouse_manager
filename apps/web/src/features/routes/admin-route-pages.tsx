@@ -10,7 +10,10 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { apiRequest } from '../../lib/api/client.js';
+import { localizedErrorMessage } from '../../lib/api/localized-error.js';
+import { formatDate } from '../../i18n/format.js';
 import { ReconciliationPage } from './reconciliation-page.js';
 import { RouteHistory } from './route-history.js';
 import { useRouteDetail, useRoutes } from './route-queries.js';
@@ -25,6 +28,7 @@ interface CreateRouteValues {
 }
 
 export function AdminRoutePages() {
+  const { t } = useTranslation();
   const routes = useRoutes();
   const client = useQueryClient();
   const [selected, setSelected] = useState<string | null>(null);
@@ -49,9 +53,11 @@ export function AdminRoutePages() {
   });
   return (
     <Stack spacing={3}>
-      <Typography variant="h4">Routes</Typography>
+      <Typography variant="h4">{t('routes.title')}</Typography>
       {(routes.error || create.error || detail.error) && (
-        <Alert severity="error">{(routes.error ?? create.error ?? detail.error)?.message}</Alert>
+        <Alert severity="error">
+          {localizedErrorMessage(routes.error ?? create.error ?? detail.error, t)}
+        </Alert>
       )}
       <Stack
         component="form"
@@ -59,30 +65,44 @@ export function AdminRoutePages() {
         spacing={1}
         onSubmit={(event) => void form.handleSubmit((values) => create.mutate(values))(event)}
       >
-        <TextField label="Route number" {...form.register('routeNumber', { required: true })} />
         <TextField
-          label="Origin location ID"
+          label={t('routes.routeNumber')}
+          {...form.register('routeNumber', { required: true })}
+        />
+        <TextField
+          label={t('routes.originLocationId')}
           {...form.register('originLocationId', { required: true })}
         />
-        <TextField label="Driver ID" {...form.register('driverId', { required: true })} />
-        <TextField label="Vehicle ID" {...form.register('vehicleId', { required: true })} />
-        <TextField type="date" label="Business date" {...form.register('businessDate')} />
+        <TextField
+          label={t('routes.driverId')}
+          {...form.register('driverId', { required: true })}
+        />
+        <TextField
+          label={t('routes.vehicleId')}
+          {...form.register('vehicleId', { required: true })}
+        />
+        <TextField
+          type="date"
+          label={t('routes.businessDate')}
+          {...form.register('businessDate')}
+        />
         <Button type="submit" variant="contained" disabled={create.isPending}>
-          Create
+          {t('common.create')}
         </Button>
       </Stack>
       {routes.isLoading ? (
-        <CircularProgress aria-label="Loading routes" />
+        <CircularProgress aria-label={t('routes.loading')} />
       ) : (
         <TextField
           select
-          label="Open route"
+          label={t('routes.openRoute')}
           value={selected ?? ''}
           onChange={(event) => setSelected(event.target.value)}
         >
           {routes.data?.data.map((route) => (
             <MenuItem key={route.id} value={route.id}>
-              {route.routeNumber} · {route.state} · {route.businessDate}
+              {route.routeNumber} · {t(`status.${route.state}`, { defaultValue: route.state })} ·{' '}
+              {formatDate(route.businessDate)}
             </MenuItem>
           ))}
         </TextField>

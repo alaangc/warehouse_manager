@@ -1,7 +1,9 @@
 import { Alert, Button, Stack, TextField, Typography } from '@mui/material';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { apiRequest } from '../../lib/api/client.js';
+import { localizedErrorMessage } from '../../lib/api/localized-error.js';
 import { idempotencyKey } from '../../lib/api/idempotency.js';
 import type { RouteDetail, RouteResource } from './route-types.js';
 
@@ -11,6 +13,7 @@ interface ReturnValue {
 }
 
 export function ReconciliationPage({ detail }: { detail: RouteDetail }) {
+  const { t } = useTranslation();
   const client = useQueryClient();
   const [values, setValues] = useState<Record<string, ReturnValue>>({});
   useEffect(() => {
@@ -66,10 +69,10 @@ export function ReconciliationPage({ detail }: { detail: RouteDetail }) {
   });
   if (detail.route.state !== 'RETURNED') return null;
   return (
-    <Stack spacing={2} component="section" aria-label="Route reconciliation">
-      <Typography variant="h6">Physical return and reconciliation</Typography>
+    <Stack spacing={2} component="section" aria-label={t('routes.reconciliationLabel')}>
+      <Typography variant="h6">{t('routes.reconciliationTitle')}</Typography>
       {(reconcile.error || close.error) && (
-        <Alert severity="error">{(reconcile.error ?? close.error)?.message}</Alert>
+        <Alert severity="error">{localizedErrorMessage(reconcile.error ?? close.error, t)}</Alert>
       )}
       {!detail.reconciliation &&
         detail.load?.lines.map((line) => {
@@ -86,12 +89,12 @@ export function ReconciliationPage({ detail }: { detail: RouteDetail }) {
           return (
             <Stack key={line.productId} direction={{ xs: 'column', md: 'row' }} spacing={1}>
               <TextField
-                label="Product"
+                label={t('common.product')}
                 value={line.productId}
                 slotProps={{ input: { readOnly: true } }}
               />
               <TextField
-                label={`Physical return (expected ${expected})`}
+                label={t('routes.physicalReturn', { expected })}
                 value={current.physicalReturnQuantity}
                 onChange={(event) =>
                   setValues((previous) => ({
@@ -101,7 +104,7 @@ export function ReconciliationPage({ detail }: { detail: RouteDetail }) {
                 }
               />
               <TextField
-                label="Difference reason"
+                label={t('routes.differenceReason')}
                 required={differs}
                 disabled={!differs}
                 value={current.differenceReason}
@@ -121,11 +124,11 @@ export function ReconciliationPage({ detail }: { detail: RouteDetail }) {
           disabled={reconcile.isPending}
           onClick={() => reconcile.mutate()}
         >
-          Approve reconciliation
+          {t('routes.approveReconciliation')}
         </Button>
       ) : (
         <Button variant="contained" disabled={close.isPending} onClick={() => close.mutate()}>
-          Close route
+          {t('routes.closeRoute')}
         </Button>
       )}
     </Stack>

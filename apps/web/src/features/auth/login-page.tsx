@@ -15,6 +15,8 @@ import {
   Typography,
 } from '@mui/material';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useSession } from '../../app/session.js';
 import { apiRequest } from '../../lib/api/client.js';
 import { ApiProblem } from '../../lib/api/problem.js';
@@ -34,16 +36,17 @@ function requestedPath(state: unknown): string {
   return '/';
 }
 
-function loginErrorMessage(error: unknown): string {
+function loginErrorMessage(error: unknown, t: TFunction): string {
   if (error instanceof ApiProblem) {
-    if (error.status === 401) return 'Incorrect username or password.';
-    if (error.status === 429) return 'Too many sign-in attempts. Please wait and try again.';
-    if (error.status >= 500) return 'The server is unavailable. Please try again.';
+    if (error.status === 401) return t('auth.incorrectCredentials');
+    if (error.status === 429) return t('auth.tooManyAttempts');
+    if (error.status >= 500) return t('auth.serverUnavailable');
   }
-  return 'Sign-in failed. Please try again.';
+  return t('auth.signInFailed');
 }
 
 export function LoginPage() {
+  const { t } = useTranslation();
   const session = useSession();
   const location = useLocation();
   const navigate = useNavigate();
@@ -65,7 +68,7 @@ export function LoginPage() {
   if (session.loading) {
     return (
       <Box sx={{ display: 'grid', minHeight: '100vh', placeItems: 'center' }}>
-        <CircularProgress aria-label="Checking session" />
+        <CircularProgress aria-label={t('auth.checkingSession')} />
       </Box>
     );
   }
@@ -98,24 +101,22 @@ export function LoginPage() {
             <Stack component="form" spacing={3} onSubmit={submit}>
               <Box>
                 <Typography component="h1" variant="h4" gutterBottom>
-                  Warehouse Manager
+                  {t('app.name')}
                 </Typography>
-                <Typography color="text.secondary">Sign in to continue.</Typography>
+                <Typography color="text.secondary">{t('auth.signInToContinue')}</Typography>
               </Box>
 
               {sessionCheckFailed && (
-                <Alert severity="warning">
-                  Your existing session could not be checked. You can try signing in again.
-                </Alert>
+                <Alert severity="warning">{t('auth.sessionCheckFailed')}</Alert>
               )}
-              {login.isError && <Alert severity="error">{loginErrorMessage(login.error)}</Alert>}
+              {login.isError && <Alert severity="error">{loginErrorMessage(login.error, t)}</Alert>}
 
               <TextField
                 autoComplete="username"
                 autoFocus
                 disabled={login.isPending}
                 fullWidth
-                label="Username"
+                label={t('auth.username')}
                 name="username"
                 onChange={(event) => {
                   setUsername(event.target.value);
@@ -128,7 +129,7 @@ export function LoginPage() {
                 autoComplete="current-password"
                 disabled={login.isPending}
                 fullWidth
-                label="Password"
+                label={t('auth.password')}
                 name="password"
                 onChange={(event) => {
                   setPassword(event.target.value);
@@ -139,7 +140,7 @@ export function LoginPage() {
                 value={password}
               />
               <Button disabled={login.isPending} size="large" type="submit" variant="contained">
-                {login.isPending ? 'Signing in…' : 'Sign in'}
+                {login.isPending ? t('auth.signingIn') : t('auth.signIn')}
               </Button>
             </Stack>
           </CardContent>

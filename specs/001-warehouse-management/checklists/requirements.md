@@ -38,3 +38,5 @@
 - Resolved decisions: partner share uses gross sales (FR-026), sales record payment
   method without credit processing (FR-043), and multiple routes may operate
   simultaneously with unique active driver and vehicle assignments (FR-046).
+- Revalidated after adding bilingual interface requirements FR-051–FR-053 and SC-013;
+  all 16 quality checks continue to pass with no unresolved clarification markers.

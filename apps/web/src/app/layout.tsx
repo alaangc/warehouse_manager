@@ -11,26 +11,30 @@ import {
 import type { SessionResponse } from '@warehouse/contracts';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useSession } from './session.js';
 import { apiRequest, setCsrfToken } from '../lib/api/client.js';
 import { ApiProblem } from '../lib/api/problem.js';
 
-const adminLinks = [
-  ['/', 'Overview'],
-  ['/inventory', 'Inventory'],
-  ['/catalog', 'Catalog'],
-  ['/routes', 'Routes'],
-  ['/customers', 'Customers'],
-  ['/users', 'Users'],
+const adminLinks: ReadonlyArray<readonly [string, string]> = [
+  ['/', 'nav.overview'],
+  ['/inventory', 'nav.inventory'],
+  ['/catalog', 'nav.catalog'],
+  ['/routes', 'nav.routes'],
+  ['/customers', 'nav.customers'],
+  ['/users', 'nav.users'],
+  ['/settings', 'nav.settings'],
 ];
-const driverLinks = [
-  ['/', 'Overview'],
-  ['/sales/new', 'New sale'],
-  ['/routes', 'My route'],
-  ['/sales', 'My sales'],
+const driverLinks: ReadonlyArray<readonly [string, string]> = [
+  ['/', 'nav.overview'],
+  ['/sales/new', 'nav.newSale'],
+  ['/routes', 'nav.myRoute'],
+  ['/sales', 'nav.mySales'],
+  ['/settings', 'nav.settings'],
 ];
 
 export function AppLayout() {
+  const { t } = useTranslation();
   const session = useSession();
   const location = useLocation();
   const navigate = useNavigate();
@@ -54,7 +58,7 @@ export function AppLayout() {
   if (session.loading)
     return (
       <Box sx={{ display: 'grid', placeItems: 'center', minHeight: '100vh' }}>
-        <CircularProgress aria-label="Loading session" />
+        <CircularProgress aria-label={t('auth.checkingSession')} />
       </Box>
     );
   if (!session.user) {
@@ -67,18 +71,18 @@ export function AppLayout() {
       <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            Warehouse Manager
+            {t('app.name')}
           </Typography>
           {links.map(([to, label]) => (
-            <Button key={to} color="inherit" component={NavLink} to={to!}>
-              {label}
+            <Button key={to} color="inherit" component={NavLink} to={to}>
+              {t(label)}
             </Button>
           ))}
           <Typography sx={{ display: { xs: 'none', md: 'block' }, ml: 2 }} variant="body2">
             {session.user.displayName}
           </Typography>
           <Button color="inherit" disabled={logout.isPending} onClick={() => logout.mutate()}>
-            {logout.isPending ? 'Signing out…' : 'Sign out'}
+            {logout.isPending ? t('auth.signingOut') : t('auth.signOut')}
           </Button>
         </Toolbar>
       </AppBar>
@@ -86,7 +90,7 @@ export function AppLayout() {
         {logout.isError &&
           !(logout.error instanceof ApiProblem && logout.error.isAuthenticationFailure) && (
             <Alert severity="error" sx={{ mb: 3 }}>
-              Sign-out failed. Please try again.
+              {t('auth.signOutFailed')}
             </Alert>
           )}
         <Outlet />
@@ -96,5 +100,6 @@ export function AppLayout() {
 }
 
 export function PlaceholderPage({ title }: { title: string }) {
-  return <Typography variant="h4">{title}</Typography>;
+  const { t } = useTranslation();
+  return <Typography variant="h4">{t(title)}</Typography>;
 }

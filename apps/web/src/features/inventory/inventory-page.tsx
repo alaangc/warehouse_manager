@@ -13,27 +13,31 @@ import {
   Typography,
 } from '@mui/material';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { localizedErrorMessage } from '../../lib/api/localized-error.js';
+import { formatDecimal } from '../../i18n/format.js';
 import { useInventoryBalances } from './inventory-queries.js';
 
 export function InventoryPage() {
+  const { t } = useTranslation();
   const [alertsOnly, setAlertsOnly] = useState(false);
   const balances = useInventoryBalances({ alertsOnly });
   return (
     <Stack spacing={2}>
-      <Typography variant="h4">Inventory</Typography>
+      <Typography variant="h4">{t('inventory.title')}</Typography>
       <FormControlLabel
         control={<Switch checked={alertsOnly} onChange={(_, checked) => setAlertsOnly(checked)} />}
-        label="Show low-stock alerts only"
+        label={t('inventory.showAlertsOnly')}
       />
-      {balances.isLoading && <CircularProgress aria-label="Loading inventory" />}
-      {balances.error && <Alert severity="error">{balances.error.message}</Alert>}
-      <Table aria-label="Inventory balances">
+      {balances.isLoading && <CircularProgress aria-label={t('inventory.loading')} />}
+      {balances.error && <Alert severity="error">{localizedErrorMessage(balances.error, t)}</Alert>}
+      <Table aria-label={t('inventory.balances')}>
         <TableHead>
           <TableRow>
-            <TableCell>Product</TableCell>
-            <TableCell>Location</TableCell>
-            <TableCell align="right">Quantity</TableCell>
-            <TableCell>Status</TableCell>
+            <TableCell>{t('common.product')}</TableCell>
+            <TableCell>{t('inventory.location')}</TableCell>
+            <TableCell align="right">{t('common.quantity')}</TableCell>
+            <TableCell>{t('common.status')}</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -41,9 +45,13 @@ export function InventoryPage() {
             <TableRow key={balance.id}>
               <TableCell>{balance.productName}</TableCell>
               <TableCell>{balance.stockLocation.label}</TableCell>
-              <TableCell align="right">{balance.quantity}</TableCell>
+              <TableCell align="right">{formatDecimal(balance.quantity)}</TableCell>
               <TableCell>
-                {balance.lowStockAlert ? <Chip color="warning" label="Low stock" /> : 'Available'}
+                {balance.lowStockAlert ? (
+                  <Chip color="warning" label={t('inventory.lowStock')} />
+                ) : (
+                  t('common.available')
+                )}
               </TableCell>
             </TableRow>
           ))}

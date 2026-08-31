@@ -1,6 +1,9 @@
 import { Alert, List, ListItem, ListItemText, Typography } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { apiRequest } from '../../lib/api/client.js';
+import { formatDateTime, formatDecimal } from '../../i18n/format.js';
+import { localizedErrorMessage } from '../../lib/api/localized-error.js';
 
 interface SaleSummary {
   id: string;
@@ -11,20 +14,21 @@ interface SaleSummary {
 }
 
 export function CustomerHistory({ customerId }: { customerId: string }) {
+  const { t } = useTranslation();
   const history = useQuery({
     queryKey: ['customers', customerId, 'sales'],
     queryFn: () => apiRequest<{ data: SaleSummary[] }>(`/customers/${customerId}/sales`),
   });
   return (
-    <section aria-label="Customer purchase history">
-      <Typography variant="h6">Purchase history</Typography>
-      {history.error && <Alert severity="error">{history.error.message}</Alert>}
+    <section aria-label={t('customers.purchaseHistoryLabel')}>
+      <Typography variant="h6">{t('customers.purchaseHistory')}</Typography>
+      {history.error && <Alert severity="error">{localizedErrorMessage(history.error, t)}</Alert>}
       <List dense>
         {history.data?.data.map((sale) => (
           <ListItem key={sale.id}>
             <ListItemText
-              primary={`${sale.saleNumber} · ${sale.total}`}
-              secondary={`${sale.status} · ${sale.completedAt}`}
+              primary={`${sale.saleNumber} · ${formatDecimal(sale.total)}`}
+              secondary={`${t(`status.${sale.status}`, { defaultValue: sale.status })} · ${formatDateTime(sale.completedAt)}`}
             />
           </ListItem>
         ))}

@@ -10,7 +10,10 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { apiRequest } from '../../lib/api/client.js';
+import { localizedErrorMessage } from '../../lib/api/localized-error.js';
+import { formatDecimal } from '../../i18n/format.js';
 import { idempotencyKey } from '../../lib/api/idempotency.js';
 import { RouteHistory } from './route-history.js';
 import { useRouteDetail, useRoutes } from './route-queries.js';
@@ -20,6 +23,7 @@ interface LoadValues {
 }
 
 export function DriverRoutePages() {
+  const { t } = useTranslation();
   const routes = useRoutes();
   const client = useQueryClient();
   const [selected, setSelected] = useState<string | null>(null);
@@ -62,25 +66,25 @@ export function DriverRoutePages() {
     },
     onSuccess: refresh,
   });
-  if (routes.isLoading) return <CircularProgress aria-label="Loading assigned routes" />;
+  if (routes.isLoading) return <CircularProgress aria-label={t('routes.loadingAssigned')} />;
   const current = detail.data?.data;
   return (
     <Stack spacing={3}>
-      <Typography variant="h4">My routes</Typography>
+      <Typography variant="h4">{t('routes.myRoutes')}</Typography>
       {(routes.error || detail.error || draft.error || command.error) && (
         <Alert severity="error">
-          {(routes.error ?? detail.error ?? draft.error ?? command.error)?.message}
+          {localizedErrorMessage(routes.error ?? detail.error ?? draft.error ?? command.error, t)}
         </Alert>
       )}
       <TextField
         select
-        label="Assigned route"
+        label={t('routes.assignedRoute')}
         value={selected ?? ''}
         onChange={(event) => setSelected(event.target.value)}
       >
         {routes.data?.data.map((route) => (
           <MenuItem key={route.id} value={route.id}>
-            {route.routeNumber} · {route.state}
+            {route.routeNumber} · {t(`status.${route.state}`, { defaultValue: route.state })}
           </MenuItem>
         ))}
       </TextField>
@@ -95,11 +99,11 @@ export function DriverRoutePages() {
             {loadLines.fields.map((field, index) => (
               <Stack key={field.id} direction={{ xs: 'column', md: 'row' }} spacing={1}>
                 <TextField
-                  label="Product ID"
+                  label={t('common.productId')}
                   {...form.register(`lines.${index}.productId`, { required: true })}
                 />
                 <TextField
-                  label="Load quantity"
+                  label={t('routes.loadQuantity')}
                   {...form.register(`lines.${index}.quantity`, { required: true })}
                 />
                 <Button
@@ -107,7 +111,7 @@ export function DriverRoutePages() {
                   disabled={loadLines.fields.length === 1}
                   onClick={() => loadLines.remove(index)}
                 >
-                  Remove
+                  {t('common.remove')}
                 </Button>
               </Stack>
             ))}
@@ -116,35 +120,35 @@ export function DriverRoutePages() {
                 type="button"
                 onClick={() => loadLines.append({ productId: '', quantity: '1' })}
               >
-                Add product
+                {t('routes.addProduct')}
               </Button>
               <Button type="submit" variant="outlined">
-                Save full load
+                {t('routes.saveFullLoad')}
               </Button>
             </Stack>
           </Stack>
           {current.load?.state === 'DRAFT' && (
             <Button variant="contained" onClick={() => command.mutate('confirmation')}>
-              Confirm load
+              {t('routes.confirmLoad')}
             </Button>
           )}
           {current.load?.state === 'CONFIRMED' && (
             <Button variant="contained" onClick={() => command.mutate('start')}>
-              Start route
+              {t('routes.startRoute')}
             </Button>
           )}
         </Stack>
       )}
       {current?.route.state === 'EN_ROUTE' && (
         <>
-          <Typography variant="h6">Available route inventory</Typography>
+          <Typography variant="h6">{t('routes.availableInventory')}</Typography>
           {current.balances.map((balance) => (
             <Typography key={balance.id}>
-              {balance.productName}: {balance.quantity}
+              {balance.productName}: {formatDecimal(balance.quantity)}
             </Typography>
           ))}
           <Button variant="contained" onClick={() => command.mutate('return')}>
-            Mark returned
+            {t('routes.markReturned')}
           </Button>
         </>
       )}

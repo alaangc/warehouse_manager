@@ -10,30 +10,34 @@ import {
   Typography,
 } from '@mui/material';
 import { useSales } from './sale-queries.js';
+import { useTranslation } from 'react-i18next';
+import { formatDateTime, formatDecimal } from '../../i18n/format.js';
+import { localizedErrorMessage } from '../../lib/api/localized-error.js';
 
 export function DriverSaleHistory() {
+  const { t } = useTranslation();
   const sales = useSales();
   return (
     <Stack spacing={2}>
-      <Typography variant="h4">Sales</Typography>
+      <Typography variant="h4">{t('sales.title')}</Typography>
       {sales.isLoading && <CircularProgress />}
-      {sales.error && <Alert severity="error">{sales.error.message}</Alert>}
+      {sales.error && <Alert severity="error">{localizedErrorMessage(sales.error, t)}</Alert>}
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>Date</TableCell>
-            <TableCell>Sale</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Total</TableCell>
+            <TableCell>{t('common.date')}</TableCell>
+            <TableCell>{t('sales.sale')}</TableCell>
+            <TableCell>{t('common.status')}</TableCell>
+            <TableCell>{t('common.total')}</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {sales.data?.data.map((sale) => (
             <TableRow key={sale.id}>
-              <TableCell>{new Date(sale.completed_at).toLocaleString()}</TableCell>
+              <TableCell>{formatDateTime(sale.completed_at)}</TableCell>
               <TableCell>{sale.sale_number}</TableCell>
-              <TableCell>{sale.status}</TableCell>
-              <TableCell>{sale.total}</TableCell>
+              <TableCell>{t(`status.${sale.status}`, { defaultValue: sale.status })}</TableCell>
+              <TableCell>{formatDecimal(sale.total)}</TableCell>
             </TableRow>
           ))}
         </TableBody>

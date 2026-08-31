@@ -210,7 +210,7 @@ describe('inventory and catalog UI', () => {
     vi.stubGlobal('fetch', fetchMock);
     renderWithQuery(<MovementHistory routeId={routeId} />);
 
-    expect(await screen.findByText('TRANSFER')).toBeInTheDocument();
+    expect(await screen.findByText('Transfer')).toBeInTheDocument();
     expect(screen.getByText(productId)).toBeInTheDocument();
     expect(screen.getByText('4.000')).toBeInTheDocument();
     expect(screen.getByText('Route replenishment')).toBeInTheDocument();

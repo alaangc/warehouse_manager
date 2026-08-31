@@ -367,6 +367,21 @@ environment.
 
 ---
 
+## Phase 11: Bilingual Interface
+
+**Purpose**: Support immediate English and Spanish interface switching without
+changing authoritative business data or regenerating completed work.
+
+- [X] T146 Record FR-051–FR-053, SC-013, browser-local persistence, and locale-safe presentation in `specs/001-warehouse-management/spec.md` and `specs/001-warehouse-management/plan.md`
+- [X] T147 Add English/Spanish resources, first-visit Spanish default, browser persistence, document language updates, and stable-code API error localization in `apps/web/src/i18n/` and `apps/web/src/lib/api/localized-error.ts`
+- [X] T148 Add the shared Settings language selector and convert all currently implemented React screens to reactive translation keys in `apps/web/src/features/settings/settings-page.tsx` and `apps/web/src/`
+- [X] T149 Add component coverage for immediate language switching and browser persistence in `apps/web/tests/settings/language-settings.test.tsx`
+
+**Checkpoint**: English and Spanish can be selected from Settings, implemented pages
+react immediately, and the same browser restores the saved selection.
+
+---
+
 ## Dependencies and Execution Order
 
 ### Phase Dependencies
@@ -388,6 +403,8 @@ environment.
 - **Phase 9 — US6 Documents/Printing**: Depends on US2 Sale Tickets, US3 route loads, US5
   cash closes/report snapshots, and US7 printer profiles/preferences.
 - **Phase 10 — Polish**: Depends on all stories selected for the release.
+- **Phase 11 — Bilingual Interface**: Depends on the shared web shell and applies to
+  every implemented user-facing screen without changing API or persistence behavior.
 
 ### User Story Dependency Graph
 

@@ -2,7 +2,9 @@ import { Alert, Button, Stack, TextField } from '@mui/material';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { apiRequest } from '../../lib/api/client.js';
+import { localizedErrorMessage } from '../../lib/api/localized-error.js';
 import type { Customer } from './customer-types.js';
 
 interface Values {
@@ -23,6 +25,7 @@ export function CustomerForm({
   customer?: Customer;
   onSaved: (customer: Customer) => void;
 }) {
+  const { t } = useTranslation();
   const client = useQueryClient();
   const form = useForm<Values>({
     defaultValues: {
@@ -79,7 +82,7 @@ export function CustomerForm({
   const submit = (active: boolean) =>
     form.handleSubmit((values) => {
       if (!active && !values.archiveReason.trim()) {
-        form.setError('archiveReason', { message: 'An archive reason is required.' });
+        form.setError('archiveReason', { message: t('customers.archiveReasonRequired') });
         return;
       }
       save.mutate({ values, active });
@@ -90,17 +93,20 @@ export function CustomerForm({
       spacing={1}
       onSubmit={(event) => void submit(customer?.active ?? true)(event)}
     >
-      {save.error && <Alert severity="error">{save.error.message}</Alert>}
-      <TextField label="Customer name" {...form.register('displayName', { required: true })} />
-      <TextField label="Contact name" {...form.register('contactName')} />
-      <TextField label="Phone" {...form.register('phone')} />
-      <TextField label="Email" type="email" {...form.register('email')} />
-      <TextField label="Address" {...form.register('address')} />
-      <TextField label="City" {...form.register('city', { required: true })} />
-      <TextField label="Notes" multiline {...form.register('notes')} />
+      {save.error && <Alert severity="error">{localizedErrorMessage(save.error, t)}</Alert>}
+      <TextField
+        label={t('customers.customerName')}
+        {...form.register('displayName', { required: true })}
+      />
+      <TextField label={t('customers.contactName')} {...form.register('contactName')} />
+      <TextField label={t('customers.phone')} {...form.register('phone')} />
+      <TextField label={t('customers.email')} type="email" {...form.register('email')} />
+      <TextField label={t('customers.address')} {...form.register('address')} />
+      <TextField label={t('customers.city')} {...form.register('city', { required: true })} />
+      <TextField label={t('customers.notes')} multiline {...form.register('notes')} />
       {customer?.active && (
         <TextField
-          label="Archive reason"
+          label={t('customers.archiveReason')}
           error={Boolean(form.formState.errors.archiveReason)}
           helperText={form.formState.errors.archiveReason?.message}
           {...form.register('archiveReason')}
@@ -108,16 +114,16 @@ export function CustomerForm({
       )}
       <Stack direction="row" spacing={1}>
         <Button type="submit" variant="contained" disabled={save.isPending}>
-          {customer ? 'Save customer' : 'Create customer'}
+          {customer ? t('customers.saveCustomer') : t('customers.createCustomer')}
         </Button>
         {customer?.active && (
           <Button type="button" color="warning" onClick={() => void submit(false)()}>
-            Archive customer
+            {t('customers.archiveCustomer')}
           </Button>
         )}
         {customer && !customer.active && (
           <Button type="button" onClick={() => void submit(true)()}>
-            Reactivate customer
+            {t('customers.reactivateCustomer')}
           </Button>
         )}
       </Stack>

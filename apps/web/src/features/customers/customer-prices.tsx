@@ -10,7 +10,10 @@ import {
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { apiRequest } from '../../lib/api/client.js';
+import { localizedErrorMessage } from '../../lib/api/localized-error.js';
+import { formatDateTime, formatDecimal } from '../../i18n/format.js';
 import type { CustomerPrice } from './customer-types.js';
 
 interface PriceValues {
@@ -20,6 +23,7 @@ interface PriceValues {
 }
 
 export function CustomerPrices({ customerId }: { customerId: string }) {
+  const { t } = useTranslation();
   const client = useQueryClient();
   const prices = useQuery({
     queryKey: ['customers', customerId, 'prices'],
@@ -50,10 +54,10 @@ export function CustomerPrices({ customerId }: { customerId: string }) {
   });
   return (
     <Stack spacing={1}>
-      <Typography variant="h6">Special prices</Typography>
+      <Typography variant="h6">{t('customers.specialPrices')}</Typography>
       {(prices.error || create.error || deactivate.error) && (
         <Alert severity="error">
-          {(prices.error ?? create.error ?? deactivate.error)?.message}
+          {localizedErrorMessage(prices.error ?? create.error ?? deactivate.error, t)}
         </Alert>
       )}
       <Stack
@@ -62,18 +66,21 @@ export function CustomerPrices({ customerId }: { customerId: string }) {
         spacing={1}
         onSubmit={(event) => void form.handleSubmit((values) => create.mutate(values))(event)}
       >
-        <TextField label="Product ID" {...form.register('productId', { required: true })} />
         <TextField
-          label="Exact unit price"
+          label={t('common.productId')}
+          {...form.register('productId', { required: true })}
+        />
+        <TextField
+          label={t('customers.exactUnitPrice')}
           {...form.register('unitPrice', { required: true, pattern: /^\d+(?:\.\d{1,4})?$/ })}
         />
         <TextField
           type="datetime-local"
-          label="Valid from"
+          label={t('customers.validFrom')}
           {...form.register('validFrom', { required: true })}
         />
         <Button type="submit" variant="contained">
-          Add price
+          {t('customers.addPrice')}
         </Button>
       </Stack>
       <List dense>
@@ -82,13 +89,15 @@ export function CustomerPrices({ customerId }: { customerId: string }) {
             key={price.id}
             secondaryAction={
               price.active ? (
-                <Button onClick={() => deactivate.mutate(price.id)}>Deactivate</Button>
+                <Button onClick={() => deactivate.mutate(price.id)}>
+                  {t('common.deactivate')}
+                </Button>
               ) : null
             }
           >
             <ListItemText
-              primary={`${price.productId} · ${price.unitPrice}`}
-              secondary={`${price.active ? 'Active' : 'Inactive'} from ${price.validFrom}`}
+              primary={`${price.productId} · ${formatDecimal(price.unitPrice)}`}
+              secondary={`${price.active ? t('common.active') : t('common.inactive')} ${t('customers.from')} ${formatDateTime(price.validFrom)}`}
             />
           </ListItem>
         ))}

@@ -286,6 +286,32 @@ without losing historical attribution.
 3. **Given** a user referenced by history, **When** an administrator deactivates the
    account, **Then** future access is denied and historical attribution remains intact.
 
+---
+
+### User Story 8 - Choose the Interface Language (Priority: P2)
+
+An authenticated user selects English or Spanish from Settings and continues working
+in the chosen language without losing the current page or entered data.
+
+**Why this priority**: Administrators and drivers must be able to understand the same
+operational workflows in their preferred language without maintaining separate
+applications.
+
+**Independent Test**: Open Settings, change from English to Spanish, verify that the
+visible interface changes immediately, refresh the browser, and verify that Spanish
+remains selected.
+
+**Acceptance Scenarios**:
+
+1. **Given** an authenticated user viewing the application in English, **When** the
+   user selects Spanish, **Then** visible navigation, labels, actions, status text, and
+   user-facing errors change to Spanish without a page refresh.
+2. **Given** a user who selected Spanish, **When** the user refreshes or returns using
+   the same browser, **Then** the application opens in Spanish.
+3. **Given** either supported language, **When** dates, numbers, or monetary values are
+   presented, **Then** their formatting follows the selected language while stored
+   business values remain unchanged.
+
 ### Edge Cases
 
 - Two users attempt to consume the last available units of the same stock concurrently.
@@ -485,6 +511,18 @@ without losing historical attribution.
 - **FR-050**: Each authenticated user MUST receive a concise operational overview
   limited to information and actions permitted for that user's role.
 
+#### Interface Language
+
+- **FR-051**: Every authenticated user MUST be able to select English or Spanish from
+  Settings, and the selected language MUST take effect without a page refresh or loss
+  of in-progress page state.
+- **FR-052**: The selected language MUST persist for subsequent visits from the same
+  browser. Spanish MUST be used when no prior preference exists.
+- **FR-053**: Navigation, headings, field labels, actions, statuses, validation
+  guidance, user-facing failures, dates, numbers, and monetary presentation MUST use
+  the selected language. User-entered and historical business data MUST NOT be
+  translated or modified when the interface language changes.
+
 ### Scope Boundaries
 
 **In scope**:
@@ -496,6 +534,7 @@ without losing historical attribution.
   above.
 - Portable-document generation and Bluetooth thermal printing for the specified records.
 - User-facing failure and retry behavior for critical operations and outputs.
+- English and Spanish interface text with a browser-persisted user preference.
 
 **Out of scope**:
 
@@ -591,11 +630,16 @@ without losing historical attribution.
   post-close ordinary edits are rejected without changing route or inventory history.
 - **SC-012**: In cancellation acceptance tests, 100 percent of authorized sale
   cancellations preserve the original sale and restore each quantity exactly once.
+- **SC-013**: In bilingual acceptance tests, 100 percent of reviewed implemented pages
+  change their visible interface text immediately after language selection, preserve
+  entered form values, and retain the selection after a browser refresh.
 
 ## Assumptions
 
 - Users have reliable network access while using the browser-based application;
   offline capture and synchronization are not required for the first release.
+- Language preference is local to a browser rather than synchronized between a user's
+  devices. Spanish is the default when that browser has no saved preference.
 - The business operates as one organization with Magdalena and Caborca as the initial
   fixed stock-holding branches and may add or deactivate branches later without
   changing historical records.

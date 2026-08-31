@@ -1,7 +1,9 @@
 import { Alert, Button, Stack, TextField } from '@mui/material';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { apiRequest } from '../../lib/api/client.js';
+import { localizedErrorMessage } from '../../lib/api/localized-error.js';
 
 type SimpleCatalogKind = 'locations' | 'categories' | 'units' | 'vehicles';
 
@@ -14,6 +16,7 @@ interface SimpleCatalogValues {
 }
 
 export function SimpleCatalogForm({ kind }: { kind: SimpleCatalogKind }) {
+  const { t } = useTranslation();
   const form = useForm<SimpleCatalogValues>({
     defaultValues: {
       code: '',
@@ -51,22 +54,24 @@ export function SimpleCatalogForm({ kind }: { kind: SimpleCatalogKind }) {
       }}
     >
       {kind !== 'categories' && (
-        <TextField label="Code" {...form.register('code', { required: true })} />
+        <TextField label={t('catalog.code')} {...form.register('code', { required: true })} />
       )}
-      <TextField label="Name" {...form.register('name', { required: true })} />
+      <TextField label={t('common.name')} {...form.register('name', { required: true })} />
       {kind === 'units' && (
         <TextField
-          label="Quantity decimals"
+          label={t('catalog.quantityDecimals')}
           type="number"
           slotProps={{ htmlInput: { min: 0, max: 3 } }}
           {...form.register('quantityScale', { valueAsNumber: true })}
         />
       )}
-      {kind === 'vehicles' && <TextField label="Registration" {...form.register('registration')} />}
+      {kind === 'vehicles' && (
+        <TextField label={t('catalog.registration')} {...form.register('registration')} />
+      )}
       <Button type="submit" variant="outlined" disabled={mutation.isPending}>
-        Add
+        {t('common.add')}
       </Button>
-      {mutation.error && <Alert severity="error">{mutation.error.message}</Alert>}
+      {mutation.error && <Alert severity="error">{localizedErrorMessage(mutation.error, t)}</Alert>}
     </Stack>
   );
 }
@@ -82,6 +87,7 @@ interface ProductFormValues {
 }
 
 export function ProductForm() {
+  const { t } = useTranslation();
   const form = useForm<ProductFormValues>({
     defaultValues: {
       sku: '',
@@ -113,22 +119,25 @@ export function ProductForm() {
         void form.handleSubmit((values) => mutation.mutate(values))(event);
       }}
     >
-      {mutation.error && <Alert severity="error">{mutation.error.message}</Alert>}
-      <TextField label="SKU" {...form.register('sku', { required: true })} />
-      <TextField label="Name" {...form.register('name', { required: true })} />
-      <TextField label="Category ID" {...form.register('categoryId', { required: true })} />
-      <TextField label="Unit ID" {...form.register('unitId', { required: true })} />
+      {mutation.error && <Alert severity="error">{localizedErrorMessage(mutation.error, t)}</Alert>}
+      <TextField label={t('catalog.sku')} {...form.register('sku', { required: true })} />
+      <TextField label={t('common.name')} {...form.register('name', { required: true })} />
       <TextField
-        label="Standard unit price"
+        label={t('catalog.categoryId')}
+        {...form.register('categoryId', { required: true })}
+      />
+      <TextField label={t('catalog.unitId')} {...form.register('unitId', { required: true })} />
+      <TextField
+        label={t('catalog.standardUnitPrice')}
         {...form.register('standardUnitPrice', { required: true, pattern: /^\d+(?:\.\d{1,4})?$/ })}
       />
       <TextField
-        label="Low stock threshold"
+        label={t('catalog.lowStockThreshold')}
         {...form.register('lowStockThreshold', { required: true, pattern: /^\d+(?:\.\d{1,3})?$/ })}
       />
-      <TextField label="Description" multiline {...form.register('description')} />
+      <TextField label={t('common.description')} multiline {...form.register('description')} />
       <Button type="submit" variant="contained" disabled={mutation.isPending}>
-        Save product
+        {t('catalog.saveProduct')}
       </Button>
     </Stack>
   );

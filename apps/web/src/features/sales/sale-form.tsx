@@ -2,7 +2,10 @@ import { Alert, Button, MenuItem, Stack, TextField, Typography } from '@mui/mate
 import { useMutation } from '@tanstack/react-query';
 import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { apiRequest } from '../../lib/api/client.js';
+import { localizedErrorMessage } from '../../lib/api/localized-error.js';
+import { formatDecimal } from '../../i18n/format.js';
 import { idempotencyKey } from '../../lib/api/idempotency.js';
 import { CustomerPicker, ProductPicker } from './customer-product-picker.js';
 import { SaleResult } from './sale-result.js';
@@ -21,6 +24,7 @@ interface Quote {
 }
 
 export function SaleForm() {
+  const { t } = useTranslation();
   const clientOperationId = useRef(crypto.randomUUID()).current;
   const [quote, setQuote] = useState<Quote | null>(null);
   const form = useForm<SaleValues>({
@@ -68,11 +72,16 @@ export function SaleForm() {
         void form.handleSubmit((input) => saleMutation.mutate(input))(event);
       }}
     >
-      <Typography variant="h4">New sale</Typography>
+      <Typography variant="h4">{t('sales.newSale')}</Typography>
       {(quoteMutation.error || saleMutation.error) && (
-        <Alert severity="error">{(quoteMutation.error ?? saleMutation.error)?.message}</Alert>
+        <Alert severity="error">
+          {localizedErrorMessage(quoteMutation.error ?? saleMutation.error, t)}
+        </Alert>
       )}
-      <TextField label="Active route ID" {...form.register('routeId', { required: true })} />
+      <TextField
+        label={t('sales.activeRouteId')}
+        {...form.register('routeId', { required: true })}
+      />
       <CustomerPicker
         value={values.customerId}
         onChange={(id) => {
@@ -88,25 +97,29 @@ export function SaleForm() {
         }}
       />
       <TextField
-        label="Quantity"
+        label={t('common.quantity')}
         inputMode="decimal"
         {...form.register('quantity', { required: true, pattern: /^\d+(?:\.\d{1,3})?$/ })}
       />
-      <TextField select label="Payment method" {...form.register('paymentMethod')}>
-        <MenuItem value="CASH">Cash</MenuItem>
-        <MenuItem value="BANK_TRANSFER">Bank transfer</MenuItem>
-        <MenuItem value="CARD">Card</MenuItem>
+      <TextField select label={t('sales.paymentMethod')} {...form.register('paymentMethod')}>
+        <MenuItem value="CASH">{t('sales.cash')}</MenuItem>
+        <MenuItem value="BANK_TRANSFER">{t('sales.bankTransfer')}</MenuItem>
+        <MenuItem value="CARD">{t('sales.card')}</MenuItem>
       </TextField>
       <Button
         type="button"
         variant="outlined"
         onClick={() => quoteMutation.mutate(form.getValues())}
       >
-        Refresh authoritative quote
+        {t('sales.refreshQuote')}
       </Button>
       {quote && (
         <Alert severity={quote.lines.every((line) => line.available) ? 'info' : 'warning'}>
-          Locked price: {quote.lines[0]?.unitPrice} — Total {quote.currencyCode} {quote.total}
+          {t('sales.quote', {
+            price: quote.lines[0]?.unitPrice ? formatDecimal(quote.lines[0].unitPrice) : '',
+            currency: quote.currencyCode,
+            total: formatDecimal(quote.total),
+          })}
         </Alert>
       )}
       <Button
@@ -114,7 +127,7 @@ export function SaleForm() {
         variant="contained"
         disabled={!quote || !quote.lines.every((line) => line.available) || saleMutation.isPending}
       >
-        Confirm sale
+        {t('sales.confirmSale')}
       </Button>
     </Stack>
   );

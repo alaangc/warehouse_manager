@@ -29,6 +29,7 @@ financial snapshot.
 
 **Primary Dependencies**: React 19.2, Vite 8, Express 5, Zod 4, Kysely 0.29 with `pg`,
 `decimal.js`, `@js-temporal/polyfill`, `express-session`, Argon2id, TanStack Query 5, React Hook Form, MUI Core,
+`i18next`, `react-i18next`,
 PDFKit, and an application-owned Web Bluetooth printer adapter; exact compatible patch
 versions MUST be pinned in the implementation lockfile
 
@@ -81,6 +82,12 @@ reporting periods use configured-timezone local midnight, Monday-based weeks, ca
 months, and `[start,end)` boundaries; only one CashClose is current per exact period,
 with idempotent reuse, conflicting independent duplicates, and immutable linked
 superseding corrections
+
+The browser bundles English and Spanish translation resources. Language changes are
+reactive and do not reload the page; a validated `en`/`es` preference is stored in
+browser storage with Spanish as the first-visit default. Locale-aware presentation is
+kept separate from exact API and persisted business values. Stable API problem codes
+select translated user messages, with a generic localized fallback for unknown codes.
 
 **Scale/Scope**: One organization and business timezone, initially two branches,
 multiple simultaneous routes, 25 concurrent staff users, 10,000 products, 10,000

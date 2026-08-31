@@ -9,7 +9,9 @@ import {
 } from '@mui/material';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { apiRequest } from '../../lib/api/client.js';
+import { localizedErrorMessage } from '../../lib/api/localized-error.js';
 import { idempotencyKey } from '../../lib/api/idempotency.js';
 
 export function SaleCancellationDialog({
@@ -21,6 +23,7 @@ export function SaleCancellationDialog({
   open: boolean;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const [reason, setReason] = useState('');
   const operationId = useRef(crypto.randomUUID()).current;
   const queryClient = useQueryClient();
@@ -38,27 +41,29 @@ export function SaleCancellationDialog({
   });
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Cancel sale</DialogTitle>
+      <DialogTitle>{t('sales.cancelSale')}</DialogTitle>
       <DialogContent>
-        {mutation.error && <Alert severity="error">{mutation.error.message}</Alert>}
+        {mutation.error && (
+          <Alert severity="error">{localizedErrorMessage(mutation.error, t)}</Alert>
+        )}
         <TextField
           autoFocus
           fullWidth
           multiline
           margin="dense"
-          label="Required reason"
+          label={t('sales.requiredReason')}
           value={reason}
           onChange={(event) => setReason(event.target.value)}
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Keep sale</Button>
+        <Button onClick={onClose}>{t('sales.keepSale')}</Button>
         <Button
           color="error"
           disabled={!reason.trim() || mutation.isPending}
           onClick={() => mutation.mutate()}
         >
-          Cancel sale
+          {t('sales.cancelSale')}
         </Button>
       </DialogActions>
     </Dialog>

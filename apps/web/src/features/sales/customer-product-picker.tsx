@@ -1,4 +1,5 @@
 import { MenuItem, TextField } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import { useCustomerOptions, useProductOptions } from './sale-queries.js';
 
 export function CustomerPicker({
@@ -8,11 +9,12 @@ export function CustomerPicker({
   value: string;
   onChange: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   const customers = useCustomerOptions();
   return (
     <TextField
       select
-      label="Customer"
+      label={t('customers.customer')}
       value={value}
       onChange={(event) => onChange(event.target.value)}
     >
@@ -32,11 +34,12 @@ export function ProductPicker({
   value: string;
   onChange: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   const products = useProductOptions();
   return (
     <TextField
       select
-      label="Product"
+      label={t('common.product')}
       value={value}
       onChange={(event) => onChange(event.target.value)}
     >
