@@ -192,4 +192,30 @@ describe('authentication UI', () => {
     const logoutHeaders = fetchMock.mock.calls[1]?.[1]?.headers as Headers;
     expect(logoutHeaders.get('X-CSRF-Token')).toBe('restored-csrf');
   });
+
+  it('opens the compact navigation menu and closes it after navigation', async () => {
+    renderApp(
+      <MemoryRouter initialEntries={['/']}>
+        <Routes>
+          <Route path="/" element={<AppLayout />}>
+            <Route index element={<div>Overview content</div>} />
+            <Route path="inventory" element={<div>Inventory destination</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+      { user: administrator, loading: false, error: null },
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open navigation menu' }));
+    const inventoryLink = await screen.findByRole('link', { name: 'Inventory' });
+    expect(inventoryLink).toBeVisible();
+    fireEvent.click(inventoryLink);
+
+    expect(await screen.findByText('Inventory destination')).toBeVisible();
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('button', { name: 'Close navigation menu' }),
+      ).not.toBeInTheDocument(),
+    );
+  });
 });

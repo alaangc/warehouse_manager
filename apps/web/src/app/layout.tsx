@@ -5,6 +5,10 @@ import {
   Button,
   CircularProgress,
   Container,
+  Divider,
+  Drawer,
+  IconButton,
+  Stack,
   Toolbar,
   Typography,
 } from '@mui/material';
@@ -12,6 +16,7 @@ import type { SessionResponse } from '@warehouse/contracts';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useState } from 'react';
 import { useSession } from './session.js';
 import { apiRequest, setCsrfToken } from '../lib/api/client.js';
 import { ApiProblem } from '../lib/api/problem.js';
@@ -39,6 +44,7 @@ export function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const logout = useMutation({
     mutationFn: () => apiRequest<void>('/auth/logout', { method: 'POST' }),
     onSuccess: () => {
@@ -70,22 +76,72 @@ export function AppLayout() {
     <>
       <AppBar position="static">
         <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
+          <Typography variant="h6" sx={{ flexGrow: 1, whiteSpace: 'nowrap' }}>
             {t('app.name')}
           </Typography>
+          <Box sx={{ display: { xs: 'none', lg: 'flex' }, alignItems: 'center' }}>
+            {links.map(([to, label]) => (
+              <Button key={to} color="inherit" component={NavLink} to={to}>
+                {t(label)}
+              </Button>
+            ))}
+            <Typography sx={{ ml: 2 }} variant="body2">
+              {session.user.displayName}
+            </Typography>
+            <Button color="inherit" disabled={logout.isPending} onClick={() => logout.mutate()}>
+              {logout.isPending ? t('auth.signingOut') : t('auth.signOut')}
+            </Button>
+          </Box>
+          <IconButton
+            aria-label={t('nav.openMenu')}
+            color="inherit"
+            onClick={() => setMobileMenuOpen(true)}
+            sx={{ display: { xs: 'inline-flex', lg: 'none' }, fontSize: 25 }}
+          >
+            ☰
+          </IconButton>
+        </Toolbar>
+      </AppBar>
+      <Drawer
+        anchor="right"
+        open={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+        slotProps={{ paper: { sx: { width: 'min(84vw, 320px)' } } }}
+      >
+        <Stack spacing={1} sx={{ p: 2 }}>
+          <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box>
+              <Typography sx={{ fontWeight: 700 }}>{session.user.displayName}</Typography>
+              <Typography color="text.secondary" variant="caption">
+                {t('app.name')}
+              </Typography>
+            </Box>
+            <IconButton aria-label={t('nav.closeMenu')} onClick={() => setMobileMenuOpen(false)}>
+              ×
+            </IconButton>
+          </Stack>
+          <Divider />
           {links.map(([to, label]) => (
-            <Button key={to} color="inherit" component={NavLink} to={to}>
+            <Button
+              key={to}
+              component={NavLink}
+              onClick={() => setMobileMenuOpen(false)}
+              sx={{ justifyContent: 'flex-start' }}
+              to={to}
+            >
               {t(label)}
             </Button>
           ))}
-          <Typography sx={{ display: { xs: 'none', md: 'block' }, ml: 2 }} variant="body2">
-            {session.user.displayName}
-          </Typography>
-          <Button color="inherit" disabled={logout.isPending} onClick={() => logout.mutate()}>
+          <Divider />
+          <Button
+            disabled={logout.isPending}
+            onClick={() => logout.mutate()}
+            sx={{ justifyContent: 'flex-start' }}
+          >
             {logout.isPending ? t('auth.signingOut') : t('auth.signOut')}
           </Button>
-        </Toolbar>
-      </AppBar>
+        </Stack>
+      </Drawer>
       <Container component="main" sx={{ py: 3 }}>
         {logout.isError &&
           !(logout.error instanceof ApiProblem && logout.error.isAuthenticationFailure) && (

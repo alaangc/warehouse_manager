@@ -63,9 +63,13 @@ export function useInventoryBalances(
   const query = new URLSearchParams();
   for (const [key, value] of Object.entries(filters))
     if (value !== undefined && value !== '') query.set(key, String(value));
+  const search = query.toString();
   return useQuery({
     queryKey: ['inventory-balances', filters],
-    queryFn: () => apiRequest<{ data: InventoryBalance[] }>(`/inventory/balances?${query}`),
+    queryFn: () =>
+      apiRequest<{ data: InventoryBalance[] }>(
+        `/inventory/balances${search ? `?${search}` : ''}`,
+      ),
   });
 }
 

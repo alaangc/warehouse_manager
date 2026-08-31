@@ -13,6 +13,7 @@ import { RoutesPage } from '../features/routes/routes-page.js';
 import { CustomerPages } from '../features/customers/customer-pages.js';
 import { LoginPage } from '../features/auth/login-page.js';
 import { SettingsPage } from '../features/settings/settings-page.js';
+import { DashboardPage } from '../features/dashboard/dashboard-page.js';
 
 function RouteError() {
   const { t } = useTranslation();
@@ -39,7 +40,7 @@ export const router = createBrowserRouter([
     element: <AppLayout />,
     errorElement: <RouteError />,
     children: [
-      { index: true, element: <PlaceholderPage title="nav.overview" /> },
+      { index: true, element: <DashboardPage /> },
       { path: 'inventory', element: <InventoryPage /> },
       { path: 'inventory/products/:productId', element: <ProductDetailPage /> },
       { path: 'inventory/operations/new', element: <InventoryOperationForm /> },

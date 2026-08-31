@@ -35,5 +35,9 @@ export const useProductOptions = (search = '') =>
         `/products?search=${encodeURIComponent(search)}&active=true`,
       ),
   });
-export const useSales = () =>
-  useQuery({ queryKey: ['sales'], queryFn: () => apiRequest<{ data: SaleSummary[] }>('/sales') });
+export const useSales = (options: { enabled?: boolean } = {}) =>
+  useQuery({
+    queryKey: ['sales'],
+    queryFn: () => apiRequest<{ data: SaleSummary[] }>('/sales'),
+    enabled: options.enabled ?? true,
+  });
