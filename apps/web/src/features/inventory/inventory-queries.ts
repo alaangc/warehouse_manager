@@ -17,6 +17,19 @@ export interface InventoryBalance {
     routeId: string | null;
   };
 }
+
+export interface InventoryProduct {
+  id: string;
+  sku: string;
+  name: string;
+  description: string | null;
+  categoryId: string;
+  unitId: string;
+  standardUnitPrice: string;
+  lowStockThreshold: string;
+  active: boolean;
+  version: number;
+}
 export interface InventoryMovement {
   id: string;
   operationId: string;
@@ -50,13 +63,29 @@ export function useInventoryBalances(
   const query = new URLSearchParams();
   for (const [key, value] of Object.entries(filters))
     if (value !== undefined && value !== '') query.set(key, String(value));
+  const search = query.toString();
   return useQuery({
     queryKey: ['inventory-balances', filters],
-    queryFn: () => apiRequest<{ data: InventoryBalance[] }>(`/inventory/balances?${query}`),
+    queryFn: () =>
+      apiRequest<{ data: InventoryBalance[] }>(
+        `/inventory/balances${search ? `?${search}` : ''}`,
+      ),
   });
 }
 
-export function useInventoryMovements(filters: InventoryMovementFilters = {}) {
+export function useInventoryProduct(productId: string) {
+  return useQuery({
+    queryKey: ['product', productId],
+    queryFn: () =>
+      apiRequest<{ data: InventoryProduct }>(`/products/${encodeURIComponent(productId)}`),
+    enabled: Boolean(productId),
+  });
+}
+
+export function useInventoryMovements(
+  filters: InventoryMovementFilters = {},
+  options: { enabled?: boolean } = {},
+) {
   const query = new URLSearchParams();
   const filterKeys = ['productId', 'branchId', 'routeId', 'operationType', 'from', 'to'] as const;
   for (const key of filterKeys) {
@@ -70,5 +99,6 @@ export function useInventoryMovements(filters: InventoryMovementFilters = {}) {
       apiRequest<{ data: InventoryMovement[] }>(
         `/inventory/movements${search ? `?${search}` : ''}`,
       ),
+    enabled: options.enabled ?? true,
   });
 }

@@ -4,6 +4,7 @@ import type { AppDatabase } from '../../db/database.js';
 import type { InventoryOperationType } from '../../db/types.js';
 import { requireAuthenticated, requireRole } from '../../auth/authorization.js';
 import { HttpProblem } from '../../http/problem-handler.js';
+import { canonicalDecimal, parseExactDecimal } from '../../shared/money.js';
 import {
   InventoryOperationRequestSchema,
   InventoryTransferRequestSchema,
@@ -97,6 +98,8 @@ export function createInventoryRouter(database: AppDatabase): Router {
         .selectFrom('inventory_balance as balance')
         .innerJoin('product', 'product.id', 'balance.product_id')
         .innerJoin('stock_location as stock', 'stock.id', 'balance.stock_location_id')
+        .leftJoin('location as branch', 'branch.id', 'stock.branch_id')
+        .leftJoin('route as stock_route', 'stock_route.id', 'stock.route_id')
         .select([
           'balance.id',
           'balance.product_id as productId',
@@ -108,6 +111,8 @@ export function createInventoryRouter(database: AppDatabase): Router {
           'stock.kind',
           'stock.branch_id as branchId',
           'stock.route_id as routeId',
+          'branch.name as branchName',
+          'stock_route.route_number as routeNumber',
           'product.low_stock_threshold as threshold',
         ])
         .orderBy('balance.updated_at desc')
@@ -127,20 +132,32 @@ export function createInventoryRouter(database: AppDatabase): Router {
       const data = rows
         .filter(
           (row) =>
-            request.query.alertsOnly !== 'true' || Number(row.quantity) <= Number(row.threshold),
+            request.query.alertsOnly !== 'true' ||
+            parseExactDecimal(row.quantity).lessThanOrEqualTo(row.threshold),
         )
-        .map(({ threshold, stockLocationId, kind, branchId, routeId, ...row }) => ({
-          ...row,
-          quantity: Number(row.quantity).toFixed(3),
-          lowStockAlert: Number(row.quantity) <= Number(threshold),
-          stockLocation: {
-            id: stockLocationId,
+        .map(
+          ({
+            threshold,
+            stockLocationId,
             kind,
-            label: kind === 'BRANCH' ? 'Branch' : 'Route',
             branchId,
             routeId,
-          },
-        }));
+            branchName,
+            routeNumber,
+            ...row
+          }) => ({
+            ...row,
+            quantity: canonicalDecimal(row.quantity, 3),
+            lowStockAlert: parseExactDecimal(row.quantity).lessThanOrEqualTo(threshold),
+            stockLocation: {
+              id: stockLocationId,
+              kind,
+              label: kind === 'BRANCH' ? (branchName ?? 'Branch') : (routeNumber ?? 'Route'),
+              branchId,
+              routeId,
+            },
+          }),
+        );
       response.json({ data, page: { hasNextPage: false, nextCursor: null } });
     } catch (error) {
       next(error);

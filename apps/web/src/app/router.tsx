@@ -3,6 +3,7 @@ import { createBrowserRouter, useRouteError } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppLayout, PlaceholderPage } from './layout.js';
 import { InventoryPage } from '../features/inventory/inventory-page.js';
+import { ProductDetailPage } from '../features/inventory/product-detail-page.js';
 import { CatalogPages } from '../features/catalog/catalog-pages.js';
 import { InventoryOperationForm } from '../features/inventory/inventory-operation-form.js';
 import { MovementHistory } from '../features/inventory/movement-history.js';
@@ -12,6 +13,7 @@ import { RoutesPage } from '../features/routes/routes-page.js';
 import { CustomerPages } from '../features/customers/customer-pages.js';
 import { LoginPage } from '../features/auth/login-page.js';
 import { SettingsPage } from '../features/settings/settings-page.js';
+import { DashboardPage } from '../features/dashboard/dashboard-page.js';
 
 function RouteError() {
   const { t } = useTranslation();
@@ -38,8 +40,9 @@ export const router = createBrowserRouter([
     element: <AppLayout />,
     errorElement: <RouteError />,
     children: [
-      { index: true, element: <PlaceholderPage title="nav.overview" /> },
+      { index: true, element: <DashboardPage /> },
       { path: 'inventory', element: <InventoryPage /> },
+      { path: 'inventory/products/:productId', element: <ProductDetailPage /> },
       { path: 'inventory/operations/new', element: <InventoryOperationForm /> },
       { path: 'inventory/movements', element: <MovementHistory /> },
       { path: 'catalog', element: <CatalogPages /> },

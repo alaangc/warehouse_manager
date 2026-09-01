@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { ReconciliationPage } from '../../src/features/routes/reconciliation-page.js';
 import { RouteHistory } from '../../src/features/routes/route-history.js';
+import { RouteOverview } from '../../src/features/routes/route-overview.js';
 import type { RouteDetail } from '../../src/features/routes/route-types.js';
 
 const detail: RouteDetail = {
@@ -55,5 +56,45 @@ describe('route workflow UI', () => {
     vi.stubGlobal('fetch', vi.fn());
     render(<RouteHistory detail={{ ...detail, route: { ...detail.route, state: 'CLOSED' } }} />);
     expect(screen.getByText('Read only')).toBeInTheDocument();
+  });
+
+  it('shows the real lifecycle, route stock, and operational counts', () => {
+    render(
+      <RouteOverview
+        detail={{
+          ...detail,
+          route: { ...detail.route, routeNumber: 'R-100', state: 'EN_ROUTE' },
+          balances: [
+            {
+              id: crypto.randomUUID(),
+              productId: detail.load!.lines[0]!.productId,
+              productName: 'Route widget',
+              quantity: '4.250',
+            },
+          ],
+          movements: [{ id: 'movement-1' }, { id: 'movement-2' }],
+          sales: [
+            {
+              id: crypto.randomUUID(),
+              saleNumber: 'S-100',
+              status: 'COMPLETED',
+              customerId: crypto.randomUUID(),
+              driverId: detail.route.driverId,
+              routeId: detail.route.id,
+              paymentMethod: 'CASH',
+              total: '25.00',
+              completedAt: new Date().toISOString(),
+              cancelledAt: null,
+            },
+          ],
+        }}
+      />,
+    );
+
+    expect(screen.getByRole('heading', { name: 'R-100' })).toBeVisible();
+    expect(screen.getByText('Route widget')).toBeVisible();
+    expect(screen.getByText('4.250')).toBeVisible();
+    expect(screen.getByText('Completed sales').previousElementSibling).toHaveTextContent('1');
+    expect(screen.getByText('Movements recorded').previousElementSibling).toHaveTextContent('2');
   });
 });
