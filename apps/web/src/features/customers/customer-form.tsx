@@ -1,4 +1,4 @@
-import { Alert, Button, Stack, TextField } from '@mui/material';
+import { Alert, Box, Button, Stack, TextField, Typography } from '@mui/material';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -93,26 +93,49 @@ export function CustomerForm({
       spacing={1}
       onSubmit={(event) => void submit(customer?.active ?? true)(event)}
     >
+      <Box>
+        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          {customer ? t('customers.editCustomer') : t('customers.newCustomer')}
+        </Typography>
+        <Typography color="text.secondary" variant="body2">
+          {t('customers.customerFormHelp')}
+        </Typography>
+      </Box>
       {save.error && <Alert severity="error">{localizedErrorMessage(save.error, t)}</Alert>}
-      <TextField
-        label={t('customers.customerName')}
-        {...form.register('displayName', { required: true })}
-      />
-      <TextField label={t('customers.contactName')} {...form.register('contactName')} />
-      <TextField label={t('customers.phone')} {...form.register('phone')} />
-      <TextField label={t('customers.email')} type="email" {...form.register('email')} />
-      <TextField label={t('customers.address')} {...form.register('address')} />
-      <TextField label={t('customers.city')} {...form.register('city', { required: true })} />
-      <TextField label={t('customers.notes')} multiline {...form.register('notes')} />
-      {customer?.active && (
+      <Box
+        sx={{
+          display: 'grid',
+          gap: 2,
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' },
+        }}
+      >
         <TextField
-          label={t('customers.archiveReason')}
-          error={Boolean(form.formState.errors.archiveReason)}
-          helperText={form.formState.errors.archiveReason?.message}
-          {...form.register('archiveReason')}
+          label={t('customers.customerName')}
+          {...form.register('displayName', { required: true })}
         />
-      )}
-      <Stack direction="row" spacing={1}>
+        <TextField label={t('customers.contactName')} {...form.register('contactName')} />
+        <TextField label={t('customers.phone')} {...form.register('phone')} />
+        <TextField label={t('customers.email')} type="email" {...form.register('email')} />
+        <TextField label={t('customers.address')} {...form.register('address')} />
+        <TextField label={t('customers.city')} {...form.register('city', { required: true })} />
+        <TextField
+          label={t('customers.notes')}
+          multiline
+          minRows={2}
+          sx={{ gridColumn: { sm: '1 / -1' } }}
+          {...form.register('notes')}
+        />
+        {customer?.active && (
+          <TextField
+            label={t('customers.archiveReason')}
+            error={Boolean(form.formState.errors.archiveReason)}
+            helperText={form.formState.errors.archiveReason?.message}
+            sx={{ gridColumn: { sm: '1 / -1' } }}
+            {...form.register('archiveReason')}
+          />
+        )}
+      </Box>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
         <Button type="submit" variant="contained" disabled={save.isPending}>
           {customer ? t('customers.saveCustomer') : t('customers.createCustomer')}
         </Button>

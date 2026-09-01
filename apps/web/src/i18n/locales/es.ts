@@ -220,8 +220,30 @@ export const es: DeepTranslation<typeof en> = {
     SALE_CANCELLATION: 'Cancelación de venta',
     REVERSAL: 'Revertir operación',
   },
+  payment: {
+    CASH: 'Efectivo',
+    BANK_TRANSFER: 'Transferencia bancaria',
+    CARD: 'Tarjeta',
+  },
   customers: {
     title: 'Clientes',
+    overviewDescription: 'Busca clientes activos y archivados conservando su historial de compras.',
+    driverDirectoryHelp:
+      'Este directorio contiene clientes activos existentes disponibles para ventas.',
+    statusFilter: 'Estado del cliente',
+    allStatuses: 'Todos los estados',
+    activeOnly: 'Solo activos',
+    archivedOnly: 'Solo archivados',
+    customersShown: 'Clientes mostrados',
+    activeShown: 'Activos mostrados',
+    archivedShown: 'Archivados mostrados',
+    loading: 'Cargando clientes',
+    directory: 'Directorio de clientes',
+    noCustomers: 'Ningún cliente coincide con estos filtros.',
+    selectCustomerHelp: 'Selecciona un cliente para revisar su información e historial.',
+    editCustomer: 'Editar cliente',
+    customerFormHelp:
+      'Los cambios se aplican a operaciones futuras; el historial de ventas se conserva.',
     customer: 'Cliente',
     customerName: 'Nombre del cliente',
     contactName: 'Nombre de contacto',
@@ -238,6 +260,10 @@ export const es: DeepTranslation<typeof en> = {
     reactivateCustomer: 'Reactivar cliente',
     purchaseHistory: 'Historial de compras',
     purchaseHistoryLabel: 'Historial de compras del cliente',
+    purchaseHistoryHelp:
+      'Las ventas completadas y canceladas permanecen inmutables y reproducibles.',
+    loadingHistory: 'Cargando historial de compras del cliente',
+    noPurchaseHistory: 'Este cliente no tiene compras registradas.',
     search: 'Buscar clientes',
     newCustomer: 'Nuevo cliente',
     driverReadOnly:
