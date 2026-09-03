@@ -1,6 +1,11 @@
 import type { Transaction } from 'kysely';
 import type { Database } from '../../db/types.js';
-import { calculateLineAmount, canonicalDecimal, sumMoney } from '../../shared/money.js';
+import {
+  calculateLineAmount,
+  canonicalDecimal,
+  parseExactDecimal,
+  sumMoney,
+} from '../../shared/money.js';
 import { parseQuantity } from '../../shared/quantity.js';
 import { CustomerPriceRepository } from '../customers/customer-price-repository.js';
 
@@ -100,7 +105,9 @@ export class PricingService {
         customerPriceId: special?.id ?? null,
         ...calculation,
         availableQuantity,
-        available: Number(availableQuantity) >= Number(quantity),
+        available: parseExactDecimal(availableQuantity).greaterThanOrEqualTo(
+          parseExactDecimal(quantity),
+        ),
       });
     }
     return {
