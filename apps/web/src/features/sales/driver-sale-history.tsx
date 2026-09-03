@@ -34,8 +34,8 @@ export function DriverSaleHistory() {
         <TableBody>
           {sales.data?.data.map((sale) => (
             <TableRow key={sale.id}>
-              <TableCell>{formatDateTime(sale.completed_at)}</TableCell>
-              <TableCell>{sale.sale_number}</TableCell>
+              <TableCell>{formatDateTime(sale.completedAt)}</TableCell>
+              <TableCell>{sale.saleNumber}</TableCell>
               <TableCell>{t(`status.${sale.status}`, { defaultValue: sale.status })}</TableCell>
               <TableCell>{formatDecimal(sale.total)}</TableCell>
             </TableRow>

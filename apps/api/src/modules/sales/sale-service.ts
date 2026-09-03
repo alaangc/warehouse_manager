@@ -200,7 +200,18 @@ export class SaleService {
         subtotal: quote.total,
         total: quote.total,
         roundingMode: 'HALF_AWAY_FROM_ZERO',
-        lines: quote.lines,
+        lines: quote.lines.map((line, index) => ({
+          sequence: index + 1,
+          productId: line.productId,
+          productName: line.productName,
+          categoryName: line.categoryName,
+          reportingGroup: line.reportingGroup,
+          unitCode: line.unitCode,
+          quantity: line.quantity,
+          appliedPriceSource: line.appliedPriceSource,
+          unitPrice: line.unitPrice,
+          lineAmount: line.lineAmount,
+        })),
         ticketNumber,
         completedAt: new Date().toISOString(),
         cancelledAt: null,
@@ -211,7 +222,7 @@ export class SaleService {
         resourceType: 'SALE',
         resourceId: saleId,
         status: 201,
-        body: result as unknown as JsonValue,
+        body: result,
       });
       return result;
     });

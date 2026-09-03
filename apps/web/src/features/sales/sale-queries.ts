@@ -13,10 +13,10 @@ export interface ProductOption {
 }
 export interface SaleSummary {
   id: string;
-  sale_number: string;
+  saleNumber: string;
   status: 'COMPLETED' | 'CANCELLED';
   total: string;
-  completed_at: string;
+  completedAt: string;
 }
 
 export const useCustomerOptions = (search = '') =>

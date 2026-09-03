@@ -1,7 +1,9 @@
 import {
   SaleCancellationRequestSchema,
   SaleCreateRequestSchema,
+  SaleListQuerySchema,
   SaleQuoteRequestSchema,
+  UuidSchema,
 } from '@warehouse/contracts';
 import { Router, type Request } from 'express';
 import { requireAuthenticated, requireRole } from '../../auth/authorization.js';
@@ -25,13 +27,14 @@ function idempotencyKey(request: Request): string {
 }
 function pathId(value: string | string[] | undefined): string {
   if (typeof value !== 'string') throw new HttpProblem(422, 'ID_INVALID', 'Validation Failed');
-  return value;
+  return UuidSchema.parse(value);
 }
 function mapSaleError(error: unknown): never {
   if (error && typeof error === 'object' && 'code' in error) {
     const code = String(error.code);
     if (code === 'RESOURCE_NOT_FOUND') throw new HttpProblem(404, code, 'Not Found');
-    if (code === 'ROUTE_FORBIDDEN') throw new HttpProblem(403, code, 'Forbidden');
+    if (['ROUTE_FORBIDDEN', 'SALE_FORBIDDEN'].includes(code))
+      throw new HttpProblem(403, code, 'Forbidden');
     if (['CUSTOMER_UNAVAILABLE', 'PRODUCT_UNAVAILABLE'].includes(code))
       throw new HttpProblem(422, code, 'Validation Failed');
     if (
@@ -103,9 +106,28 @@ export function createSalesRouter(database: AppDatabase): Router {
   router.get('/sales', async (request, response, next) => {
     try {
       const principal = request.principal!;
-      const data = await database
-        .transaction()
-        .execute((transaction) => new SaleRepository(transaction).list(principal));
+      const filters = SaleListQuerySchema.parse(request.query);
+      if (
+        principal.role === 'DRIVER' &&
+        filters.driverId !== undefined &&
+        filters.driverId !== principal.id
+      )
+        throw new HttpProblem(
+          403,
+          'SALE_HISTORY_FORBIDDEN',
+          'Forbidden',
+          'Drivers may only filter their own sale history.',
+        );
+      const data = await database.transaction().execute((transaction) =>
+        new SaleRepository(transaction).list(principal, {
+          ...(filters.customerId ? { customerId: filters.customerId } : {}),
+          ...(filters.driverId ? { driverId: filters.driverId } : {}),
+          ...(filters.routeId ? { routeId: filters.routeId } : {}),
+          ...(filters.from ? { from: new Date(filters.from) } : {}),
+          ...(filters.to ? { to: new Date(filters.to) } : {}),
+          limit: filters.limit,
+        }),
+      );
       response.json({ data, page: { hasNextPage: false, nextCursor: null } });
     } catch (error) {
       next(error);
@@ -121,7 +143,11 @@ export function createSalesRouter(database: AppDatabase): Router {
       if (!data) throw new HttpProblem(404, 'SALE_NOT_FOUND', 'Not Found');
       response.json({ data });
     } catch (error) {
-      next(error);
+      try {
+        mapSaleError(error);
+      } catch (mapped) {
+        next(mapped);
+      }
     }
   });
   router.post(
@@ -130,11 +156,18 @@ export function createSalesRouter(database: AppDatabase): Router {
     async (request, response, next) => {
       try {
         const input = SaleCancellationRequestSchema.parse(request.body);
-        const data = await cancellations.cancel(pathId(request.params.saleId), input.reason, {
+        const saleId = pathId(request.params.saleId);
+        await cancellations.cancel(saleId, input.reason, {
           actorId: request.principal!.id,
           idempotencyKey: idempotencyKey(request),
           requestId: requestId(request),
         });
+        const data = await database
+          .transaction()
+          .execute((transaction) =>
+            new SaleRepository(transaction).detail(saleId, request.principal!),
+          );
+        if (!data) throw new HttpProblem(404, 'SALE_NOT_FOUND', 'Not Found');
         response.json({ data });
       } catch (error) {
         try {
