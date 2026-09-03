@@ -215,5 +215,140 @@ describe('sale form', () => {
         { productId: secondProductId, quantity: '2' },
       ],
     });
+    expect(screen.queryByDisplayValue('16.0000')).not.toBeInTheDocument();
+    expect(screen.queryByDisplayValue('38.0000')).not.toBeInTheDocument();
+  });
+
+  it('refreshes stale quotes and retries uncertain/server failures with stable operation IDs', async () => {
+    const quoteBodies: Record<string, unknown>[] = [];
+    const saleAttempts: Array<{ body: Record<string, unknown>; idempotencyKey: string | null }> =
+      [];
+    let quoteAttempt = 0;
+    let saleAttempt = 0;
+    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = new URL(String(input), 'http://warehouse.test');
+      if (url.pathname.endsWith('/routes'))
+        return Promise.resolve(
+          jsonResponse({ data: [activeRoute], page: { hasNextPage: false, nextCursor: null } }),
+        );
+      if (url.pathname.endsWith(`/routes/${routeId}`))
+        return Promise.resolve(
+          jsonResponse({
+            data: {
+              route: activeRoute,
+              load: null,
+              balances,
+              movements: [],
+              sales: [],
+              reconciliation: null,
+            },
+          }),
+        );
+      if (url.pathname.endsWith('/customers'))
+        return Promise.resolve(
+          jsonResponse({
+            data: [{ id: customerId, customerNumber: 'C-100', displayName: 'Corner Store' }],
+          }),
+        );
+      if (url.pathname.endsWith('/sales/quote')) {
+        const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+        quoteBodies.push(body);
+        quoteAttempt += 1;
+        const quantity = quoteAttempt === 1 ? '1.000' : '2.000';
+        const total = quoteAttempt === 1 ? '16.00' : '32.00';
+        return Promise.resolve(
+          jsonResponse({
+            data: {
+              customerId,
+              routeId,
+              currencyCode: 'MXN',
+              lines: [
+                {
+                  productId: firstProductId,
+                  productName: 'Cola 600 ml',
+                  categoryName: 'Sodas',
+                  unitCode: 'EA',
+                  quantity,
+                  appliedPriceSource: 'CUSTOMER',
+                  unitPrice: '16.0000',
+                  lineAmount: total,
+                  availableQuantity: '8.000',
+                  available: true,
+                },
+              ],
+              total,
+              quotedAt: '2026-08-31T14:00:00.000Z',
+            },
+          }),
+        );
+      }
+      if (url.pathname.endsWith('/sales')) {
+        saleAttempt += 1;
+        saleAttempts.push({
+          body: JSON.parse(String(init?.body)) as Record<string, unknown>,
+          idempotencyKey: new Headers(init?.headers).get('Idempotency-Key'),
+        });
+        if (saleAttempt === 1) return Promise.reject(new TypeError('Failed to fetch'));
+        if (saleAttempt === 2)
+          return Promise.resolve(
+            jsonResponse(
+              {
+                type: 'https://warehouse-manager.local/problems/internal-error',
+                title: 'Internal Server Error',
+                status: 500,
+                code: 'INTERNAL_ERROR',
+              },
+              500,
+            ),
+          );
+        return Promise.resolve(
+          jsonResponse(
+            {
+              data: {
+                id: crypto.randomUUID(),
+                saleNumber: 'S-RETRY',
+                ticketNumber: 'T-RETRY',
+                currencyCode: 'MXN',
+                total: '32.00',
+              },
+            },
+            201,
+          ),
+        );
+      }
+      throw new Error(`Unexpected request: ${url.pathname}${url.search}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderSaleForm();
+    await screen.findByRole('combobox', { name: 'Active route' });
+    fireEvent.mouseDown(screen.getByLabelText('Customer'));
+    fireEvent.click(await screen.findByRole('option', { name: 'C-100 — Corner Store' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next: products' }));
+    fireEvent.mouseDown(await screen.findByLabelText('Product'));
+    fireEvent.click(await screen.findByRole('option', { name: 'Cola 600 ml' }));
+    fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Review authoritative quote' }));
+    expect((await screen.findAllByText('MXN 16.00')).length).toBeGreaterThan(0);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Back to products' }));
+    fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '2' } });
+    expect(screen.queryAllByText('MXN 16.00')).toHaveLength(0);
+    fireEvent.click(screen.getByRole('button', { name: 'Review authoritative quote' }));
+    expect((await screen.findAllByText('MXN 32.00')).length).toBeGreaterThan(0);
+    expect(quoteBodies).toHaveLength(2);
+    expect(quoteBodies[1]?.lines).toEqual([{ productId: firstProductId, quantity: '2' }]);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm sale' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(/try again/i);
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm sale' }));
+    await waitFor(() => expect(saleAttempts).toHaveLength(2));
+    expect(screen.getByRole('alert')).toHaveTextContent('Internal Server Error');
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm sale' }));
+
+    expect(await screen.findByText(/T-RETRY/)).toBeVisible();
+    expect(saleAttempts).toHaveLength(3);
+    expect(new Set(saleAttempts.map((attempt) => attempt.idempotencyKey)).size).toBe(1);
+    expect(new Set(saleAttempts.map((attempt) => attempt.body.clientOperationId)).size).toBe(1);
   });
 });

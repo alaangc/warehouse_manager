@@ -101,3 +101,85 @@ export function saleCommand(input: {
     lines: [{ productId: input.productId, quantity: input.quantity ?? '1' }],
   };
 }
+
+export async function createSaleScenario(
+  database: AppDatabase,
+  input: { stockQuantity?: string; standardUnitPrice?: string } = {},
+) {
+  const admin = await database
+    .selectFrom('app_user')
+    .select('id')
+    .where('username', '=', 'admin')
+    .executeTakeFirstOrThrow();
+  const seededDriver = await database
+    .selectFrom('app_user')
+    .select('password_hash')
+    .where('username', '=', 'driver')
+    .executeTakeFirstOrThrow();
+  const driver = await database
+    .insertInto('app_user')
+    .values({
+      username: `sale-driver-${crypto.randomUUID()}`,
+      display_name: 'Sale integration driver',
+      password_hash: seededDriver.password_hash,
+      role: 'DRIVER',
+      active: true,
+      archived_at: null,
+    })
+    .returning('id')
+    .executeTakeFirstOrThrow();
+  const unit = await database
+    .insertInto('unit')
+    .values({
+      code: `SALE-${crypto.randomUUID()}`,
+      name: 'Sale test unit',
+      quantity_scale: 3,
+      archived_at: null,
+    })
+    .returning(['id', 'code'])
+    .executeTakeFirstOrThrow();
+  const category = await database
+    .insertInto('category')
+    .values({
+      name: `Sale category ${crypto.randomUUID()}`,
+      reporting_group: 'SODAS',
+      archived_at: null,
+    })
+    .returning(['id', 'name'])
+    .executeTakeFirstOrThrow();
+  const product = await database
+    .insertInto('product')
+    .values({
+      sku: `SALE-${crypto.randomUUID()}`,
+      name: 'Sale integration product',
+      description: null,
+      category_id: category.id,
+      unit_id: unit.id,
+      standard_unit_price: input.standardUnitPrice ?? '4.2500',
+      low_stock_threshold: '1.000',
+      archived_at: null,
+    })
+    .returningAll()
+    .executeTakeFirstOrThrow();
+  const customer = await createCustomerFixture(database);
+  const origin = await database
+    .selectFrom('location')
+    .innerJoin('stock_location', 'stock_location.branch_id', 'location.id')
+    .select(['location.id', 'stock_location.id as stockLocationId'])
+    .where('location.code', '=', 'MAGDALENA')
+    .executeTakeFirstOrThrow();
+  const route = await createEnRouteFixture(database, {
+    originLocationId: origin.id,
+    driverId: driver.id,
+    createdBy: admin.id,
+  });
+  await database
+    .insertInto('inventory_balance')
+    .values({
+      stock_location_id: route.stockLocation.id,
+      product_id: product.id,
+      quantity: input.stockQuantity ?? '5.000',
+    })
+    .execute();
+  return { admin, driver, unit, category, product, customer, origin, ...route };
+}

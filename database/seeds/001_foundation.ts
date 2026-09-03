@@ -3,6 +3,8 @@ import { sql, type Kysely } from 'kysely';
 
 const ADMIN_ID = '00000000-0000-4000-8000-000000000010';
 const DRIVER_ID = '00000000-0000-4000-8000-000000000011';
+const FIREFOX_DRIVER_ID = '00000000-0000-4000-8000-000000000012';
+const WEBKIT_DRIVER_ID = '00000000-0000-4000-8000-000000000013';
 const SETTINGS_ID = '00000000-0000-4000-8000-000000000001';
 
 export async function seedFoundation(database: Kysely<unknown>): Promise<void> {
@@ -14,7 +16,9 @@ export async function seedFoundation(database: Kysely<unknown>): Promise<void> {
     insert into app_user (id, username, display_name, password_hash, role, active)
     values
       (${ADMIN_ID}::uuid, 'admin', 'Administrador', ${passwordHash}, 'ADMINISTRATOR', true),
-      (${DRIVER_ID}::uuid, 'driver', 'Chofer de prueba', ${passwordHash}, 'DRIVER', true)
+      (${DRIVER_ID}::uuid, 'driver', 'Chofer de prueba', ${passwordHash}, 'DRIVER', true),
+      (${FIREFOX_DRIVER_ID}::uuid, 'driver-firefox', 'Chofer Firefox', ${passwordHash}, 'DRIVER', true),
+      (${WEBKIT_DRIVER_ID}::uuid, 'driver-webkit', 'Chofer WebKit', ${passwordHash}, 'DRIVER', true)
     on conflict (id) do update set
       display_name = excluded.display_name,
       password_hash = excluded.password_hash,
