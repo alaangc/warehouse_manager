@@ -148,7 +148,7 @@ anonymous, unavailable, foreign-route, price-override, cancellation, and rollbac
 - [X] T060 [P] [US2] Implement existing-customer and active-route product lookup with quote-driven exact price display in `apps/web/src/features/sales/sale-queries.ts` and `apps/web/src/features/sales/customer-product-picker.tsx`
 - [X] T061 [US2] Implement the multiline sale form with React Hook Form, non-editable prices, decimal-string totals, payment method, stable client operation ID, and explicit confirmation in `apps/web/src/features/sales/sale-form.tsx`
 - [X] T062 [US2] Implement uncertain-response recovery, idempotent resubmission, sale detail, Sale Ticket result, Driver-own completed-sale history, and Administrator cancellation UI in `apps/web/src/features/sales/sale-result.tsx`, `apps/web/src/features/sales/driver-sale-history.tsx`, and `apps/web/src/features/sales/sale-cancellation-dialog.tsx`
-- [ ] T063 [US2] Complete generated contract/type synchronization and make all US2 unit, contract, integration, component, and E2E tests pass in `packages/contracts/openapi.yaml` and `tests/e2e/us2-sales.spec.ts`
+- [X] T063 [US2] Complete generated contract/type synchronization and make all US2 unit, contract, integration, component, and E2E tests pass in `packages/contracts/openapi.yaml` and `tests/e2e/us2-sales.spec.ts`
 
 **Checkpoint**: US2 independently proves exact pricing, one-time stock deduction,
 Sale Ticket creation, retry safety, rollback, denied Driver cancellation, scoped Driver
