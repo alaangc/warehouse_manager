@@ -14,6 +14,10 @@ interface Resource {
   version: number;
 }
 
+interface SaleResource extends Resource {
+  saleNumber: string;
+}
+
 interface RouteResource extends Resource {
   routeNumber: string;
   state: 'PREPARING' | 'EN_ROUTE' | 'RETURNED' | 'CLOSED';
@@ -206,6 +210,22 @@ test('route lifecycle remains retry-safe, reconciled, scoped, and immutable', as
     },
     201,
   );
+  const customer = await apiMutation<Resource>(
+    administratorPage,
+    administratorCsrf,
+    'POST',
+    '/customers',
+    {
+      displayName: `Route customer ${suffix}`,
+      city: 'Magdalena',
+      contactName: null,
+      phone: null,
+      email: null,
+      address: null,
+      notes: 'Route timeline fixture',
+    },
+    201,
+  );
   await apiMutation<Resource>(
     administratorPage,
     administratorCsrf,
@@ -313,6 +333,21 @@ test('route lifecycle remains retry-safe, reconciled, scoped, and immutable', as
   await driverPage.getByRole('button', { name: 'Start route' }).click();
   expect((await startResponse).status()).toBe(200);
   await expect(driverPage.getByRole('button', { name: 'Mark returned' })).toBeVisible();
+  const completedSale = await apiMutation<SaleResource>(
+    driverPage,
+    driverCsrf,
+    'POST',
+    '/sales',
+    {
+      clientOperationId: crypto.randomUUID(),
+      customerId: customer.id,
+      routeId: createdRoute.id,
+      paymentMethod: 'CASH',
+      lines: [{ productId: shortageProduct.id, quantity: '1' }],
+    },
+    201,
+    newIdempotencyKey('sale'),
+  );
   const returnResponse = driverPage.waitForResponse(
     (response) =>
       new URL(response.url()).pathname === `/api/v1/routes/${createdRoute.id}/return` &&
@@ -325,11 +360,14 @@ test('route lifecycle remains retry-safe, reconciled, scoped, and immutable', as
   await expect(administratorPage.getByRole('heading', { name: routeNumber })).toBeVisible();
   const physicalReturns = administratorPage.getByLabel(/Physical return/);
   const differenceReasons = administratorPage.getByLabel('Difference reason');
+  const reconciliationProducts = administratorPage.getByLabel('Product');
   await expect(physicalReturns).toHaveCount(2);
-  await physicalReturns.nth(0).fill('4');
-  await differenceReasons.nth(0).fill(`Shortage ${suffix}`);
-  await physicalReturns.nth(1).fill('6');
-  await differenceReasons.nth(1).fill(`Overage ${suffix}`);
+  for (let index = 0; index < 2; index += 1) {
+    const isShortage =
+      (await reconciliationProducts.nth(index).inputValue()) === shortageProduct.id;
+    await physicalReturns.nth(index).fill(isShortage ? '3' : '6');
+    await differenceReasons.nth(index).fill(`${isShortage ? 'Shortage' : 'Overage'} ${suffix}`);
+  }
   const reconciliationResponse = administratorPage.waitForResponse(
     (response) =>
       new URL(response.url()).pathname === `/api/v1/routes/${createdRoute.id}/reconciliation` &&
@@ -346,14 +384,23 @@ test('route lifecycle remains retry-safe, reconciled, scoped, and immutable', as
   await administratorPage.getByRole('button', { name: 'Close route' }).click();
   expect((await closeResponse).status()).toBe(200);
   await expect(administratorPage.getByText('Read only').first()).toBeVisible();
+  const administratorTimeline = administratorPage.getByRole('list', { name: 'Route timeline' });
+  await expect(administratorTimeline.getByText(`Sale ${completedSale.saleNumber}`)).toBeVisible();
+  await expect(administratorTimeline.getByText('Reconciliation approved')).toBeVisible();
+  await expect(administratorTimeline.getByText('Route closed')).toBeVisible();
 
   await driverPage.goto(`/routes?routeId=${createdRoute.id}`);
   await expect(driverPage.getByRole('heading', { name: routeNumber })).toBeVisible();
   await expect(driverPage.getByText('Read only').first()).toBeVisible();
   await expect(driverPage.getByText(/Positive adjustment/)).toBeVisible();
   await expect(driverPage.getByText(/Negative adjustment/)).toBeVisible();
-  await expect(driverPage.getByText(`Shortage ${suffix}`, { exact: false })).toBeVisible();
-  await expect(driverPage.getByText(`Overage ${suffix}`, { exact: false })).toBeVisible();
+  await expect(driverPage.getByText(`Reason: Shortage ${suffix}`, { exact: true })).toBeVisible();
+  await expect(driverPage.getByText(`Reason: Overage ${suffix}`, { exact: true })).toBeVisible();
+  const driverTimeline = driverPage.getByRole('list', { name: 'Route timeline' });
+  await expect(driverTimeline.getByText('Load confirmed')).toBeVisible();
+  await expect(driverTimeline.getByText(`Sale ${completedSale.saleNumber}`)).toBeVisible();
+  await expect(driverTimeline.getByText('Reconciliation approved')).toBeVisible();
+  await expect(driverTimeline.getByText('Route closed')).toBeVisible();
   await expect(driverPage.getByRole('button', { name: 'Save full load' })).toHaveCount(0);
   await expect(driverPage.getByRole('button', { name: 'Start route' })).toHaveCount(0);
   await expect(driverPage.getByRole('button', { name: 'Mark returned' })).toHaveCount(0);
@@ -374,6 +421,7 @@ test('route lifecycle remains retry-safe, reconciled, scoped, and immutable', as
     'ROUTE_LOAD',
     'ROUTE_RETURN',
     'ROUTE_RETURN',
+    'SALE',
   ]);
 
   const postCloseLoad = await apiCall(

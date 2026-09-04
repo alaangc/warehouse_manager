@@ -186,7 +186,7 @@ identity, difference adjustments/reasons, zero route inventory, and post-close l
 - [X] T076 [P] [US3] Implement Administrator route creation, assignment, list, and detail screens in `apps/web/src/features/routes/admin-route-pages.tsx`
 - [X] T077 [P] [US3] Implement Driver draft load, confirmation, start, return, and active-route inventory screens in `apps/web/src/features/routes/driver-route-pages.tsx`
 - [X] T078 [US3] Implement Administrator physical-return/reconciliation forms with calculated differences, required reasons, close confirmation, and conflict states in `apps/web/src/features/routes/reconciliation-page.tsx`
-- [ ] T079 [US3] Implement assigned-Driver and Administrator route load/movement/sale/reconciliation/closure timeline history with Closed-route read-only behavior, then pass all US3 tests in `apps/web/src/features/routes/route-history.tsx` and `tests/e2e/us3-routes.spec.ts`
+- [X] T079 [US3] Implement assigned-Driver and Administrator route load/movement/sale/reconciliation/closure timeline history with Closed-route read-only behavior, then pass all US3 tests in `apps/web/src/features/routes/route-history.tsx` and `tests/e2e/us3-routes.spec.ts`
 
 **Checkpoint**: US3 independently proves every allowed/denied state transition,
 temporary route inventory, full reconciliation, zero-at-close, overlap prevention, and

@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
@@ -379,6 +379,12 @@ describe('route workflow UI', () => {
         occurredAt: '2026-09-03T15:30:00.000Z',
       },
       {
+        id: 'movement-sale',
+        operationType: 'SALE',
+        quantity: '1.000',
+        occurredAt: '2026-09-03T17:00:00.000Z',
+      },
+      {
         id: 'movement-difference',
         operationType: 'NEGATIVE_ADJUSTMENT',
         quantity: '1.000',
@@ -387,19 +393,39 @@ describe('route workflow UI', () => {
       {
         id: 'movement-return',
         operationType: 'ROUTE_RETURN',
-        quantity: '4.000',
+        quantity: '3.000',
         occurredAt: '2026-09-03T18:30:00.000Z',
+      },
+    ];
+    closed.sales = [
+      {
+        id: crypto.randomUUID(),
+        saleNumber: 'S-ROUTE-401',
+        status: 'COMPLETED',
+        customerId: crypto.randomUUID(),
+        driverId,
+        routeId,
+        paymentMethod: 'CASH',
+        total: '10.00',
+        completedAt: '2026-09-03T17:00:00.000Z',
+        cancelledAt: null,
       },
     ];
     closed.reconciliation = {
       id: crypto.randomUUID(),
+      routeId,
       state: 'APPROVED',
+      recordedBy: '00000000-0000-4000-8000-000000000407',
+      approvedBy: '00000000-0000-4000-8000-000000000407',
+      approvedAt: '2026-09-03T18:45:00.000Z',
+      version: 1,
       lines: [
         {
           productId,
           loadedQuantity: '5.000',
-          soldQuantity: '0.000',
-          physicalReturnQuantity: '4.000',
+          soldQuantity: '1.000',
+          expectedReturnQuantity: '4.000',
+          physicalReturnQuantity: '3.000',
           differenceQuantity: '1.000',
           differenceReason: 'One unit damaged',
         },
@@ -424,8 +450,21 @@ describe('route workflow UI', () => {
     expect(screen.getAllByText('Read only')).toHaveLength(2);
     expect(screen.getByText('Route load · 5.000')).toBeVisible();
     expect(screen.getByText('Negative adjustment · 1.000')).toBeVisible();
-    expect(screen.getByText('Route return · 4.000')).toBeVisible();
+    expect(screen.getByText('Route return · 3.000')).toBeVisible();
     expect(screen.getByText(/One unit damaged/)).toBeVisible();
+    const timeline = screen.getByRole('list', { name: 'Route timeline' });
+    const entries = within(timeline)
+      .getAllByRole('listitem')
+      .map((item) => item.textContent ?? '');
+    const eventIndex = (text: string) => entries.findIndex((entry) => entry.includes(text));
+    expect(eventIndex('Route created')).toBeLessThan(eventIndex('Load confirmed'));
+    expect(eventIndex('Load confirmed')).toBeLessThan(eventIndex('Route started'));
+    expect(eventIndex('Route started')).toBeLessThan(eventIndex('Sale S-ROUTE-401'));
+    expect(eventIndex('Sale S-ROUTE-401')).toBeLessThan(eventIndex('Route returned'));
+    expect(eventIndex('Route returned')).toBeLessThan(eventIndex('Reconciliation approved'));
+    expect(eventIndex('Reconciliation approved')).toBeLessThan(eventIndex('Route closed'));
+    expect(within(timeline).getByText(/10.00 · Cash · Completed/)).toBeVisible();
+    expect(within(timeline).getByText(`${productId} · 5.000`)).toBeVisible();
     expect(screen.queryByRole('button', { name: 'Save full load' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Start route' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Mark returned' })).toBeNull();

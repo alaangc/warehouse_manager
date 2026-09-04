@@ -54,11 +54,17 @@ export interface RouteDetail {
   }>;
   reconciliation: null | {
     id: string;
+    routeId: string;
     state: 'APPROVED';
+    recordedBy: string;
+    approvedBy: string;
+    approvedAt: string;
+    version: number;
     lines: Array<{
       productId: string;
       loadedQuantity: string;
       soldQuantity: string;
+      expectedReturnQuantity: string;
       physicalReturnQuantity: string;
       differenceQuantity: string;
       differenceReason: string | null;
