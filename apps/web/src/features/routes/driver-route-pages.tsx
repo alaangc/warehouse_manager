@@ -8,13 +8,13 @@ import {
   Typography,
 } from '@mui/material';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { apiRequest } from '../../lib/api/client.js';
 import { localizedErrorMessage } from '../../lib/api/localized-error.js';
-import { idempotencyKey } from '../../lib/api/idempotency.js';
+import { completeIdempotentOperation, idempotencyKey } from '../../lib/api/idempotency.js';
 import { RouteHistory } from './route-history.js';
 import { RouteOverview } from './route-overview.js';
 import { useRouteDetail, useRoutes } from './route-queries.js';
@@ -23,12 +23,29 @@ interface LoadValues {
   lines: Array<{ productId: string; quantity: string }>;
 }
 
+type RouteCommand = 'confirmation' | 'start' | 'return';
+
+function newCommandOperationIds(): Record<RouteCommand, string> {
+  return {
+    confirmation: crypto.randomUUID(),
+    start: crypto.randomUUID(),
+    return: crypto.randomUUID(),
+  };
+}
+
 export function DriverRoutePages() {
   const { t } = useTranslation();
   const routes = useRoutes();
   const client = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selected, setSelected] = useState<string | null>(() => searchParams.get('routeId'));
+  const commandOperationIds = useRef(newCommandOperationIds());
+  useEffect(() => {
+    const operationIds = (commandOperationIds.current = newCommandOperationIds());
+    return () => {
+      Object.values(operationIds).forEach(completeIdempotentOperation);
+    };
+  }, [selected]);
   useEffect(() => {
     if (
       routes.data?.data.length &&
@@ -61,17 +78,21 @@ export function DriverRoutePages() {
     onSuccess: refresh,
   });
   const command = useMutation({
-    mutationFn: (action: 'confirmation' | 'start' | 'return') => {
+    mutationFn: (action: RouteCommand) => {
       const route = detail.data!.data;
       const expectedVersion = action === 'confirmation' ? route.load!.version : route.route.version;
       const path = action === 'confirmation' ? 'load/confirmation' : action;
       return apiRequest(`/routes/${route.route.id}/${path}`, {
         method: 'POST',
-        idempotencyKey: idempotencyKey(crypto.randomUUID()),
+        idempotencyKey: idempotencyKey(commandOperationIds.current[action]),
         body: { expectedVersion },
       });
     },
-    onSuccess: refresh,
+    onSuccess: async (_response, action) => {
+      completeIdempotentOperation(commandOperationIds.current[action]);
+      commandOperationIds.current[action] = crypto.randomUUID();
+      await refresh();
+    },
   });
   if (routes.isLoading) return <CircularProgress aria-label={t('routes.loadingAssigned')} />;
   const current = detail.data?.data;

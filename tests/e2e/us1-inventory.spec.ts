@@ -15,9 +15,9 @@ async function login(page: Page, username: 'admin' | 'driver') {
   });
   await page.goto('/login');
   await page.getByLabel('Username').fill(username);
-  await page.getByLabel('Password').fill(password);
+  await page.locator('input[name="password"]').fill(password);
   await page.getByRole('button', { name: 'Sign in' }).click();
-  await expect(page.getByRole('heading', { name: 'Overview' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Hello,/ })).toBeVisible();
 }
 
 function matchingResponse(page: Page, path: string, method = 'POST'): Promise<Response> {

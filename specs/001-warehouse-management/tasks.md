@@ -171,9 +171,9 @@ identity, difference adjustments/reasons, zero route inventory, and post-close l
 - [X] T064 [P] [US3] Write failing unit tests for the route transition table, actor permissions, load preconditions, signed difference convention, and reconciliation equation in `apps/api/tests/unit/routes/route-domain.test.ts`
 - [X] T065 [P] [US3] Write failing OpenAPI/Supertest tests for route create/detail/list, draft/confirm load, start, return, reconciliation, close, complete route movement history, assigned-Driver access in every state, another-Driver denial, and invalid commands in `apps/api/tests/contract/routes/routes.contract.test.ts`
 - [X] T066 [P] [US3] Write failing PostgreSQL tests for full-load rollback, simultaneous driver/vehicle assignment, route-stock movements, reconciliation adjustments, zero-at-close, immutable Closed routes, and same-transaction audit presence/failure rollback for every route mutation class in `apps/api/tests/integration/routes/route-lifecycle.test.ts`
-- [ ] T067 [P] [US3] Write failing authorization tests proving only the assigned Driver loads/starts/returns and reads that route's full history, another Driver cannot list/filter/directly access it, and only an Administrator creates/reconciles/closes in `apps/api/tests/integration/routes/route-authorization.test.ts`
-- [ ] T068 [P] [US3] Write failing React tests for assignment, load, state actions, reconciliation reasons, conflict recovery, and closed history in `apps/web/tests/routes/route-workflow.test.tsx`
-- [ ] T069 [P] [US3] Write the failing end-to-end route lifecycle with shortage, overage, retry, invalid transition, assigned-Driver Closed-route history, another-Driver denial, and post-close edit attempts in `tests/e2e/us3-routes.spec.ts`
+- [X] T067 [P] [US3] Write failing authorization tests proving only the assigned Driver loads/starts/returns and reads that route's full history, another Driver cannot list/filter/directly access it, and only an Administrator creates/reconciles/closes in `apps/api/tests/integration/routes/route-authorization.test.ts`
+- [X] T068 [P] [US3] Write failing React tests for assignment, load, state actions, reconciliation reasons, conflict recovery, and closed history in `apps/web/tests/routes/route-workflow.test.tsx`
+- [X] T069 [P] [US3] Write the failing end-to-end route lifecycle with shortage, overage, retry, invalid transition, assigned-Driver Closed-route history, another-Driver denial, and post-close edit attempts in `tests/e2e/us3-routes.spec.ts`
 
 ### Implementation for User Story 3
 
