@@ -22,6 +22,11 @@ interface PriceValues {
   validFrom: string;
 }
 
+function currentLocalDateTime(): string {
+  const now = new Date();
+  return new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+}
+
 export function CustomerPrices({ customerId }: { customerId: string }) {
   const { t } = useTranslation();
   const client = useQueryClient();
@@ -33,7 +38,7 @@ export function CustomerPrices({ customerId }: { customerId: string }) {
     defaultValues: {
       productId: '',
       unitPrice: '',
-      validFrom: new Date().toISOString().slice(0, 16),
+      validFrom: currentLocalDateTime(),
     },
   });
   const create = useMutation({
