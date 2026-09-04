@@ -103,6 +103,27 @@ describe('foundation HTTP contract', () => {
     expect(login.headers['set-cookie']?.[0]).toContain('Secure');
   });
 
+  it('uses an HTTP-compatible unprefixed session cookie for local development', async () => {
+    const developmentEnvironment: Environment = {
+      ...env,
+      NODE_ENV: 'development',
+      APP_ORIGIN: 'http://localhost:5173',
+    };
+    const app = createServer(developmentEnvironment, {
+      auth: new FakeAuth(),
+      database: fakeDatabase,
+    });
+    const login = await request(app)
+      .post('/api/v1/auth/login')
+      .set('Origin', developmentEnvironment.APP_ORIGIN)
+      .send({ username: 'admin', password: 'correct-password' });
+
+    expect(login.status).toBe(200);
+    expect(login.headers['set-cookie']?.[0]).toContain('wm_session=');
+    expect(login.headers['set-cookie']?.[0]).not.toContain('__Host-wm_session=');
+    expect(login.headers['set-cookie']?.[0]).not.toContain('Secure');
+  });
+
   it('returns safe Problem Details for cross-origin, validation, and authentication failures', async () => {
     const app = createServer(env, { auth: new FakeAuth(), database: fakeDatabase });
     const crossOrigin = await request(app)

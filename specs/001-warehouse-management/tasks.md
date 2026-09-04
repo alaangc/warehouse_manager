@@ -219,7 +219,7 @@ are denied without altering data.
 - [X] T087 [US4] Implement customer/price/history Zod schemas, OpenAPI handlers, and Administrator/Driver response filtering in `packages/contracts/src/customer-schemas.ts` and `apps/api/src/modules/customers/customer-routes.ts`
 - [X] T088 [P] [US4] Implement Administrator customer search, create/edit/archive forms, and conflict handling in `apps/web/src/features/customers/customer-pages.tsx` and `apps/web/src/features/customers/customer-form.tsx`
 - [X] T089 [P] [US4] Implement per-product price lifecycle and preserved purchase-history views in `apps/web/src/features/customers/customer-prices.tsx` and `apps/web/src/features/customers/customer-history.tsx`
-- [ ] T090 [US4] Complete contract/type synchronization and pass all US4 contract, integration, component, and E2E tests in `packages/contracts/openapi.yaml` and `tests/e2e/us4-customers.spec.ts`
+- [X] T090 [US4] Complete contract/type synchronization and pass all US4 contract, integration, component, and E2E tests in `packages/contracts/openapi.yaml` and `tests/e2e/us4-customers.spec.ts`
 
 **Checkpoint**: US4 works independently against existing sales and proves protected
 customer maintenance, exact price fallback, archival, and reproducible history.

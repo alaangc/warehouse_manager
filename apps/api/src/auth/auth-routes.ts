@@ -11,10 +11,10 @@ const Login = z
   .object({ username: z.string().trim().min(1).max(120), password: z.string().min(8).max(1024) })
   .strict();
 const unsafeMethods = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
-const TEST_SESSION_COOKIE = 'wm_session';
+const NON_PRODUCTION_SESSION_COOKIE = 'wm_session';
 
 function sessionCookieName(environment: Environment): string {
-  return environment.NODE_ENV === 'test' ? TEST_SESSION_COOKIE : SESSION_COOKIE;
+  return environment.NODE_ENV === 'production' ? SESSION_COOKIE : NON_PRODUCTION_SESSION_COOKIE;
 }
 
 function parseCookie(value: string | undefined, name: string): string | undefined {
@@ -101,7 +101,7 @@ export function createAuthRouter(auth: AuthenticationGateway, environment: Envir
       const session = await auth.login(input.username, input.password);
       response.cookie(cookieName, session.id, {
         ...sessionCookieOptions,
-        secure: environment.NODE_ENV !== 'test',
+        secure: environment.NODE_ENV === 'production',
       });
       response.set('X-CSRF-Token', session.csrfToken).json({ data: session.principal });
     } catch (error) {
@@ -121,7 +121,7 @@ export function createAuthRouter(auth: AuthenticationGateway, environment: Envir
       response
         .clearCookie(cookieName, {
           path: '/',
-          secure: environment.NODE_ENV !== 'test',
+          secure: environment.NODE_ENV === 'production',
           sameSite: 'strict',
           httpOnly: true,
         })

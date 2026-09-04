@@ -90,9 +90,13 @@ async function apiMutation<T>(
 }
 
 async function apiGet<T>(page: Page, path: string): Promise<T> {
-  const response = await page.request.get(`/api/v1${path}`);
-  if (!response.ok()) throw new Error(`GET ${path} returned ${response.status()}`);
-  return ((await response.json()) as ApiEnvelope<T>).data;
+  const result = await page.evaluate(async (path) => {
+    const response = await fetch(`/api/v1${path}`, { credentials: 'include' });
+    return { status: response.status, text: await response.text() };
+  }, path);
+  if (result.status < 200 || result.status >= 300)
+    throw new Error(`GET ${path} returned ${result.status}: ${result.text}`);
+  return (JSON.parse(result.text) as ApiEnvelope<T>).data;
 }
 
 async function closeReturnedRoute(
