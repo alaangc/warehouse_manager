@@ -206,7 +206,7 @@ are denied without altering data.
 
 ### Tests for User Story 4
 
-- [ ] T080 [P] [US4] Write failing OpenAPI/Supertest tests for customer CRUD/archive, role-filtered fields, customer prices/deactivation, search, and purchase history in `apps/api/tests/contract/customers/customers.contract.test.ts`
+- [X] T080 [P] [US4] Write failing OpenAPI/Supertest tests for customer CRUD/archive, role-filtered fields, customer prices/deactivation, search, and purchase history in `apps/api/tests/contract/customers/customers.contract.test.ts`
 - [ ] T081 [P] [US4] Write failing PostgreSQL service-lifecycle tests for CustomerPrice creation/replacement/deactivation, standard fallback, archival, optimistic conflicts, permissions, and same-transaction customer/price audit presence and failure rollback in `apps/api/tests/integration/customers/customer-pricing.test.ts`
 - [ ] T082 [P] [US4] Write failing React tests for customer forms/search, special-price lifecycle, history, archive confirmation, and Driver read-only behavior in `apps/web/tests/customers/customer-management.test.tsx`
 - [ ] T083 [P] [US4] Write the failing end-to-end customer, pricing, fallback, history, and denial walkthrough in `tests/e2e/us4-customers.spec.ts`
