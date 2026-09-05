@@ -15,6 +15,7 @@ import { LoginPage } from '../features/auth/login-page.js';
 import { SettingsPage } from '../features/settings/settings-page.js';
 import { DashboardPage } from '../features/dashboard/dashboard-page.js';
 import { CashClosePages } from '../features/reports/cash-close-pages.js';
+import { ReportPages } from '../features/reports/report-pages.js';
 
 function RouteError() {
   const { t } = useTranslation();
@@ -50,6 +51,7 @@ export const router = createBrowserRouter([
       { path: 'routes', element: <RoutesPage /> },
       { path: 'customers', element: <CustomerPages /> },
       { path: 'cash-closes', element: <CashClosePages /> },
+      { path: 'reports', element: <ReportPages /> },
       { path: 'users', element: <PlaceholderPage title="nav.users" /> },
       { path: 'settings', element: <SettingsPage /> },
       { path: 'sales', element: <DriverSaleHistory /> },

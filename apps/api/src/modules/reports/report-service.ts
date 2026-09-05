@@ -140,7 +140,12 @@ export class ReportService {
           periodEnd: period.periodEnd,
         },
         rows,
-        totals: { grossTotal, partnerRate: '0.500000', ...calculatePartnerShare(grossTotal) },
+        totals: {
+          currencyCode: settings.currency_code,
+          grossTotal,
+          partnerRate: '0.500000',
+          ...calculatePartnerShare(grossTotal),
+        },
       },
       sourceWatermark: await repository.saleSourceWatermark(period),
     };

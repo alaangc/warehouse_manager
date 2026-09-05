@@ -49,6 +49,41 @@ afterEach(async () => {
 });
 
 describe('reporting UI', () => {
+  it('saves the displayed report period even after draft controls change', async () => {
+    const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) =>
+      init?.method === 'POST'
+        ? jsonResponse({ data: { id: 'saved-report' } }, 201)
+        : jsonResponse({
+            data: {
+              reportType: 'BEST_SELLING_PRODUCTS',
+              generatedAt: '2026-09-04T15:00:00Z',
+              businessTimezone: 'America/Hermosillo',
+              filters: { periodKind: 'DAY', anchorDate: '2026-09-04' },
+              rows: [],
+              totals: {},
+            },
+          }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    await renderReports();
+    fireEvent.change(await screen.findByLabelText('Anchor date'), {
+      target: { value: '2026-09-04' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Run report' }));
+    await screen.findByText('No activity matches this period.');
+    fireEvent.change(screen.getByLabelText('Anchor date'), { target: { value: '2026-09-05' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save report snapshot' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Report snapshot saved: saved-report',
+    );
+    const command = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST')!;
+    expect(command[0]).toBe('/api/v1/report-snapshots');
+    expect(JSON.parse(String(command[1]?.body))).toEqual({
+      reportType: 'BEST_SELLING_PRODUCTS',
+      filters: { periodKind: 'DAY', anchorDate: '2026-09-04' },
+    });
+    expect(new Headers(command[1]?.headers).get('Idempotency-Key')).toBeTruthy();
+  });
   it('submits local period controls and displays API-resolved boundaries with report rows', async () => {
     const fetchMock = vi.fn((input: RequestInfo | URL) => {
       const url = new URL(String(input), 'http://warehouse.test');
