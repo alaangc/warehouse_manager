@@ -18,6 +18,7 @@ import { createCatalogRouter } from './modules/catalog/catalog-routes.js';
 import { createSalesRouter } from './modules/sales/sales-routes.js';
 import { createCustomerRouter } from './modules/customers/customer-routes.js';
 import { createRouteRouter } from './modules/routes/route-routes.js';
+import { createReportRouter } from './modules/reports/report-routes.js';
 
 export type ServerOptions = { database?: AppDatabase; auth?: AuthenticationGateway };
 
@@ -40,6 +41,7 @@ export function createServer(environment: Environment, options: ServerOptions = 
   app.use('/api/v1', createRouteRouter(database));
   app.use('/api/v1', createInventoryRouter(database));
   app.use('/api/v1', createSalesRouter(database));
+  app.use('/api/v1', createReportRouter(database));
   app.use(notFoundHandler, problemHandler);
   return app;
 }

@@ -114,8 +114,8 @@ describe('reporting HTTP contract', () => {
         .set('Cookie', principal.cookie)
         .set('X-CSRF-Token', principal.csrf);
     return {
-      get: (path: string) => decorate(agent.get(path)),
-      post: (path: string) => decorate(agent.post(path)),
+      get: (path: string) => decorate(agent.get(`/api/v1${path}`)),
+      post: (path: string) => decorate(agent.post(`/api/v1${path}`)),
     };
   }
 
