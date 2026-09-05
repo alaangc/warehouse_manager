@@ -275,7 +275,7 @@ while historical attribution and active-route constraints remain intact.
 
 ### Tests for User Story 7
 
-- [ ] T104 [P] [US7] Write failing unit tests for role changes, password rehash/rotation, session revocation, business-setting constraints, safe audit snapshots/actions, and role-filtered overview composition in `apps/api/tests/unit/users/user-administration.test.ts`
+- [X] T104 [P] [US7] Write failing unit tests for role changes, password rehash/rotation, session revocation, business-setting constraints, safe audit snapshots/actions, and role-filtered overview composition in `apps/api/tests/unit/users/user-administration.test.ts`
 - [ ] T105 [P] [US7] Write failing OpenAPI/Supertest tests for users, business settings, printer profiles, personal printer preference, document-free TEST_PRINT attempts that require a printer profile, overview, and all Administrator/Driver denial paths in `apps/api/tests/contract/users/user-settings.contract.test.ts`
 - [ ] T106 [P] [US7] Write failing integration tests for deactivation/session revocation, active-route driver/vehicle conflicts, immutable actor history, printer-profile archival, preference isolation, and same-transaction audit presence/failure rollback for user, setting, printer-profile, and preference mutations in `apps/api/tests/integration/users/user-settings.test.ts`
 - [ ] T107 [P] [US7] Write failing React tests for user/settings forms, role navigation, limited Driver printer controls, unsupported browser, permission denial, and test-result states in `apps/web/tests/users/user-settings-ui.test.tsx`
