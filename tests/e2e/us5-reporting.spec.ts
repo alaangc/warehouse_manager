@@ -72,7 +72,7 @@ async function login(page: Page): Promise<string> {
 async function apiRequest<T>(
   page: Page,
   csrfToken: string,
-  method: 'GET' | 'POST',
+  method: 'GET' | 'POST' | 'PATCH',
   path: string,
   options: { body?: unknown; idempotencyKey?: string } = {},
 ): Promise<ApiResult<T>> {
@@ -81,7 +81,7 @@ async function apiRequest<T>(
     data: options.body,
     headers: {
       Origin: new URL(page.url()).origin,
-      ...(method === 'POST' ? { 'X-CSRF-Token': csrfToken } : {}),
+      ...(method !== 'GET' ? { 'X-CSRF-Token': csrfToken } : {}),
       ...(options.idempotencyKey ? { 'Idempotency-Key': options.idempotencyKey } : {}),
     },
   });
@@ -145,11 +145,14 @@ function idempotencyKey(label: string): string {
 
 test('calendar reports and immutable cash-close currentness remain reproducible', async ({
   administratorPage,
-}) => {
+}, testInfo) => {
   test.skip(!process.env.E2E_BASE_URL, 'Set E2E_BASE_URL to run against the isolated full stack.');
 
   const csrfToken = await login(administratorPage);
-  const anchorDate = randomAnchorDate();
+  const seeded = Boolean(process.env.E2E_ISOLATED_STACK);
+  const anchorDate = seeded
+    ? `${2031 + ['chromium', 'firefox', 'webkit'].indexOf(testInfo.project.name)}-09-17`
+    : randomAnchorDate();
 
   for (const periodKind of ['DAY', 'WEEK', 'MONTH'] as const) {
     const report = successfulData(
@@ -166,6 +169,10 @@ test('calendar reports and immutable cash-close currentness remain reproducible'
       anchorDate,
       ...expectedBoundaries(periodKind, anchorDate),
     });
+    if (seeded)
+      expect(report.totals.grossTotal).toBe(
+        { DAY: '10.01', WEEK: '30.03', MONTH: '50.05' }[periodKind],
+      );
   }
 
   const createBody = { periodKind: 'DAY', anchorDate };
@@ -178,6 +185,13 @@ test('calendar reports and immutable cash-close currentness remain reproducible'
     { body: createBody, idempotencyKey: createKey },
   );
   const created = successfulData(createdResult, 201);
+  if (seeded)
+    expect(created).toMatchObject({
+      grossTotal: '10.01',
+      partnerAmount: '5.01',
+      remainingAmount: '5.00',
+      contributingSaleIds: [expect.any(String)],
+    });
   expect(created).toMatchObject({
     periodKind: 'DAY',
     anchorDate,
@@ -263,6 +277,40 @@ test('calendar reports and immutable cash-close currentness remain reproducible'
     supersedesCashCloseId: created.id,
   });
 
+  if (seeded) {
+    const source = successfulData(
+      await apiRequest<{ lines: Array<{ productId: string }> }>(
+        administratorPage,
+        csrfToken,
+        'GET',
+        `/sales/${created.contributingSaleIds[0]}`,
+      ),
+    );
+    const productId = source.lines[0]!.productId;
+    const product = successfulData(
+      await apiRequest<{
+        sku: string;
+        categoryId: string;
+        unitId: string;
+        lowStockThreshold: string;
+        version: number;
+      }>(administratorPage, csrfToken, 'GET', `/products/${productId}`),
+    );
+    successfulData(
+      await apiRequest(administratorPage, csrfToken, 'PATCH', `/products/${productId}`, {
+        body: {
+          sku: product.sku,
+          name: 'Renamed after cash close',
+          categoryId: product.categoryId,
+          unitId: product.unitId,
+          standardUnitPrice: '999.0000',
+          lowStockThreshold: product.lowStockThreshold,
+          expectedVersion: product.version,
+          active: true,
+        },
+      }),
+    );
+  }
   const preservedOriginal = successfulData(
     await apiRequest<CashClose>(administratorPage, csrfToken, 'GET', `/cash-closes/${created.id}`),
   );

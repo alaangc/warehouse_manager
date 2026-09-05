@@ -254,7 +254,7 @@ then change catalog data and prove every immutable version remains reproducible.
 - [X] T100 [US5] Implement report/cash-close Zod schemas and OpenAPI operations for calendar-period requests, resolved boundaries, current/superseded status and links, correction reasons, stable 409/422 codes, Administrator policies, controllers, and pagination in `packages/contracts/src/report-schemas.ts` and `apps/api/src/modules/reports/report-routes.ts`
 - [X] T101 [P] [US5] Implement cash-close creation/list/detail/correction screens with exact decimal display, source drill-down, current/superseded labels, immutable version navigation, mandatory reason, and explicit idempotency/stale/duplicate conflict states in `apps/web/src/features/reports/cash-close-pages.tsx`
 - [X] T102 [P] [US5] Implement DAY/WEEK/MONTH plus local anchor-date report controls, resolved business-timezone boundary display, operational tables, loading/empty/validation/failure states, and report-snapshot action in `apps/web/src/features/reports/report-pages.tsx`
-- [ ] T103 [US5] Complete contract/type synchronization and pass all US5 calculation, contract, integration, component, and E2E tests in `packages/contracts/openapi.yaml` and `tests/e2e/us5-reporting.spec.ts`
+- [X] T103 [US5] Complete contract/type synchronization and pass all US5 calculation, contract, integration, component, and E2E tests in `packages/contracts/openapi.yaml` and `tests/e2e/us5-reporting.spec.ts`
 
 **Checkpoint**: US5 independently proves exact/reproducible finance, fixed reporting
 groups, Monday/local-midnight calendar boundaries including offset changes, one current

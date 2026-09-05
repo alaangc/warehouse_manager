@@ -114,6 +114,22 @@ pnpm exec playwright install
 pnpm test:e2e
 ```
 
+To run the reporting/cash-close walkthrough against a fresh, disposable database:
+
+```bash
+pnpm --filter @warehouse/contracts build
+E2E_ISOLATED_STACK=1 E2E_BASE_URL=http://127.0.0.1:5173 pnpm exec playwright test tests/e2e/us5-reporting.spec.ts
+```
+
+Docker Desktop must be running, and ports 3000 and 5173 must be free. This command
+starts the API, web app, and a temporary PostgreSQL container, seeds boundary-date
+sales, and runs Chromium, Firefox, and WebKit. It does not read or modify your
+development database. Playwright stops the temporary stack when it finishes.
+
+For manual reporting tests on your development app, first run `pnpm db:migrate`,
+then `pnpm dev`, sign in as Administrator, and open **Reports** or **Cash closes**.
+Cash-close corrections create new versions; the earlier versions stay in history.
+
 ## Troubleshooting
 
 - If `docker compose` cannot connect, start Docker Desktop and wait until its engine

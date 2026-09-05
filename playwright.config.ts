@@ -21,9 +21,11 @@ export default defineConfig({
   webServer: process.env.E2E_SKIP_SERVER
     ? undefined
     : {
-        command: 'pnpm dev',
+        command: process.env.E2E_ISOLATED_STACK
+          ? 'pnpm exec tsx tests/e2e/support/start-isolated-stack.ts'
+          : 'pnpm dev',
         url: 'http://127.0.0.1:5173',
-        reuseExistingServer: !process.env.CI,
+        reuseExistingServer: !process.env.CI && !process.env.E2E_ISOLATED_STACK,
         timeout: 120_000,
       },
 });
