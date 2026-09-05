@@ -1,6 +1,8 @@
 import { sql, type Kysely } from 'kysely';
 import { fileURLToPath } from 'node:url';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { ReportService } from '../../../src/modules/reports/report-service.js';
+import { AuditWriter } from '../../../src/shared/audit/audit-service.js';
 import { seedFoundation } from '../../../../../database/seeds/001_foundation.js';
 import { createDatabase, type AppDatabase } from '../../../src/db/database.js';
 import { migrateToLatest } from '../../../src/db/migrate.js';
@@ -165,6 +167,72 @@ describe('report repositories and database history constraints', () => {
         .where('current_cash_close_id', '=', corrected.id)
         .execute(),
     ).rejects.toMatchObject({ code: '23503' });
+  });
+
+  it('saves repeatable exact reports with audit and replay, and rolls back a failed snapshot', async () => {
+    const service = new ReportService(database);
+    const input = {
+      reportType: 'FINANCIAL_SUMMARY' as const,
+      filters: { periodKind: 'DAY', anchorDate: '2026-11-01' },
+    };
+    await database
+      .updateTable('business_setting')
+      .set({ business_timezone: 'America/New_York' })
+      .execute();
+    try {
+      const report = await service.read(input, actorId);
+      expect(report.filters).toMatchObject({
+        periodStart: '2026-11-01T04:00:00Z',
+        periodEnd: '2026-11-02T05:00:00Z',
+      });
+      const context = {
+        actorId,
+        idempotencyKey: crypto.randomUUID(),
+        requestId: crypto.randomUUID(),
+      };
+      const saved = await service.snapshot(input, context);
+      expect(saved.result).toMatchObject({
+        totals: { grossTotal: '0.00', partnerAmount: '0.00', remainingAmount: '0.00' },
+      });
+      expect(await service.snapshot(input, context)).toEqual(saved);
+      expect(
+        await database
+          .selectFrom('audit_event')
+          .select('action')
+          .where('entity_id', '=', saved.id)
+          .execute(),
+      ).toEqual([{ action: 'REPORT_SNAPSHOT_CREATED' }]);
+      const failedContext = { ...context, idempotencyKey: crypto.randomUUID() };
+      const audit = vi
+        .spyOn(AuditWriter.prototype, 'write')
+        .mockRejectedValue(new Error('Audit unavailable'));
+      try {
+        await expect(service.snapshot(input, failedContext)).rejects.toThrow('Audit unavailable');
+      } finally {
+        audit.mockRestore();
+      }
+      expect(
+        await database
+          .selectFrom('idempotency_request')
+          .select('id')
+          .where('idempotency_key', '=', failedContext.idempotencyKey)
+          .execute(),
+      ).toEqual([]);
+      expect(await database.selectFrom('report_snapshot').select('id').execute()).toHaveLength(1);
+      const driver = await database
+        .selectFrom('app_user')
+        .select('id')
+        .where('username', '=', 'driver')
+        .executeTakeFirstOrThrow();
+      await expect(service.read(input, driver.id)).rejects.toMatchObject({
+        code: 'REPORT_FORBIDDEN',
+      });
+    } finally {
+      await database
+        .updateTable('business_setting')
+        .set({ business_timezone: 'America/Hermosillo' })
+        .execute();
+    }
   });
 
   it('paginates records sharing a submillisecond timestamp without omission', async () => {
