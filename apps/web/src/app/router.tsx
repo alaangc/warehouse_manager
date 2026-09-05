@@ -14,6 +14,7 @@ import { CustomerPages } from '../features/customers/customer-pages.js';
 import { LoginPage } from '../features/auth/login-page.js';
 import { SettingsPage } from '../features/settings/settings-page.js';
 import { DashboardPage } from '../features/dashboard/dashboard-page.js';
+import { CashClosePages } from '../features/reports/cash-close-pages.js';
 
 function RouteError() {
   const { t } = useTranslation();
@@ -48,6 +49,7 @@ export const router = createBrowserRouter([
       { path: 'catalog', element: <CatalogPages /> },
       { path: 'routes', element: <RoutesPage /> },
       { path: 'customers', element: <CustomerPages /> },
+      { path: 'cash-closes', element: <CashClosePages /> },
       { path: 'users', element: <PlaceholderPage title="nav.users" /> },
       { path: 'settings', element: <SettingsPage /> },
       { path: 'sales', element: <DriverSaleHistory /> },

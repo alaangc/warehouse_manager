@@ -1,4 +1,6 @@
+import { reportsEn } from '../../features/reports/translations.js';
 export const en = {
+  reports: reportsEn,
   app: { name: 'Warehouse Manager' },
   common: {
     add: 'Add',

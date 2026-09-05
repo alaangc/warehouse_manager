@@ -27,6 +27,7 @@ const adminLinks: ReadonlyArray<readonly [string, string]> = [
   ['/catalog', 'nav.catalog'],
   ['/routes', 'nav.routes'],
   ['/customers', 'nav.customers'],
+  ['/cash-closes', 'reports.cashCloses'],
   ['/users', 'nav.users'],
   ['/settings', 'nav.settings'],
 ];

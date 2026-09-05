@@ -59,7 +59,7 @@ function jsonResponse(body: unknown, status = 200) {
   );
 }
 
-async function renderCashCloses() {
+async function renderCashCloses(user: SessionUser = administrator) {
   await router.navigate('/cash-closes');
   return render(
     <QueryClientProvider
@@ -69,7 +69,7 @@ async function renderCashCloses() {
         })
       }
     >
-      <SessionContext.Provider value={{ user: administrator, loading: false, error: null }}>
+      <SessionContext.Provider value={{ user, loading: false, error: null }}>
         <RouterProvider router={router} />
       </SessionContext.Provider>
     </QueryClientProvider>,
@@ -83,6 +83,39 @@ afterEach(async () => {
 });
 
 describe('cash-close UI', () => {
+  it('blocks Driver access without requesting financial records', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    await renderCashCloses({ ...administrator, role: 'DRIVER' });
+    expect(await screen.findByRole('alert')).toHaveTextContent('Administrator access is required.');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('reuses the same request key after an uncertain server failure', async () => {
+    let failed = false;
+    const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
+      if (init?.method !== 'POST')
+        return jsonResponse({ data: [], page: { hasNextPage: false, nextCursor: null } });
+      if (!failed) {
+        failed = true;
+        return jsonResponse({ title: 'Server Error', status: 500, detail: 'Please retry.' }, 500);
+      }
+      return jsonResponse({ data: close() }, 201);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    await renderCashCloses();
+    fireEvent.click(await screen.findByRole('button', { name: 'Create cash close' }));
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Confirm cash close' }));
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent('Please retry.');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Confirm cash close' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    const requests = fetchMock.mock.calls.filter(([, init]) => init?.method === 'POST');
+    expect(requests).toHaveLength(2);
+    expect(new Headers(requests[0]![1]?.headers).get('Idempotency-Key')).toBe(
+      new Headers(requests[1]![1]?.headers).get('Idempotency-Key'),
+    );
+  });
   it('confirms a local calendar close and renders exact API-resolved totals', async () => {
     const created = close();
     const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
@@ -191,7 +224,7 @@ describe('cash-close UI', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(/no longer current/i);
 
     problemCode = 'CASH_CLOSE_PERIOD_ALREADY_CURRENT';
-    fireEvent.click(screen.getByRole('button', { name: 'Create cash close' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Create cash close' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Confirm cash close', exact: true }));
     expect(await screen.findByRole('alert')).toHaveTextContent(/already exists/i);
   });

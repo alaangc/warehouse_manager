@@ -1,8 +1,10 @@
 import type { en } from './en.js';
+import { reportsEs } from '../../features/reports/translations.js';
 
 type DeepTranslation<T> = { [K in keyof T]: T[K] extends string ? string : DeepTranslation<T[K]> };
 
 export const es: DeepTranslation<typeof en> = {
+  reports: reportsEs,
   app: { name: 'Administrador de Almacén' },
   common: {
     add: 'Agregar',
