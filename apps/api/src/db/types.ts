@@ -270,6 +270,67 @@ export interface RouteReconciliationLineTable {
   product_name: string; unit_code: string;
 }
 
+export type ReportingPeriodKind = 'DAY' | 'WEEK' | 'MONTH';
+export type ReportingGroup = 'SODAS' | 'CHARCOAL' | 'TOSTADAS' | 'OTHER';
+export type ReportType =
+  | 'SALES_BY_DRIVER'
+  | 'BEST_SELLING_PRODUCTS'
+  | 'INVENTORY_BY_BRANCH'
+  | 'FINANCIAL_SUMMARY';
+
+export interface CashCloseTable {
+  id: Generated<string>;
+  close_number: string;
+  period_kind: ReportingPeriodKind;
+  anchor_date: string;
+  business_timezone: string;
+  period_start: Timestamp;
+  period_end: Timestamp;
+  currency_code: string;
+  gross_total: string;
+  partner_rate: string;
+  partner_amount: string;
+  remaining_amount: string;
+  rounding_mode: 'HALF_AWAY_FROM_ZERO';
+  created_by: string;
+  idempotency_request_id: string;
+  supersedes_cash_close_id: string | null;
+  correction_reason: string | null;
+  created_at: Timestamp;
+}
+
+export interface CashCloseLineTable {
+  id: Generated<string>;
+  cash_close_id: string;
+  reporting_group: ReportingGroup;
+  total: string;
+}
+
+export interface CashCloseSaleTable {
+  cash_close_id: string;
+  sale_id: string;
+  included_amount: string;
+}
+
+export interface CashCloseCurrentPeriodTable {
+  business_timezone: string;
+  period_start: Timestamp;
+  period_end: Timestamp;
+  current_cash_close_id: string;
+}
+
+export interface ReportSnapshotTable {
+  id: Generated<string>;
+  report_type: ReportType;
+  filters: JsonValue;
+  business_timezone: string;
+  source_watermark: string;
+  result: JsonValue;
+  created_by: string;
+  idempotency_request_id: string;
+  created_at: Timestamp;
+}
+
 export interface Database {
   business_setting: BusinessSettingTable;
   app_user: UserTable;
@@ -296,4 +357,9 @@ export interface Database {
   route_load_line: RouteLoadLineTable;
   route_reconciliation: RouteReconciliationTable;
   route_reconciliation_line: RouteReconciliationLineTable;
+  cash_close: CashCloseTable;
+  cash_close_line: CashCloseLineTable;
+  cash_close_sale: CashCloseSaleTable;
+  cash_close_current_period: CashCloseCurrentPeriodTable;
+  report_snapshot: ReportSnapshotTable;
 }
