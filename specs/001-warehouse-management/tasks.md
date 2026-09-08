@@ -280,7 +280,7 @@ while historical attribution and active-route constraints remain intact.
 - [X] T106 [P] [US7] Write failing integration tests for deactivation/session revocation, active-route driver/vehicle conflicts, immutable actor history, printer-profile archival, preference isolation, and same-transaction audit presence/failure rollback for user, setting, printer-profile, and preference mutations in `apps/api/tests/integration/users/user-settings.test.ts`
   - Red-phase verification: 35 tests, 5 passed and 30 failed on missing administration endpoints; see `evidence/t106-integration-tests.md`.
 - [X] T107 [P] [US7] Write failing React tests for user/settings forms, role navigation, limited Driver printer controls, unsupported browser, permission denial, and test-result states in `apps/web/tests/users/user-settings-ui.test.tsx`
-- [ ] T108 [P] [US7] Write the failing end-to-end user creation, role denial, printer test, deactivation, and historical attribution walkthrough in `tests/e2e/us7-user-settings.spec.ts`
+- [X] T108 [P] [US7] Write the failing end-to-end user creation, role denial, printer test, deactivation, and historical attribution walkthrough in `tests/e2e/us7-user-settings.spec.ts`
 
 ### Implementation for User Story 7
 
