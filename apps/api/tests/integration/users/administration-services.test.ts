@@ -2,6 +2,9 @@ import { sql } from 'kysely';
 import { afterAll, afterEach, beforeAll, expect, it } from 'vitest';
 import { administrationHarness } from '../../support/administration-harness.js';
 import { UserAdminService } from '../../../src/modules/users/user-admin-service.js';
+import { BusinessSettingsService } from '../../../src/modules/settings/business-settings-service.js';
+import { createSaleScenario, saleCommand } from '../../support/sales-factories.js';
+import { SaleService } from '../../../src/modules/sales/sale-service.js';
 
 let harness: Awaited<ReturnType<typeof administrationHarness>>;
 let adminId: string;
@@ -25,6 +28,55 @@ async function rejectAudit() {
     harness.database,
   );
 }
+it('changes future business settings without rewriting a completed sale and rolls back on audit failure', async () => {
+  const fixture = await createSaleScenario(harness.database);
+  const sale = await new SaleService(harness.database).confirm(
+    saleCommand({
+      customerId: fixture.customer.id,
+      routeId: fixture.route.id,
+      productId: fixture.product.id,
+    }),
+    { ...context(), actorId: fixture.driver.id, idempotencyKey: crypto.randomUUID() },
+  );
+  const readSale = () =>
+    harness.database
+      .selectFrom('sale')
+      .selectAll()
+      .where('id', '=', sale.id)
+      .executeTakeFirstOrThrow();
+  const beforeSale = await readSale();
+  const service = new BusinessSettingsService(harness.database);
+  const before = await service.get();
+  const changed = await service.update(
+    {
+      expectedVersion: before.version,
+      currencyCode: 'USD',
+      businessTimezone: 'America/Tijuana',
+      reason: 'New operating settings',
+    },
+    context(),
+  );
+  expect(changed).toMatchObject({
+    currencyCode: 'USD',
+    partnerShareRate: '0.500000',
+    version: before.version + 1,
+  });
+  expect(await readSale()).toEqual(beforeSale);
+  await rejectAudit();
+  await expect(
+    service.update(
+      {
+        expectedVersion: changed.version,
+        currencyCode: 'MXN',
+        businessTimezone: 'America/Hermosillo',
+        reason: 'Must roll back',
+      },
+      context(),
+    ),
+  ).rejects.toThrow('service audit failure');
+  expect(await service.get()).toEqual(changed);
+  expect(await readSale()).toEqual(beforeSale);
+});
 it('creates, paginates, rotates passwords, and revokes old sessions with atomic audits', async () => {
   const service = new UserAdminService(harness.database);
   const input = {
