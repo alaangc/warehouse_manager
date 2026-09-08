@@ -250,33 +250,56 @@ export interface SaleCancellationTable {
   created_at: Timestamp;
 }
 export interface RouteLoadTable {
-  id: Generated<string>; route_id: string; state: 'DRAFT' | 'CONFIRMED'; recorded_by: string;
-  confirmed_at: Timestamp | null; inventory_operation_id: string | null; created_at: Timestamp;
-  updated_at: Timestamp; version: Generated<number>;
+  id: Generated<string>;
+  route_id: string;
+  state: 'DRAFT' | 'CONFIRMED';
+  recorded_by: string;
+  confirmed_at: Timestamp | null;
+  inventory_operation_id: string | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+  version: Generated<number>;
 }
 export interface RouteLoadLineTable {
-  id: Generated<string>; route_load_id: string; product_id: string; quantity: string;
-  product_name: string; unit_code: string; quantity_scale: number;
+  id: Generated<string>;
+  route_load_id: string;
+  product_id: string;
+  quantity: string;
+  product_name: string;
+  unit_code: string;
+  quantity_scale: number;
 }
 export interface RouteReconciliationTable {
-  id: Generated<string>; route_id: string; state: 'DRAFT' | 'APPROVED'; recorded_by: string;
-  approved_by: string | null; approved_at: Timestamp | null; return_operation_id: string | null;
-  created_at: Timestamp; updated_at: Timestamp; version: Generated<number>;
+  id: Generated<string>;
+  route_id: string;
+  state: 'DRAFT' | 'APPROVED';
+  recorded_by: string;
+  approved_by: string | null;
+  approved_at: Timestamp | null;
+  return_operation_id: string | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+  version: Generated<number>;
 }
 export interface RouteReconciliationLineTable {
-  id: Generated<string>; route_reconciliation_id: string; product_id: string; loaded_quantity: string;
-  sold_quantity: string; expected_return_quantity: string; physical_return_quantity: string;
-  difference_quantity: string; difference_reason: string | null; adjustment_movement_id: string | null;
-  product_name: string; unit_code: string;
+  id: Generated<string>;
+  route_reconciliation_id: string;
+  product_id: string;
+  loaded_quantity: string;
+  sold_quantity: string;
+  expected_return_quantity: string;
+  physical_return_quantity: string;
+  difference_quantity: string;
+  difference_reason: string | null;
+  adjustment_movement_id: string | null;
+  product_name: string;
+  unit_code: string;
 }
 
 export type ReportingPeriodKind = 'DAY' | 'WEEK' | 'MONTH';
 export type ReportingGroup = 'SODAS' | 'CHARCOAL' | 'TOSTADAS' | 'OTHER';
 export type ReportType =
-  | 'SALES_BY_DRIVER'
-  | 'BEST_SELLING_PRODUCTS'
-  | 'INVENTORY_BY_BRANCH'
-  | 'FINANCIAL_SUMMARY';
+  'SALES_BY_DRIVER' | 'BEST_SELLING_PRODUCTS' | 'INVENTORY_BY_BRANCH' | 'FINANCIAL_SUMMARY';
 
 export interface CashCloseTable {
   id: Generated<string>;
@@ -331,7 +354,47 @@ export interface ReportSnapshotTable {
   created_at: Timestamp;
 }
 
+export interface PrinterProfileTable extends CatalogBase {
+  name: string;
+  model: string;
+  transport: Generated<'WEB_BLUETOOTH_BLE'>;
+  service_uuid: string;
+  write_characteristic_uuid: string;
+  write_mode: 'WITH_RESPONSE' | 'WITHOUT_RESPONSE';
+  command_dialect: string;
+  paper_width_mm: number;
+  encoding: string;
+  max_chunk_bytes: number;
+  inter_chunk_delay_ms: number;
+}
+export interface UserPrinterPreferenceTable {
+  user_id: string;
+  printer_profile_id: string | null;
+  device_label: string | null;
+  tested_browser: string | null;
+  tested_os: string | null;
+  last_tested_at: Timestamp | null;
+  last_test_result: 'SUCCEEDED' | 'FAILED' | 'UNKNOWN' | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+export interface OutputAttemptTable {
+  id: Generated<string>;
+  document_output_id: string | null;
+  document_type: string | null;
+  actor_id: string;
+  mode: 'TEST_PRINT';
+  printer_profile_id: string;
+  state: 'STARTED' | 'SUCCEEDED' | 'FAILED' | 'UNKNOWN';
+  error_code: string | null;
+  attempt_number: number;
+  request_id: string;
+  created_at: Timestamp;
+}
 export interface Database {
+  printer_profile: PrinterProfileTable;
+  user_printer_preference: UserPrinterPreferenceTable;
+  output_attempt: OutputAttemptTable;
   business_setting: BusinessSettingTable;
   app_user: UserTable;
   auth_session: AuthSessionTable;

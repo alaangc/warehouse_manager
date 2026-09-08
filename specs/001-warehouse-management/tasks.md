@@ -284,7 +284,7 @@ while historical attribution and active-route constraints remain intact.
 
 ### Implementation for User Story 7
 
-- [ ] T109 [US7] Create printer-profile and user-printer-preference tables plus the append-only OutputAttempt base table with nullable document reference/type, transport metadata, archival/version constraints, per-user uniqueness, and CHECK constraints requiring a printer and no document for TEST_PRINT in `database/migrations/006_printer_settings.ts`
+- [X] T109 [US7] Create printer-profile and user-printer-preference tables plus the append-only OutputAttempt base table with nullable document reference/type, transport metadata, archival/version constraints, per-user uniqueness, and CHECK constraints requiring a printer and no document for TEST_PRINT in `database/migrations/007_printer_settings.ts`
 - [ ] T110 [US7] Implement Administrator user CRUD/activation/deactivation/role/password operations with active-route guards, session revocation, safe before/after snapshots, and same-transaction audit events in `apps/api/src/modules/users/user-admin-service.ts`
 - [ ] T111 [US7] Implement currency/timezone setting updates for future operations with stable BusinessSetting audit identity, same-transaction audit emission, immutable 50% share, and historical snapshots in `apps/api/src/modules/settings/business-settings-service.ts`
 - [ ] T112 [US7] Implement printer-profile administration, per-user preference isolation, same-transaction configuration audit emission, and safe document-free TEST_PRINT recording that requires an approved printer profile in `apps/api/src/modules/printers/printer-settings-service.ts`

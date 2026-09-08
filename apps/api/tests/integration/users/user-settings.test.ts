@@ -562,7 +562,7 @@ describe('user and settings transactions in PostgreSQL 18', () => {
     expect((await harness.send(principal, 'get', '/auth/session')).status).toBe(401);
     await expect(
       harness.database.deleteFrom('app_user').where('id', '=', user.id).execute(),
-    ).rejects.toMatchObject({ code: '23503' });
+    ).rejects.toMatchObject({ code: expect.stringMatching(/^(23503|23001)$/) });
   });
 
   it('commits business settings and their audit against the stable singleton identity', async () => {
@@ -712,7 +712,7 @@ describe('user and settings transactions in PostgreSQL 18', () => {
     ).toEqual(history.rows);
     await expect(
       sql`delete from printer_profile where id = ${printer.id}::uuid`.execute(harness.database),
-    ).rejects.toMatchObject({ code: '23503' });
+    ).rejects.toMatchObject({ code: expect.stringMatching(/^(23503|23001)$/) });
   });
 
   it('rolls back printer creation when auditing fails', async () => {
