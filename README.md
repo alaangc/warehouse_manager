@@ -132,6 +132,24 @@ Cash-close corrections create new versions; the earlier versions stay in history
 
 ## Troubleshooting
 
+### Windows local setup
+
+If pnpm is available under `.tools/bin`, use `pnpm.cmd` in PowerShell to avoid
+the script execution policy error. Add the local tools to the current terminal:
+
+```powershell
+$env:Path = "$PWD\.tools\bin;$env:Path"
+pnpm.cmd dev
+```
+
+Start Docker Desktop before running migrations. Per-user Docker installations can
+be located under `$env:LOCALAPPDATA\Programs\DockerDesktop`; its CLI is in
+`resources\bin`. Preserve the existing database volume when restarting.
+
+The administration contract suite currently includes intentionally failing tests
+from T105. Its API implementation is tracked by the unchecked T113–T114 tasks in
+`specs/001-warehouse-management/tasks.md`.
+
 - If `docker compose` cannot connect, start Docker Desktop and wait until its engine
   reports that it is running.
 - If port 5432 is already occupied, stop the other PostgreSQL service before starting
