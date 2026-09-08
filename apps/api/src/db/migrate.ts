@@ -1,6 +1,6 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { FileMigrationProvider, Migrator } from 'kysely/migration';
 import { loadEnvironment } from '../config/env.js';
 import { createDatabase, type AppDatabase } from './database.js';
@@ -14,7 +14,12 @@ export async function migrateToLatest(
     path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../database/migrations');
   const migrator = new Migrator({
     db: database,
-    provider: new FileMigrationProvider({ fs, path, migrationFolder: folder }),
+    provider: new FileMigrationProvider({
+      fs,
+      path,
+      migrationFolder: folder,
+      import: (filePath) => import(pathToFileURL(filePath).href),
+    }),
   });
   const { error, results } = await migrator.migrateToLatest();
   for (const result of results ?? []) {
@@ -24,7 +29,7 @@ export async function migrateToLatest(
     throw error instanceof Error ? error : new Error('Database migration failed', { cause: error });
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
   const environment = loadEnvironment(process.env);
   const database = createDatabase(environment.DATABASE_URL);
   try {
