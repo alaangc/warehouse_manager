@@ -37,12 +37,14 @@ export class RouteLoadService {
           .where('id', '=', input.driverId)
           .where('role', '=', 'DRIVER')
           .where('active', '=', true)
+          .forUpdate()
           .executeTakeFirst(),
         transaction
           .selectFrom('vehicle')
           .select('id')
           .where('id', '=', input.vehicleId)
           .where('active', '=', true)
+          .forUpdate()
           .executeTakeFirst(),
       ]);
       if (!location || !driver || !vehicle)
