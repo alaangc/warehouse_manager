@@ -36,6 +36,9 @@ export function userResource(row: Selectable<UserTable>) {
     role: row.role,
     active: row.active,
     version: row.version,
+    createdAt: row.created_at.toISOString(),
+    updatedAt: row.updated_at.toISOString(),
+    archivedAt: row.archived_at?.toISOString() ?? null,
   };
 }
 export function requireVersion(actual: number, expected: number) {
@@ -83,10 +86,7 @@ export class UserAdminService {
     const search = input.search?.trim();
     if (search)
       query = query.where((eb) =>
-        eb.or([
-          eb('username', 'ilike', `%${search}%`),
-          eb('display_name', 'ilike', `%${search}%`),
-        ]),
+        eb.or([eb('username', 'ilike', `%${search}%`), eb('display_name', 'ilike', `%${search}%`)]),
       );
     if (input.active !== undefined) query = query.where('active', '=', input.active);
     if (input.cursor) {

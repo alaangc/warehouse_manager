@@ -1,7 +1,8 @@
 import { Alert, Button, Stack, Typography } from '@mui/material';
 import { createBrowserRouter, useRouteError } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { AppLayout, PlaceholderPage } from './layout.js';
+import { AppLayout } from './layout.js';
+import { UserSettingsPages } from '../features/administration/user-settings-pages.js';
 import { InventoryPage } from '../features/inventory/inventory-page.js';
 import { ProductDetailPage } from '../features/inventory/product-detail-page.js';
 import { CatalogPages } from '../features/catalog/catalog-pages.js';
@@ -52,7 +53,7 @@ export const router = createBrowserRouter([
       { path: 'customers', element: <CustomerPages /> },
       { path: 'cash-closes', element: <CashClosePages /> },
       { path: 'reports', element: <ReportPages /> },
-      { path: 'users', element: <PlaceholderPage title="nav.users" /> },
+      { path: 'users', element: <UserSettingsPages /> },
       { path: 'settings', element: <SettingsPage /> },
       { path: 'sales', element: <DriverSaleHistory /> },
       { path: 'sales/new', element: <SaleForm /> },

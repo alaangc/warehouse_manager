@@ -2280,10 +2280,56 @@ components:
       required: [data]
       properties:
         data:
-          type: object
-          description: Role-filtered counts, alerts, active route, and permitted action links
-          additionalProperties: true
-
+          oneOf:
+            - $ref: '#/components/schemas/AdministratorOverview'
+            - $ref: '#/components/schemas/DriverOverview'
+    OverviewRoute:
+      type: object
+      additionalProperties: false
+      required: [id, driverId, state]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        driverId:
+          $ref: '#/components/schemas/Uuid'
+        state:
+          type: string
+          enum: [PREPARING, EN_ROUTE, RETURNED]
+    DriverOverview:
+      type: object
+      additionalProperties: false
+      description: Only active routes assigned to the authenticated Driver, ordered by ID, and permitted action links. No organization-wide aggregates are queried or exposed.
+      required: [routes, actions]
+      properties:
+        routes:
+          type: array
+          items:
+            $ref: '#/components/schemas/OverviewRoute'
+        actions:
+          type: array
+          items:
+            type: string
+    AdministratorOverview:
+      type: object
+      additionalProperties: false
+      description: Active routes and operational aggregates read from one consistent database snapshot.
+      required: [routes, actions, grossTotal, lowStockCount]
+      properties:
+        routes:
+          type: array
+          items:
+            $ref: '#/components/schemas/OverviewRoute'
+        actions:
+          type: array
+          items:
+            type: string
+        grossTotal:
+          description: All-time sum of completed sale totals, excluding cancelled sales, as an exact decimal string. Zero is 0.00.
+          $ref: '#/components/schemas/NonnegativeMoney'
+        lowStockCount:
+          type: integer
+          minimum: 0
+          description: Number of active product and active branch pairs at or below the product threshold. A missing balance is zero. Route stock is excluded.
     Location:
       type: object
       additionalProperties: false
@@ -2983,7 +3029,7 @@ components:
       required: [data]
       properties:
         data:
-          type: object
+          type: [object, 'null']
           additionalProperties: false
           required: [printerProfileId]
           properties:

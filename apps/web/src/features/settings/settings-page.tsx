@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { changeAppLanguage, type AppLanguage } from '../../i18n/index.js';
+import { BusinessSettingsPanel } from '../administration/user-settings-pages.js';
 
 export function SettingsPage() {
   const { t, i18n } = useTranslation();
@@ -30,6 +31,7 @@ export function SettingsPage() {
         </Select>
         <FormHelperText>{t('settings.languageHelp')}</FormHelperText>
       </FormControl>
+      <BusinessSettingsPanel />
     </Stack>
   );
 }

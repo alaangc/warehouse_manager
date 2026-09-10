@@ -3,6 +3,11 @@ import i18n from '../../i18n/index.js';
 import { ApiProblem } from './problem.js';
 
 const translatedCodes = new Set([
+  'USER_ACTIVE_ROUTE',
+  'BUSINESS_TIMEZONE_INVALID',
+  'BUSINESS_SETTING_INVALID',
+  'RESOURCE_DUPLICATE',
+  'CURSOR_INVALID',
   'RESOURCE_FORBIDDEN',
   'RESOURCE_NOT_FOUND',
   'OPTIMISTIC_CONFLICT',

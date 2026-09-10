@@ -95,19 +95,21 @@ export function validateBusinessSettingChange(settings: {
   }
 }
 interface OverviewSource {
-  grossTotal: string;
-  lowStockCount: number;
+  grossTotal?: string;
+  lowStockCount?: number;
   routes: Array<{ id: string; driverId: string; state: string }>;
 }
 export function composeRoleOverview(
   principal: Pick<UserSummary, 'id' | 'role'>,
   source: OverviewSource,
 ) {
-  if (principal.role === 'ADMINISTRATOR')
+  if (principal.role === 'ADMINISTRATOR') {
+    if (source.grossTotal === undefined || source.lowStockCount === undefined)
+      throw new Error('Administrator overview requires operational aggregates');
     return {
       grossTotal: source.grossTotal,
       lowStockCount: source.lowStockCount,
-      routes: source.routes,
+      routes: source.routes.filter((route) => route.state !== 'CLOSED'),
       actions: [
         '/inventory',
         '/routes',
@@ -118,6 +120,7 @@ export function composeRoleOverview(
         '/settings',
       ],
     };
+  }
   return {
     routes: source.routes.filter(
       (route) => route.driverId === principal.id && route.state !== 'CLOSED',

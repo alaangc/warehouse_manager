@@ -8,3 +8,4 @@ export * from './sales-schemas.js';
 export * from './customer-schemas.js';
 export * from './route-schemas.js';
 export * from './report-schemas.js';
+export * from './administration-schemas.js';

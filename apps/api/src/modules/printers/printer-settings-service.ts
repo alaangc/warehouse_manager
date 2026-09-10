@@ -1,5 +1,11 @@
 import type { Selectable, Transaction } from 'kysely';
-import { z } from 'zod';
+import type { z } from 'zod';
+import {
+  PrinterProfileWriteSchema as profileSchema,
+  PrinterProfileUpdateSchema as updateSchema,
+  PrinterPreferenceSchema as preferenceSchema,
+  TestPrintRequestSchema as testSchema,
+} from '@warehouse/contracts';
 import type { AppDatabase } from '../../db/database.js';
 import type { Database, PrinterProfileTable, UserPrinterPreferenceTable } from '../../db/types.js';
 import { runSerializable } from '../../db/serializable-transaction.js';
@@ -7,43 +13,6 @@ import { HttpProblem } from '../../http/problem-handler.js';
 import { AuditWriter } from '../../shared/audit/audit-service.js';
 import { requireVersion, type AdministrationContext } from '../users/user-admin-service.js';
 
-const profileSchema = z
-  .object({
-    name: z.string().trim().min(1).max(120),
-    model: z.string().trim().min(1).max(120),
-    serviceUuid: z.string().min(1).max(64),
-    writeCharacteristicUuid: z.string().min(1).max(64),
-    writeMode: z.enum(['WITH_RESPONSE', 'WITHOUT_RESPONSE']),
-    commandDialect: z.literal('ESC_POS'),
-    paperWidthMm: z.union([z.literal(58), z.literal(80)]),
-    encoding: z.enum(['CP850', 'CP437', 'UTF-8']),
-    maxChunkBytes: z.number().int().min(1).max(1024),
-    interChunkDelayMs: z.number().int().min(0).max(5000),
-  })
-  .strict();
-const updateSchema = profileSchema.extend({
-  expectedVersion: z.number().int().positive(),
-  active: z.boolean(),
-  reason: z.string().max(500).nullable().optional(),
-});
-const preferenceSchema = z
-  .object({
-    printerProfileId: z.uuid(),
-    deviceLabel: z.string().max(120).nullable().optional(),
-    testedBrowser: z.string().max(120).nullable().optional(),
-    testedOs: z.string().max(120).nullable().optional(),
-    lastTestResult: z.enum(['SUCCEEDED', 'FAILED', 'UNKNOWN']).nullable().optional(),
-  })
-  .strict();
-const testSchema = z
-  .object({
-    mode: z.literal('TEST_PRINT'),
-    printerProfileId: z.uuid(),
-    state: z.enum(['STARTED', 'SUCCEEDED', 'FAILED', 'UNKNOWN']),
-    errorCode: z.string().max(120).nullable().optional(),
-    requestId: z.string().max(200).nullable().optional(),
-  })
-  .strict();
 function profileResource(row: Selectable<PrinterProfileTable>) {
   return {
     id: row.id,
