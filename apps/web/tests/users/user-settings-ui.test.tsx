@@ -28,6 +28,14 @@ const printer = {
   active: true,
   version: 1,
 };
+const businessSettings = {
+  version: 1,
+  currencyCode: 'MXN',
+  businessTimezone: 'America/Hermosillo',
+  currencyScale: 2,
+  partnerShareRate: '0.500000',
+  moneyRoundingMode: 'HALF_AWAY_FROM_ZERO',
+};
 const respond = (data: unknown, status = 200) =>
   Promise.resolve(
     new Response(JSON.stringify(status >= 400 ? data : { data }), {
@@ -42,16 +50,14 @@ function mockApi(failure?: { status: number; code: string; detail: string }) {
       return failure
         ? respond({ ...failure, title: 'Conflict' }, failure.status)
         : respond(
-            { ...driver, ...JSON.parse(String(init.body)), version: 2 },
+            {
+              ...(path.includes('/settings/business') ? businessSettings : driver),
+              ...JSON.parse(String(init.body)),
+              version: 2,
+            },
             init.method === 'POST' ? 201 : 200,
           );
-    if (path.includes('/settings/business'))
-      return respond({
-        version: 1,
-        currencyCode: 'MXN',
-        businessTimezone: 'America/Hermosillo',
-        partnerShareRate: '0.500000',
-      });
+    if (path.includes('/settings/business')) return respond(businessSettings);
     if (path.includes('/printer-profiles')) return respond([printer]);
     if (path.includes('/me/printer-preference')) return respond({ printerProfileId: printer.id });
     return respond([driver]);
@@ -151,62 +157,171 @@ describe('administration UI', () => {
   it('T115 requires a deactivation reason and omits an unchanged password', async () => {
     const fetcher = mockApi();
     await open('/users');
-    fireEvent.click(await screen.findByRole('button', {name: 'Edit Test Driver'}));
-    fireEvent.mouseDown(screen.getAllByRole('combobox', {name: 'Status'}).at(-1)!);
-    fireEvent.click(await screen.findByRole('option', {name: 'Inactive'}));
-    fireEvent.click(screen.getByRole('button', {name: 'Save user'}));
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit Test Driver' }));
+    fireEvent.mouseDown(screen.getAllByRole('combobox', { name: 'Status' }).at(-1)!);
+    fireEvent.click(await screen.findByRole('option', { name: 'Inactive' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save user' }));
     expect(await screen.findByRole('alert')).toHaveTextContent(/reason/i);
-    expect(fetcher.mock.calls.some(([,init]) => init?.method === 'PATCH')).toBe(false);
-    fireEvent.change(screen.getByLabelText('Reason'), {target: {value: 'Driver left the business'}});
-    fireEvent.click(screen.getByRole('button', {name: 'Save user'}));
-    await waitFor(() => expect(fetcher.mock.calls.some(([,init]) => init?.method === 'PATCH')).toBe(true));
-    const call = fetcher.mock.calls.find(([,init]) => init?.method === 'PATCH')!;
-    expect(JSON.parse(String(call[1]!.body))).toEqual({expectedVersion: 1, displayName: driver.displayName, role: 'DRIVER', active: false, reason: 'Driver left the business'});
+    expect(fetcher.mock.calls.some(([, init]) => init?.method === 'PATCH')).toBe(false);
+    fireEvent.change(screen.getByLabelText('Reason'), {
+      target: { value: 'Driver left the business' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save user' }));
+    await waitFor(() =>
+      expect(fetcher.mock.calls.some(([, init]) => init?.method === 'PATCH')).toBe(true),
+    );
+    const call = fetcher.mock.calls.find(([, init]) => init?.method === 'PATCH')!;
+    expect(JSON.parse(String(call[1]!.body))).toEqual({
+      expectedVersion: 1,
+      displayName: driver.displayName,
+      role: 'DRIVER',
+      active: false,
+      reason: 'Driver left the business',
+    });
   });
   it('T115 rejects short passwords and preserves edits when switching language', async () => {
     const fetcher = mockApi();
     await open('/users');
-    fireEvent.click(await screen.findByRole('button', {name: 'New user'}));
-    fireEvent.change(screen.getByLabelText('Username'), {target: {value: 'new-user'}});
-    fireEvent.change(screen.getByLabelText('Display name'), {target: {value: 'Nombre conservado'}});
-    fireEvent.change(screen.getByLabelText('Password'), {target: {value: 'short'}});
-    fireEvent.click(screen.getByRole('button', {name: 'Save user'}));
+    fireEvent.click(await screen.findByRole('button', { name: 'New user' }));
+    fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'new-user' } });
+    fireEvent.change(screen.getByLabelText('Display name'), {
+      target: { value: 'Nombre conservado' },
+    });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'short' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save user' }));
     expect(await screen.findByRole('alert')).toHaveTextContent(/12/);
-    expect(fetcher.mock.calls.some(([,init]) => init?.method === 'POST')).toBe(false);
+    expect(fetcher.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false);
     await changeAppLanguage('es');
     expect(await screen.findByLabelText('Nombre visible')).toHaveValue('Nombre conservado');
-    expect(screen.getByRole('button', {name: 'Guardar usuario'})).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Guardar usuario' })).toBeInTheDocument();
   });
   it('T115 paginates users and resets the cursor when search changes', async () => {
     const fetcher = mockApi();
-    fetcher.mockImplementation(() => Promise.resolve(new Response(JSON.stringify({data: [driver], page: {hasNextPage: true, nextCursor: 'next-cursor'}}), {headers: {'Content-Type': 'application/json'}})));
+    fetcher.mockImplementation(() =>
+      Promise.resolve(
+        new Response(
+          JSON.stringify({
+            data: [driver],
+            page: { hasNextPage: true, nextCursor: 'next-cursor' },
+          }),
+          { headers: { 'Content-Type': 'application/json' } },
+        ),
+      ),
+    );
     await open('/users');
-    await screen.findByRole('button', {name: 'Edit Test Driver'});
-    fireEvent.click(screen.getByRole('button', {name: 'Next page'}));
-    await waitFor(() => expect(fetcher.mock.calls.some(([path]) => String(path).includes('cursor=next-cursor'))).toBe(true));
-    fireEvent.change(screen.getByLabelText('Search users'), {target: {value: 'alice'}});
+    await screen.findByRole('button', { name: 'Edit Test Driver' });
+    fireEvent.click(screen.getByRole('button', { name: 'Next page' }));
+    await waitFor(() =>
+      expect(fetcher.mock.calls.some(([path]) => String(path).includes('cursor=next-cursor'))).toBe(
+        true,
+      ),
+    );
+    fireEvent.change(screen.getByLabelText('Search users'), { target: { value: 'alice' } });
     await waitFor(() => expect(String(fetcher.mock.calls.at(-1)![0])).toContain('search=alice'));
     expect(String(fetcher.mock.calls.at(-1)![0])).not.toContain('cursor=');
   });
   it('T115 preserves business edits on conflict and reloads only on explicit request', async () => {
-    const fetcher = mockApi({status: 409, code: 'OPTIMISTIC_CONFLICT', detail: 'Reload the record before saving.'});
+    const fetcher = mockApi({
+      status: 409,
+      code: 'OPTIMISTIC_CONFLICT',
+      detail: 'Reload the record before saving.',
+    });
     await open('/settings');
-    fireEvent.change(await screen.findByLabelText('Business timezone'), {target: {value: 'America/Tijuana'}});
-    fireEvent.change(screen.getByLabelText('Reason'), {target: {value: 'New schedule'}});
-    fireEvent.click(screen.getByRole('button', {name: 'Save business settings'}));
+    fireEvent.change(await screen.findByLabelText('Business timezone'), {
+      target: { value: 'America/Tijuana' },
+    });
+    fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'New schedule' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save business settings' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Reload the record');
     expect(screen.getByLabelText('Business timezone')).toHaveValue('America/Tijuana');
-    fetcher.mockImplementation(() => respond({version: 3, currencyCode: 'USD', businessTimezone: 'America/Phoenix'}));
-    fireEvent.click(screen.getByRole('button', {name: 'Discard edits and reload current record'}));
-    await waitFor(() => expect(screen.getByLabelText('Business timezone')).toHaveValue('America/Phoenix'));
+    fetcher.mockImplementation(() =>
+      respond({ version: 3, currencyCode: 'USD', businessTimezone: 'America/Phoenix' }),
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Discard edits and reload current record' }),
+    );
+    await waitFor(() =>
+      expect(screen.getByLabelText('Business timezone')).toHaveValue('America/Phoenix'),
+    );
     expect(screen.getByLabelText('Reason')).toHaveValue('');
   });
   it('T115 never fetches business settings for Drivers', async () => {
     const fetcher = mockApi();
     await open('/settings', 'DRIVER');
-    expect(await screen.findByRole('combobox', {name: 'Language'})).toBeInTheDocument();
+    expect(await screen.findByRole('combobox', { name: 'Language' })).toBeInTheDocument();
     expect(screen.queryByLabelText('Business timezone')).not.toBeInTheDocument();
-    expect(fetcher.mock.calls.some(([path]) => String(path).includes('/settings/business'))).toBe(false);
+    expect(fetcher.mock.calls.some(([path]) => String(path).includes('/settings/business'))).toBe(
+      false,
+    );
+  });
+  it('T115 explicitly discards user edits even when a reload returns the same version', async () => {
+    const fetcher = mockApi({
+      status: 409,
+      code: 'OPTIMISTIC_CONFLICT',
+      detail: 'Reload the record before saving.',
+    });
+    await open('/users');
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit Test Driver' }));
+    fireEvent.change(screen.getByLabelText('Display name'), { target: { value: 'Unsaved name' } });
+    fireEvent.change(screen.getByLabelText('Password'), {
+      target: { value: 'unsaved-password-123' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save user' }));
+    await screen.findByRole('alert');
+    fetcher.mockImplementation(() => respond(driver));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Discard edits and reload current record' }),
+    );
+    await waitFor(() =>
+      expect(screen.getByLabelText('Display name')).toHaveValue(driver.displayName),
+    );
+    expect(screen.getByLabelText('Password')).toHaveValue('');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+  it('T115 shows the canonical business settings after saving and uses their new version', async () => {
+    const fetcher = mockApi();
+    await open('/settings');
+    fireEvent.change(await screen.findByLabelText('Business timezone'), {
+      target: { value: ' America/Tijuana ' },
+    });
+    fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'Updated schedule' } });
+    fetcher.mockImplementation(() =>
+      respond({ version: 2, currencyCode: 'MXN', businessTimezone: 'America/Tijuana' }),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Save business settings' }));
+    await screen.findByText('Changes saved.');
+    expect(screen.getByLabelText('Business timezone')).toHaveValue('America/Tijuana');
+    fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'Second update' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save business settings' }));
+    await waitFor(() =>
+      expect(fetcher.mock.calls.filter(([, init]) => init?.method === 'PATCH')).toHaveLength(2),
+    );
+    const last = fetcher.mock.calls.filter(([, init]) => init?.method === 'PATCH').at(-1)!;
+    expect(JSON.parse(String(last[1]?.body)).expectedVersion).toBe(2);
+  });
+  it('T115 reactivates an account and submits role and password changes', async () => {
+    const fetcher = mockApi();
+    fetcher.mockImplementation(() => respond([{ ...driver, active: false }]));
+    await open('/users');
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit Test Driver' }));
+    fireEvent.mouseDown(screen.getAllByRole('combobox', { name: 'Status' }).at(-1)!);
+    fireEvent.click(await screen.findByRole('option', { name: 'Active', exact: true }));
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Role' }));
+    fireEvent.click(await screen.findByRole('option', { name: 'Administrator', exact: true }));
+    fireEvent.change(screen.getByLabelText('Password'), {
+      target: { value: 'replacement-password-123' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save user' }));
+    await waitFor(() =>
+      expect(fetcher.mock.calls.some(([, init]) => init?.method === 'PATCH')).toBe(true),
+    );
+    const call = fetcher.mock.calls.find(([, init]) => init?.method === 'PATCH')!;
+    expect(JSON.parse(String(call[1]?.body))).toMatchObject({
+      expectedVersion: 1,
+      active: true,
+      role: 'ADMINISTRATOR',
+      password: 'replacement-password-123',
+    });
   });
   it('offers Drivers only approved printer controls and language settings', async () => {
     mockApi();

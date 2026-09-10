@@ -51,6 +51,7 @@ function UserDirectory({ actorId }: { actorId: string }) {
   const [active, setActive] = useState('');
   const [cursors, setCursors] = useState<string[]>([]);
   const [selected, setSelected] = useState<User | 'new' | null>(null);
+  const [editorRevision, setEditorRevision] = useState(0);
   const [success, setSuccess] = useState(false);
   const cursor = cursors.at(-1);
   const query = new URLSearchParams({ search, limit: '25' });
@@ -119,8 +120,8 @@ function UserDirectory({ actorId }: { actorId: string }) {
             <Button
               color="inherit"
               onClick={() => {
-                setCursors([]);
-                void users.refetch();
+                if (cursors.length) setCursors([]);
+                else void users.refetch();
               }}
             >
               {t('administration.retry')}
@@ -177,9 +178,14 @@ function UserDirectory({ actorId }: { actorId: string }) {
         {selected && (
           <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 }, alignSelf: 'start' }}>
             <UserEditor
-              key={selected === 'new' ? 'new' : `${selected.id}:${selected.version}`}
+              key={
+                selected === 'new' ? 'new' : `${selected.id}:${selected.version}:${editorRevision}`
+              }
               user={selected === 'new' ? null : selected}
-              onReload={setSelected}
+              onReload={(current) => {
+                setSelected(current);
+                setEditorRevision((revision) => revision + 1);
+              }}
               onSaved={() => {
                 setSelected(null);
                 setSuccess(true);
@@ -265,7 +271,7 @@ function UserEditor({
       {invalid && <Alert severity="error">{t('administration.validation')}</Alert>}
       {error && <Alert severity="error">{localizedErrorMessage(error, t)}</Alert>}
       {isStale(save.error) && (
-        <Button disabled={reload.isPending} onClick={() => reload.mutate()}>
+        <Button disabled={reload.isPending || save.isPending} onClick={() => reload.mutate()}>
           {t('administration.reload')}
         </Button>
       )}
@@ -394,6 +400,8 @@ function BusinessSettingsEditor({ settings }: { settings: BusinessSettings }) {
       apiRequest<{ data: BusinessSettings }>('/settings/business', { method: 'PATCH', body }),
     retry: false,
     onSuccess: async (response) => {
+      setCurrencyCode(response.data.currencyCode);
+      setBusinessTimezone(response.data.businessTimezone);
       setVersion(response.data.version);
       setReason('');
       setSaved(true);
@@ -442,7 +450,7 @@ function BusinessSettingsEditor({ settings }: { settings: BusinessSettings }) {
         <Alert severity="error">{localizedErrorMessage(reload.error ?? save.error, t)}</Alert>
       )}
       {isStale(save.error) && (
-        <Button disabled={reload.isPending} onClick={() => reload.mutate()}>
+        <Button disabled={reload.isPending || save.isPending} onClick={() => reload.mutate()}>
           {t('administration.reload')}
         </Button>
       )}
