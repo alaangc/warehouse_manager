@@ -9,6 +9,7 @@
     "pnpm": "10.28.1"
   },
   "scripts": {
+    "demo:start": "node scripts/start-demo.mjs",
     "dev": "pnpm --parallel --filter @warehouse/api --filter @warehouse/web dev",
     "build": "pnpm -r build",
     "build:api": "pnpm --filter @warehouse/api build",

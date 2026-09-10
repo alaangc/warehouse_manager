@@ -1,0 +1,30 @@
+# Application + API share one free service; PostgreSQL lives on Neon Free.
+services:
+  - type: web
+    name: warehouse-manager-demo
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: corepack enable && pnpm install --frozen-lockfile --prod=false && pnpm build
+    startCommand: corepack pnpm demo:start
+    healthCheckPath: /api/v1/health
+    autoDeployTrigger: off
+    envVars:
+      - key: NODE_VERSION
+        value: 24
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: DEMO_PASSWORD
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: BUSINESS_TIMEZONE
+        value: America/Hermosillo
+      - key: BUSINESS_CURRENCY
+        value: MXN
+      - key: DOCUMENT_STORAGE_PATH
+        value: /tmp/warehouse-demo-documents
+      - key: DEMO_MODE
+        value: 'true'

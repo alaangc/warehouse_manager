@@ -4,6 +4,11 @@ Warehouse Manager is a React/Vite frontend backed by a Node.js/Express API and
 PostgreSQL 18. The application runs on your computer; Docker Compose provides the
 local database.
 
+## Hosted demo
+
+The free demo deployment uses Render for the application and Neon for PostgreSQL.
+See [demo deployment](docs/demo-deployment.md) for setup and limitations.
+
 ## Prerequisites
 
 - Docker Desktop (running)

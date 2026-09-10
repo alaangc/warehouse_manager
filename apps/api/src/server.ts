@@ -1,4 +1,5 @@
 import express, { type Express } from 'express';
+import path from 'node:path';
 import helmet from 'helmet';
 import type { Environment } from './config/env.js';
 import { createDatabase, type AppDatabase } from './db/database.js';
@@ -22,7 +23,11 @@ import { createReportRouter } from './modules/reports/report-routes.js';
 import { createAdministrationRouter } from './modules/users/administration-routes.js';
 import { createOverviewRouter } from './modules/overview/overview-routes.js';
 
-export type ServerOptions = { database?: AppDatabase; auth?: AuthenticationGateway };
+export type ServerOptions = {
+  database?: AppDatabase;
+  auth?: AuthenticationGateway;
+  webDirectory?: string;
+};
 
 export function createServer(environment: Environment, options: ServerOptions = {}): Express {
   const database = options.database ?? createDatabase(environment.DATABASE_URL);
@@ -46,6 +51,15 @@ export function createServer(environment: Environment, options: ServerOptions = 
   app.use('/api/v1', createReportRouter(database));
   app.use('/api/v1', createAdministrationRouter(database));
   app.use('/api/v1', createOverviewRouter(database));
+  if (options.webDirectory) {
+    const directory = path.resolve(options.webDirectory);
+    app.use('/api', notFoundHandler);
+    app.use(express.static(directory));
+    app.get('/{*path}', (request, response, next) => {
+      if (path.extname(request.path) || !request.accepts('html')) return next();
+      response.set('Cache-Control', 'no-cache').sendFile(path.join(directory, 'index.html'));
+    });
+  }
   app.use(notFoundHandler, problemHandler);
   return app;
 }
