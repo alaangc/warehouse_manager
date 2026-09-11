@@ -17,6 +17,7 @@ import { SettingsPage } from '../features/settings/settings-page.js';
 import { DashboardPage } from '../features/dashboard/dashboard-page.js';
 import { CashClosePages } from '../features/reports/cash-close-pages.js';
 import { ReportPages } from '../features/reports/report-pages.js';
+import { PrinterProfilePage } from '../features/printers/printer-profile-page.js';
 
 function RouteError() {
   const { t } = useTranslation();
@@ -54,6 +55,7 @@ export const router = createBrowserRouter([
       { path: 'cash-closes', element: <CashClosePages /> },
       { path: 'reports', element: <ReportPages /> },
       { path: 'users', element: <UserSettingsPages /> },
+      { path: 'printer-profiles', element: <PrinterProfilePage /> },
       { path: 'settings', element: <SettingsPage /> },
       { path: 'sales', element: <DriverSaleHistory /> },
       { path: 'sales/new', element: <SaleForm /> },

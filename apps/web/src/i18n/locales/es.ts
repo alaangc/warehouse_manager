@@ -1,9 +1,11 @@
 import type { en } from './en.js';
 import { reportsEs } from '../../features/reports/translations.js';
+import { printersEs } from '../../features/printers/translations.js';
 
 type DeepTranslation<T> = { [K in keyof T]: T[K] extends string ? string : DeepTranslation<T[K]> };
 
 export const es: DeepTranslation<typeof en> = {
+  printers: printersEs,
   reports: reportsEs,
   app: { name: 'Administrador de Almacén' },
   common: {

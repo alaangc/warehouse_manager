@@ -1,5 +1,7 @@
 import { reportsEn } from '../../features/reports/translations.js';
+import { printersEn } from '../../features/printers/translations.js';
 export const en = {
+  printers: printersEn,
   reports: reportsEn,
   app: { name: 'Warehouse Manager' },
   common: {

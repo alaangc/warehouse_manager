@@ -30,6 +30,7 @@ const adminLinks: ReadonlyArray<readonly [string, string]> = [
   ['/cash-closes', 'reports.cashCloses'],
   ['/reports', 'reports.title'],
   ['/users', 'nav.users'],
+  ['/printer-profiles', 'printers.title'],
   ['/settings', 'nav.settings'],
 ];
 const driverLinks: ReadonlyArray<readonly [string, string]> = [
