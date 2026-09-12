@@ -28,6 +28,7 @@ export type DocumentSource = {
 };
 export type DocumentRow = Selectable<DocumentOutputTable>;
 export type LoadedDocumentSource = DocumentSource & {
+  state: 'COMPLETED' | 'CONFIRMED' | 'CLOSED' | 'READY';
   contentVersion: string;
   createdAt: string;
   snapshot: JsonValue;
@@ -167,6 +168,7 @@ export class DocumentRepository {
           .executeTakeFirstOrThrow();
         return {
           ...source,
+          state: 'COMPLETED',
           contentVersion: ticket.content_version,
           createdAt: ticket.created_at.toISOString(),
           snapshot: ticket.printable_snapshot,
@@ -194,6 +196,7 @@ export class DocumentRepository {
           .execute();
         return {
           ...source,
+          state: 'CONFIRMED',
           contentVersion: '1',
           createdAt: load.confirmed_at!.toISOString(),
           snapshot: {
@@ -224,6 +227,7 @@ export class DocumentRepository {
           .execute();
         return {
           ...source,
+          state: 'CLOSED',
           contentVersion: '1',
           createdAt: close.created_at.toISOString(),
           snapshot: {
@@ -256,6 +260,7 @@ export class DocumentRepository {
         throw new HttpProblem(404, 'DOCUMENT_SOURCE_NOT_FOUND', 'Document source not found');
       return {
         ...source,
+        state: 'READY',
         contentVersion: '1',
         createdAt: report.created_at.toISOString(),
         snapshot: {
