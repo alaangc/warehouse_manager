@@ -62,8 +62,8 @@ export function problem(response: Response, status: number) {
     expect(response.body).not.toHaveProperty(key);
 }
 
-export async function documentHarness() {
-  const h = await administrationHarness();
+export async function documentHarness(options: { documentStoragePath?: string } = {}) {
+  const h = await administrationHarness(options);
   try {
     const admin = await h.login('admin');
     const command = (actor: TestPrincipal, path: string, body: object) =>

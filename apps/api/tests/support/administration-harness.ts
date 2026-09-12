@@ -23,7 +23,7 @@ export const testPrinterProfile = {
   maxChunkBytes: 20,
   interChunkDelayMs: 10,
 };
-export async function administrationHarness() {
+export async function administrationHarness(options: { documentStoragePath?: string } = {}) {
   const postgres = await startPostgres();
   const database = createDatabase(postgres.connectionString);
   const origin = 'https://warehouse.test';
@@ -48,7 +48,7 @@ export async function administrationHarness() {
       BUSINESS_CURRENCY: 'MXN',
       PORT: 3000,
       LOG_LEVEL: 'fatal',
-      DOCUMENT_STORAGE_PATH: '/tmp/warehouse-administration-tests',
+      DOCUMENT_STORAGE_PATH: options.documentStoragePath ?? '/tmp/warehouse-administration-tests',
     },
     { database },
   );

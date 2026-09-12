@@ -119,6 +119,7 @@ export async function createSaleScenario(
   const driver = await database
     .insertInto('app_user')
     .values({
+      id: crypto.randomUUID(),
       username: `sale-driver-${crypto.randomUUID()}`,
       display_name: 'Sale integration driver',
       password_hash: seededDriver.password_hash,
