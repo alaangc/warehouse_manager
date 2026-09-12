@@ -14,7 +14,7 @@ import { RoutesPage } from '../features/routes/routes-page.js';
 import { CustomerPages } from '../features/customers/customer-pages.js';
 import { LoginPage } from '../features/auth/login-page.js';
 import { SettingsPage } from '../features/settings/settings-page.js';
-import { DashboardPage } from '../features/dashboard/dashboard-page.js';
+import { OverviewPage } from '../features/overview/overview-page.js';
 import { CashClosePages } from '../features/reports/cash-close-pages.js';
 import { ReportPages } from '../features/reports/report-pages.js';
 import { PrinterProfilePage } from '../features/printers/printer-profile-page.js';
@@ -44,7 +44,7 @@ export const router = createBrowserRouter([
     element: <AppLayout />,
     errorElement: <RouteError />,
     children: [
-      { index: true, element: <DashboardPage /> },
+      { index: true, element: <OverviewPage /> },
       { path: 'inventory', element: <InventoryPage /> },
       { path: 'inventory/products/:productId', element: <ProductDetailPage /> },
       { path: 'inventory/operations/new', element: <InventoryOperationForm /> },

@@ -8,7 +8,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import { useMemo } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useSession } from '../../app/session.js';
@@ -107,7 +107,7 @@ function RouteCard({ route, balanceCount }: { route: RouteResource; balanceCount
   );
 }
 
-export function DashboardPage() {
+export function DashboardPage({ children }: { children?: ReactNode }) {
   const { t } = useTranslation();
   const session = useSession();
   const administrator = session.user?.role === 'ADMINISTRATOR';
@@ -209,6 +209,7 @@ export function DashboardPage() {
         </Stack>
       </Paper>
 
+      {children}
       {error && <Alert severity="error">{localizedErrorMessage(error, t)}</Alert>}
       {(routes.isLoading || balances.isLoading || sales.isLoading) && (
         <CircularProgress aria-label={t('dashboard.loading')} />

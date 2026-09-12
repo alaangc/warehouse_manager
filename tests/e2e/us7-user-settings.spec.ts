@@ -46,7 +46,7 @@ test('creates a Driver, denies administrator access, revokes access, and retains
   await page.getByLabel('Username').fill('admin');
   await page.locator('input[name="password"]').fill(password);
   await page.getByRole('button', { name: 'Sign in' }).click();
-  await page.getByRole('link', { name: 'Users', exact: true }).click();
+  await page.getByRole('banner').getByRole('link', { name: 'Users', exact: true }).click();
   await page.getByRole('button', { name: 'New user' }).click();
   const username = `e2e-${crypto.randomUUID()}`;
   await page.getByLabel('Username').fill(username);
@@ -60,7 +60,17 @@ test('creates a Driver, denies administrator access, revokes access, and retains
   const customer = await harness.send(principal, 'post', '/customers', {
     displayName: `Customer ${username}`,
   });
-  expect(customer.status).toBe(201);
+  expect(customer.status).toBe(403);
+  const admin = await harness.login('admin');
+  const profile = await harness.send(admin, 'post', '/printer-profiles', testPrinterProfile);
+  expect(profile.status).toBe(201);
+  expect(
+    (
+      await harness.send(principal, 'put', '/me/printer-preference', {
+        printerProfileId: profile.body.data.id,
+      })
+    ).status,
+  ).toBe(200);
   const history = await harness.database
     .selectFrom('audit_event')
     .selectAll()
@@ -68,7 +78,8 @@ test('creates a Driver, denies administrator access, revokes access, and retains
     .execute();
   expect(history.length).toBeGreaterThan(0);
   await page.getByRole('button', { name: `Edit ${username}` }).click();
-  await page.getByLabel('Active', { exact: true }).uncheck();
+  await page.getByRole('combobox', { name: 'Status', exact: true }).last().click();
+  await page.getByRole('option', { name: 'Inactive', exact: true }).click();
   await page.getByLabel('Reason', { exact: true }).fill('Account retired');
   await page.getByRole('button', { name: 'Save user' }).click();
   await expect(page.getByRole('alert')).toHaveText(/saved/i);
@@ -91,7 +102,9 @@ test('creates a Driver, denies administrator access, revokes access, and retains
 
 test('Driver connects and tests only an approved printer without gaining configuration access', async ({
   page,
-}) => {
+}, testInfo) => {
+  const pageErrors: string[] = [];
+  page.on('pageerror', (error) => pageErrors.push(error.message));
   const admin = await harness.login('admin');
   const profile = await harness.send(admin, 'post', '/printer-profiles', testPrinterProfile);
   expect(profile.status).toBe(201);
@@ -103,6 +116,7 @@ test('Driver connects and tests only an approved printer without gaining configu
         requestDevice: async () => ({
           name: 'E2E printer',
           addEventListener() {},
+          removeEventListener() {},
           gatt: {
             connected: true,
             disconnect() {},
@@ -123,11 +137,13 @@ test('Driver connects and tests only an approved printer without gaining configu
   await page.getByLabel('Username').fill('driver');
   await page.locator('input[name="password"]').fill('development-password-change-me');
   await page.getByRole('button', { name: 'Sign in' }).click();
-  await page.getByRole('link', { name: 'Settings', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Operational totals' })).toBeVisible();
+  await expect(page.getByText('Completed sales total (all dates)')).toHaveCount(0);
+  await page.getByRole('banner').getByRole('link', { name: 'Settings', exact: true }).click();
   await expect(page.getByLabel('Business timezone')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'New printer' })).toHaveCount(0);
   await page.getByLabel('Printer', { exact: true }).selectOption(profile.body.data.id);
-  await page.getByRole('button', { name: 'Connect printer' }).click();
+  await page.getByRole('button', { name: 'Connect printer', exact: true }).click();
   const attempt = page.waitForResponse(
     (response) =>
       response.url().includes('/output-attempts') &&
@@ -136,4 +152,29 @@ test('Driver connects and tests only an approved printer without gaining configu
   await page.getByRole('button', { name: 'Test printer' }).click();
   expect((await attempt).status()).toBe(201);
   await expect(page.getByTestId('printer-test-result')).toHaveAttribute('data-state', 'SUCCEEDED');
+  await expect(page.getByText('Changes saved.')).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('printer-desktop.png'), fullPage: true });
+  await page.reload();
+  await expect(page.getByLabel('Printer', { exact: true })).toHaveValue(profile.body.data.id);
+  await expect(page.getByTestId('printer-test-result')).toHaveAttribute('data-state', 'SUCCEEDED');
+  await expect(page.getByRole('button', { name: 'Test printer', exact: true })).toBeDisabled();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: testInfo.outputPath('printer-mobile.png'), fullPage: true });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  );
+  const driver = await harness.login('driver');
+  const records = await harness.database
+    .selectFrom('output_attempt')
+    .selectAll()
+    .where('actor_id', '=', driver.id)
+    .where('printer_profile_id', '=', profile.body.data.id)
+    .orderBy('attempt_number')
+    .execute();
+  expect(records.map((row) => row.state)).toEqual(['STARTED', 'SUCCEEDED']);
+  expect(records.every((row) => row.document_output_id === null)).toBe(true);
+  expect(
+    (await harness.send(driver, 'get', '/me/printer-preference')).body.data.lastTestResult,
+  ).toBe('SUCCEEDED');
+  expect(pageErrors).toEqual([]);
 });

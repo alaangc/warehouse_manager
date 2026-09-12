@@ -10,6 +10,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { changeAppLanguage, type AppLanguage } from '../../i18n/index.js';
 import { BusinessSettingsPanel } from '../administration/user-settings-pages.js';
+import { PrinterPreferencePage } from '../printers/printer-preference-page.js';
 
 export function SettingsPage() {
   const { t, i18n } = useTranslation();
@@ -32,6 +33,7 @@ export function SettingsPage() {
         <FormHelperText>{t('settings.languageHelp')}</FormHelperText>
       </FormControl>
       <BusinessSettingsPanel />
+      <PrinterPreferencePage />
     </Stack>
   );
 }

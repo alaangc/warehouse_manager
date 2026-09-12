@@ -292,7 +292,7 @@ while historical attribution and active-route constraints remain intact.
 - [X] T114 [P] [US7] Implement role-specific overview queries and API composition in `apps/api/src/modules/overview/overview-service.ts` and `apps/api/src/modules/overview/overview-routes.ts`
 - [X] T115 [P] [US7] Implement Administrator user and business-setting screens with conflict/deactivation explanations in `apps/web/src/features/administration/user-settings-pages.tsx`
 - [X] T116 [P] [US7] Implement Administrator approved-printer profile management in `apps/web/src/features/printers/printer-profile-page.tsx`
-- [ ] T117 [US7] Implement the PrinterAdapter boundary plus Driver selection, Web Bluetooth capability/permission checks, connect/test/disconnect states, and role overview UI in `apps/web/src/features/printers/printer-adapter.ts`, `apps/web/src/features/printers/web-bluetooth-adapter.ts`, `apps/web/src/features/printers/printer-preference-page.tsx`, and `apps/web/src/features/overview/overview-page.tsx`
+- [X] T117 [US7] Implement the PrinterAdapter boundary plus Driver selection, Web Bluetooth capability/permission checks, connect/test/disconnect states, and role overview UI in `apps/web/src/features/printers/printer-adapter.ts`, `apps/web/src/features/printers/web-bluetooth-adapter.ts`, `apps/web/src/features/printers/printer-preference-page.tsx`, and `apps/web/src/features/overview/overview-page.tsx`
 
 **Checkpoint**: US7 independently proves user lifecycle, immediate access revocation,
 historical actor preservation, operational-setting boundaries, and limited Driver

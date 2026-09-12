@@ -27,6 +27,15 @@ const printer = {
   model: 'BLE',
   active: true,
   version: 1,
+  serviceUuid: 'ffe0',
+  writeCharacteristicUuid: 'ffe1',
+  writeMode: 'WITH_RESPONSE',
+  commandDialect: 'ESC_POS',
+  paperWidthMm: 58,
+  encoding: 'CP850',
+  maxChunkBytes: 100,
+  interChunkDelayMs: 0,
+  transport: 'WEB_BLUETOOTH_BLE',
 };
 const businessSettings = {
   version: 1,
@@ -339,6 +348,7 @@ describe('administration UI', () => {
   });
   it('shows permission denial without recording a successful print', async () => {
     const fetcher = mockApi();
+    vi.stubGlobal('isSecureContext', true);
     vi.stubGlobal('navigator', {
       ...navigator,
       bluetooth: {
@@ -348,6 +358,9 @@ describe('administration UI', () => {
       },
     });
     await open('/settings', 'DRIVER');
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Connect printer' })).toBeEnabled(),
+    );
     fireEvent.click(await screen.findByRole('button', { name: 'Connect printer' }));
     expect(await screen.findByRole('alert')).toHaveTextContent(/permission|denied/i);
     expect(
