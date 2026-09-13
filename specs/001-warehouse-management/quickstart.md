@@ -17,6 +17,13 @@ interface to create during implementation; this planning phase does not scaffold
 Do not use production credentials or production data. Tests MUST create isolated data
 and an isolated database.
 
+When Docker is unavailable, `TEST_POSTGRES_ADMIN_URL` may point to a disposable
+PostgreSQL 18 server on localhost. The test harness creates a fresh UUID-named
+database per invocation and drops only that database during cleanup. The local
+account needs database and role creation privileges; migrations create shared test
+roles, so use a dedicated test server and run files with `--no-file-parallelism`.
+Omit this variable to retain the default Testcontainers workflow.
+
 ## Required Environment
 
 The API startup schema must validate, at minimum:
