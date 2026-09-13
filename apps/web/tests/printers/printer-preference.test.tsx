@@ -41,6 +41,7 @@ function setup({
     }),
     disconnect: vi.fn(() => publish('DISCONNECTED')),
     test: vi.fn(async () => ({ state: result })),
+    print: vi.fn(async () => ({ state: result })),
   };
   const calls: Array<{ path: string; body: Record<string, unknown> }> = [];
   const fetcher = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {

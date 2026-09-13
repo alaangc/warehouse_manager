@@ -69,4 +69,14 @@ export const DocumentResourceSchema = registerSchema(
     .strict(),
 );
 export type DocumentResource = z.infer<typeof DocumentResourceSchema>;
+export const DocumentPrintMetadataSchema = DocumentResourceSchema.pick({
+  id: true,
+  documentType: true,
+  sourceType: true,
+  sourceId: true,
+  contentVersion: true,
+  state: true,
+})
+  .extend({ sourceState: z.string() })
+  .strip();
 export type DocumentCreateRequest = z.infer<typeof DocumentCreateSchema>;

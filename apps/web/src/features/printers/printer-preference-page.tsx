@@ -169,7 +169,12 @@ function PrinterPreferencePanel({
         )}
         <FormControl
           fullWidth
-          disabled={busy || connection.state === 'CONNECTING' || connection.state === 'TESTING'}
+          disabled={
+            busy ||
+            connection.state === 'CONNECTING' ||
+            connection.state === 'TESTING' ||
+            connection.state === 'PRINTING'
+          }
         >
           <InputLabel htmlFor="personal-printer" shrink>
             {t('printers.printer')}

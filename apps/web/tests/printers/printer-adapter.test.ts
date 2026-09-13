@@ -1,8 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { WebBluetoothPrinterAdapter } from '../../src/features/printers/web-bluetooth-adapter.js';
 
-// T128/T129 proposed boundary. No implementation stubs or skipped tests: missing
-// formatEscPos / print deliberately fail until business printing is implemented.
+// Formatter acceptance stays independent from the transport's prepared-byte input.
 const formatterPath = '../../src/features/printers/escpos-formatter.js';
 const profile = {
   id: '00000000-0000-4000-8000-000000000118',
@@ -27,7 +26,12 @@ function document(documentType = 'TICKET') {
     sourceType: documentType === 'TICKET' ? 'SALE' : documentType,
     sourceId: '00000000-0000-4000-8000-000000000120',
     state: 'READY',
-    sourceState: documentType === 'ROUTE_LOAD' ? 'CONFIRMED' : 'COMPLETED',
+    sourceState:
+      documentType === 'ROUTE_LOAD'
+        ? 'CONFIRMED'
+        : documentType === 'CASH_CLOSE'
+          ? 'CLOSED'
+          : 'COMPLETED',
     contentVersion: '1',
     snapshot: {
       ticketNumber: 'T-118',
@@ -58,6 +62,7 @@ async function format(doc = document(), options = {}) {
   const { formatEscPos } = await import(formatterPath);
   return formatEscPos(doc, { profile, mode: 'PRINT', ...options }) as Uint8Array;
 }
+const transportBytes = new TextEncoder().encode('COMMITTED DOCUMENT\n0123456789\n\n');
 function transport(options = {}) {
   const events = new EventTarget();
   const write = vi.fn().mockResolvedValue(undefined);
@@ -90,6 +95,7 @@ function transport(options = {}) {
     expect(adapter).toHaveProperty('print', expect.any(Function));
     return Reflect.get(adapter, 'print').call(adapter, doc, {
       mode: 'PRINT',
+      bytes: transportBytes,
       ...request,
     }) as Promise<{ state: string }>;
   };
@@ -168,6 +174,75 @@ describe('T118 ESC/POS templates (T129 red phase)', () => {
 });
 
 describe('T118 document transport (T128 red phase)', () => {
+  it('freezes prepared bytes and blocks tests, prints and reconnects while sending', async () => {
+    const s = transport();
+    await s.connect();
+    const bytes = new Uint8Array(transportBytes);
+    const before = Array.from(bytes);
+    let release!: () => void;
+    s.write.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          release = resolve;
+        }),
+    );
+    const pending = s.print(document(), { bytes });
+    expect(s.adapter.getSnapshot().state).toBe('PRINTING');
+    expect(await s.adapter.test()).toEqual({ state: 'FAILED', errorCode: 'BUSY' });
+    expect(await s.print()).toEqual({ state: 'FAILED', errorCode: 'BUSY' });
+    await expect(s.connect()).rejects.toMatchObject({ code: 'BUSY' });
+    bytes.fill(0);
+    release();
+    expect(await pending).toEqual({ state: 'SUCCEEDED' });
+    expect(s.write.mock.calls.flatMap(([chunk]) => Array.from(chunk))).toEqual(before);
+    expect(s.adapter.getSnapshot().state).toBe('CONNECTED');
+  });
+  it('requires explicit reprint after reconnecting from an uncertain PRINT', async () => {
+    const s = transport();
+    await s.connect();
+    s.write.mockRejectedValueOnce(new Error('uncertain'));
+    expect(await s.print()).toMatchObject({ state: 'UNKNOWN' });
+    await s.connect();
+    s.write.mockClear();
+    await expect(s.print()).rejects.toMatchObject({ code: 'REPRINT_CONFIRMATION_REQUIRED' });
+    expect(s.write).not.toHaveBeenCalled();
+  });
+  it('stops without another write when disconnected during an inter-chunk delay', async () => {
+    vi.useFakeTimers();
+    const s = transport({ interChunkDelayMs: 50 });
+    await s.connect();
+    const pending = s.print();
+    await Promise.resolve();
+    expect(s.write).toHaveBeenCalledTimes(1);
+    s.adapter.disconnect();
+    await vi.advanceTimersByTimeAsync(50);
+    expect(await pending).toMatchObject({ state: 'UNKNOWN' });
+    expect(s.write).toHaveBeenCalledTimes(1);
+  });
+  it.each(['PENDING', 'FAILED'])('rejects %s documents before writing', async (state) => {
+    const s = transport();
+    await s.connect();
+    await expect(s.print({ ...document(), state })).rejects.toMatchObject({ status: 409 });
+    expect(s.write).not.toHaveBeenCalled();
+  });
+  it('rejects empty bytes and invalid source pairs', async () => {
+    const s = transport();
+    await s.connect();
+    await expect(s.print(document(), { bytes: new Uint8Array() })).rejects.toMatchObject({
+      status: 422,
+    });
+    await expect(s.print({ ...document(), sourceType: 'CASH_CLOSE' })).rejects.toMatchObject({
+      status: 422,
+    });
+    expect(s.write).not.toHaveBeenCalled();
+  });
+  it('rechecks browser policy before writing on an existing connection', async () => {
+    const s = transport();
+    await s.connect();
+    vi.stubGlobal('document', { permissionsPolicy: { allowsFeature: () => false } });
+    expect(await s.print()).toEqual({ state: 'FAILED', errorCode: 'POLICY_DENIED' });
+    expect(s.write).not.toHaveBeenCalled();
+  });
   it('honors the configured delay between consecutive chunks', async () => {
     const s = transport({ interChunkDelayMs: 50 });
     await s.connect();
@@ -186,7 +261,7 @@ describe('T118 document transport (T128 red phase)', () => {
       await s.connect();
       const doc = document(type),
         before = structuredClone(doc);
-      const expected = await format(doc);
+      const expected = transportBytes;
       expect(await s.print(doc)).toMatchObject({ state: 'SUCCEEDED' });
       expect(s.write.mock.calls.length).toBeGreaterThan(1);
       expect(s.write.mock.calls.every(([chunk]) => chunk.length <= 8)).toBe(true);

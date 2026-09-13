@@ -1,4 +1,4 @@
-import { PrinterProfileResourceSchema } from '@warehouse/contracts';
+import { PrinterProfileResourceSchema, DocumentPrintMetadataSchema } from '@warehouse/contracts';
 import {
   PrinterError,
   type PrinterAdapter,
@@ -6,6 +6,7 @@ import {
   type PrinterConnection,
   type PrinterProfile,
   type TestResult,
+  type PrintRequest,
 } from './printer-adapter.js';
 
 type Characteristic = {
@@ -48,6 +49,7 @@ export class WebBluetoothPrinterAdapter implements PrinterAdapter {
   private profile: PrinterProfile | undefined;
   private generation = 0;
   private testing = false;
+  private uncertainDocuments = new Set<string>();
   getSnapshot = () => this.snapshot;
   subscribe = (listener: () => void) => {
     this.listeners.add(listener);
@@ -138,22 +140,66 @@ export class WebBluetoothPrinterAdapter implements PrinterAdapter {
     }
   }
   async test(): Promise<TestResult> {
+    const bytes = new Uint8Array([
+      27,
+      64,
+      ...new TextEncoder().encode('PRUEBA / TEST\nWarehouse Manager\n0123456789\n\n\n'),
+    ]);
+    return this.send(bytes, 'TESTING');
+  }
+  async print(raw: unknown, request: PrintRequest): Promise<TestResult> {
+    const parsed = DocumentPrintMetadataSchema.safeParse(raw);
+    if (!parsed.success) throw new PrinterError('DOCUMENT_INVALID', 422);
+    const doc = parsed.data;
+    if (doc.documentType === 'REPORT') throw new PrinterError('DOCUMENT_NOT_PRINTABLE', 422);
+    const pairs = { TICKET: 'SALE', ROUTE_LOAD: 'ROUTE_LOAD', CASH_CLOSE: 'CASH_CLOSE' };
+    if (pairs[doc.documentType] !== doc.sourceType) throw new PrinterError('DOCUMENT_INVALID', 422);
+    if (doc.documentType === 'ROUTE_LOAD' && doc.sourceState !== 'CONFIRMED')
+      throw new PrinterError('ROUTE_LOAD_NOT_CONFIRMED', 409);
+    if (
+      doc.state !== 'READY' ||
+      (doc.documentType === 'TICKET' && doc.sourceState !== 'COMPLETED') ||
+      (doc.documentType === 'CASH_CLOSE' && doc.sourceState !== 'CLOSED')
+    )
+      throw new PrinterError('DOCUMENT_NOT_READY', 409);
+    if (!request || !['PRINT', 'REPRINT'].includes(request.mode))
+      throw new PrinterError('PRINT_REQUEST_INVALID', 422);
+    const identity = `${doc.id.toLowerCase()}:${doc.contentVersion}`;
+    if (
+      (request.mode === 'REPRINT' && request.confirmed !== true) ||
+      (this.uncertainDocuments.has(identity) &&
+        (request.mode !== 'REPRINT' || request.confirmed !== true))
+    )
+      throw new PrinterError('REPRINT_CONFIRMATION_REQUIRED', 409);
+    if (
+      !ArrayBuffer.isView(request.bytes) ||
+      Object.prototype.toString.call(request.bytes) !== '[object Uint8Array]' ||
+      request.bytes.byteLength === 0
+    )
+      throw new PrinterError('PRINT_BYTES_REQUIRED', 422);
+    // Freeze the payload before any asynchronous device work. Formatting and API
+    // acceptance belong to the caller; this transport never changes business data.
+    const result = await this.send(new Uint8Array(request.bytes), 'PRINTING');
+    if (result.state === 'UNKNOWN') this.uncertainDocuments.add(identity);
+    else if (result.state === 'SUCCEEDED') this.uncertainDocuments.delete(identity);
+    return result;
+  }
+  private async send(
+    bytes: Uint8Array<ArrayBuffer>,
+    state: 'TESTING' | 'PRINTING',
+  ): Promise<TestResult> {
     if (this.testing) return { state: 'FAILED', errorCode: 'BUSY' };
+    const capability = this.capability();
+    if (capability !== 'AVAILABLE') return { state: 'FAILED', errorCode: capability };
     const profile = this.profile,
       characteristic = this.characteristic,
       device = this.device;
     if (!profile || !characteristic || !device?.gatt?.connected)
       return { state: 'FAILED', errorCode: 'NOT_CONNECTED' };
     const generation = this.generation;
-    // ASCII-only setup test is safe across all approved encodings. Business templates belong to T129.
-    const bytes = new Uint8Array([
-      27,
-      64,
-      ...new TextEncoder().encode('PRUEBA / TEST\nWarehouse Manager\n0123456789\n\n\n'),
-    ]);
     let attempted = false;
     this.testing = true;
-    this.publish('TESTING');
+    this.publish(state);
     try {
       for (let offset = 0; offset < bytes.length; offset += profile.maxChunkBytes) {
         if (generation !== this.generation || !device.gatt.connected)

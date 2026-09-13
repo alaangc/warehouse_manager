@@ -1,4 +1,5 @@
 export const printersEn = {
+  PRINTING: 'Sending document...',
   personal: 'My printer',
   personalHelp: 'Choose an approved printer for this account, then connect it and send a test.',
   printer: 'Printer',
@@ -52,6 +53,7 @@ export const printersEn = {
   missing: 'The profile is no longer available.',
 };
 export const printersEs = {
+  PRINTING: 'Enviando documento...',
   personal: 'Mi impresora',
   personalHelp: 'Selecciona una impresora aprobada para esta cuenta, conéctala y envía una prueba.',
   printer: 'Impresora',
