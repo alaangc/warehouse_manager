@@ -92,6 +92,15 @@ export interface RenderedDocumentPdf {
   contentType: 'application/pdf';
 }
 
+export function documentPdfFilename(source: {
+  documentType: string;
+  sourceId: string;
+  contentVersion: string;
+}): string {
+  const version = createHash('sha256').update(source.contentVersion).digest('hex').slice(0, 12);
+  return `${source.documentType.toLowerCase()}-${source.sourceId.toLowerCase()}-v${version}.pdf`;
+}
+
 const labels = {
   es: {
     TICKET: 'Ticket de venta',
@@ -490,10 +499,9 @@ export async function renderDocumentPdf(input: unknown): Promise<RenderedDocumen
     }
     doc.end();
     const bytes = await output;
-    const version = createHash('sha256').update(source.contentVersion).digest('hex').slice(0, 12);
     return {
       bytes,
-      filename: `${source.documentType.toLowerCase()}-${source.sourceId.toLowerCase()}-v${version}.pdf`,
+      filename: documentPdfFilename(source),
       contentType: 'application/pdf',
       contentHash: createHash('sha256').update(bytes).digest('hex'),
     };
