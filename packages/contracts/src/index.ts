@@ -11,3 +11,4 @@ export * from './report-schemas.js';
 export * from './administration-schemas.js';
 export * from './document-schemas.js';
 export * from './output-attempt-schemas.js';
+export * from './print-schemas.js';

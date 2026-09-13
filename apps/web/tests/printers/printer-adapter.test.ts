@@ -40,15 +40,18 @@ function document(documentType = 'TICKET') {
       routeNumber: 'R-118',
       closeNumber: 'C-118',
       currencyCode: 'MXN',
-      lines: [
-        {
-          productName: 'Piñata café',
-          unitCode: 'PZA',
-          quantity: '2.000',
-          unitPrice: '10.0050',
-          lineAmount: '20.01',
-        },
-      ],
+      lines:
+        documentType === 'CASH_CLOSE'
+          ? []
+          : [
+              {
+                productName: 'Piñata café',
+                unitCode: 'PZA',
+                quantity: '2.000',
+                unitPrice: '10.0050',
+                lineAmount: '20.01',
+              },
+            ],
       total: '20.01',
       grossTotal: '20.01',
       expensesTotal: '0.00',
@@ -58,7 +61,7 @@ function document(documentType = 'TICKET') {
     },
   };
 }
-async function format(doc = document(), options = {}) {
+async function format(doc: unknown = document(), options = {}) {
   const { formatEscPos } = await import(formatterPath);
   return formatEscPos(doc, { profile, mode: 'PRINT', ...options }) as Uint8Array;
 }
@@ -115,6 +118,82 @@ afterEach(() => {
 });
 
 describe('T118 ESC/POS templates (T129 red phase)', () => {
+  it.each([
+    ['CP437', [27, 64, 27, 116, 0]],
+    ['CP850', [27, 64, 27, 116, 2]],
+    ['UTF-8', [27, 64, 28, 40, 67, 2, 0, 48, 2]],
+  ] as const)('selects %s after reset', async (encoding, prefix) => {
+    const bytes = await format(document(), { profile: { ...profile, encoding } });
+    expect(Array.from(bytes.slice(0, prefix.length))).toEqual(prefix);
+    expect(Array.from(bytes.slice(-3))).toEqual([10, 10, 10]);
+  });
+  it('prevents control-byte and OEM-symbol injection in user text', async () => {
+    const doc = document();
+    doc.snapshot.lines[0]!.productName = 'Cafe\u001bp\u0000\n\u001dV\u0001\u263a\u202e';
+    const bytes = await format(doc, { profile: { ...profile, encoding: 'CP437' } });
+    expect(Array.from(bytes.slice(5)).every((byte) => byte === 10 || byte >= 32)).toBe(true);
+    expect(Array.from(bytes.slice(5))).not.toContain(27);
+    expect(Array.from(bytes.slice(5))).not.toContain(29);
+  });
+  it('preserves exact historical amounts without numeric conversion or recalculation', async () => {
+    const doc = document();
+    doc.snapshot.total = '9007199254740993.01';
+    doc.snapshot.lines[0]!.unitPrice = '10.0050';
+    const text = String.fromCharCode(...(await format(doc)));
+    expect(text).toContain('9007199254740993.01');
+    expect(text).toContain('10.0050');
+    expect(text).toContain('20.01');
+    await expect(
+      format({ ...doc, snapshot: { ...doc.snapshot, total: 20.01 } }),
+    ).rejects.toMatchObject({ status: 422 });
+  });
+  it.each([58, 80] as const)(
+    'splits long tokens on %s mm paper without losing characters',
+    async (paperWidthMm) => {
+      const doc = document();
+      doc.snapshot.lines[0]!.productName = 'Z'.repeat(101);
+      const bytes = await format(doc, { profile: { ...profile, paperWidthMm } });
+      const text = String.fromCharCode(...bytes.slice(5));
+      expect(text.match(/Z/g)).toHaveLength(102); // Includes the unit PZA.
+      expect(text.split('\n').every((line) => line.length <= (paperWidthMm === 58 ? 32 : 48))).toBe(
+        true,
+      );
+    },
+  );
+  it('prints committed cash-close groups and correction history without inventing expenses', async () => {
+    const doc = document('CASH_CLOSE');
+    const snapshot = {
+      ...doc.snapshot,
+      expensesTotal: undefined,
+      netTotal: undefined,
+      lines: [{ reportingGroup: 'SODAS', total: '20.01' }],
+      correctionReason: 'Conteo revisado',
+      supersedesCashCloseId: '00000000-0000-4000-8000-000000000121',
+    };
+    const text = String.fromCharCode(...(await format({ ...doc, snapshot })));
+    expect(text).toContain('SODAS: 20.01 MXN');
+    expect(text).toContain('Conteo revisado');
+    expect(text).toContain('Sustituye:');
+    expect(text).not.toContain('Gastos:');
+    expect(text).not.toContain('Neto:');
+  });
+  it('rejects unconfirmed reprints, drafts and inactive profiles before producing bytes', async () => {
+    await expect(format(document(), { mode: 'REPRINT' })).rejects.toMatchObject({ status: 409 });
+    await expect(format({ ...document('ROUTE_LOAD'), sourceState: 'DRAFT' })).rejects.toMatchObject(
+      { status: 409 },
+    );
+    await expect(
+      format(document(), { profile: { ...profile, active: false } }),
+    ).rejects.toMatchObject({ status: 422 });
+  });
+  it('formats bytes that the Bluetooth transport sends unchanged', async () => {
+    const doc = document();
+    const bytes = await format(doc);
+    const s = transport();
+    await s.connect();
+    expect(await s.print(doc, { bytes })).toMatchObject({ state: 'SUCCEEDED' });
+    expect(s.write.mock.calls.flatMap(([chunk]) => Array.from(chunk))).toEqual(Array.from(bytes));
+  });
   it.each(['CP437', 'CP850', 'UTF-8'])(
     'honors the approved %s Spanish encoding',
     async (encoding) => {

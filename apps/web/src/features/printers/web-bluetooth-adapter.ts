@@ -1,6 +1,7 @@
-import { PrinterProfileResourceSchema, DocumentPrintMetadataSchema } from '@warehouse/contracts';
+import { PrinterProfileResourceSchema } from '@warehouse/contracts';
 import {
   PrinterError,
+  parsePrintableDocument,
   type PrinterAdapter,
   type PrinterCapability,
   type PrinterConnection,
@@ -148,20 +149,7 @@ export class WebBluetoothPrinterAdapter implements PrinterAdapter {
     return this.send(bytes, 'TESTING');
   }
   async print(raw: unknown, request: PrintRequest): Promise<TestResult> {
-    const parsed = DocumentPrintMetadataSchema.safeParse(raw);
-    if (!parsed.success) throw new PrinterError('DOCUMENT_INVALID', 422);
-    const doc = parsed.data;
-    if (doc.documentType === 'REPORT') throw new PrinterError('DOCUMENT_NOT_PRINTABLE', 422);
-    const pairs = { TICKET: 'SALE', ROUTE_LOAD: 'ROUTE_LOAD', CASH_CLOSE: 'CASH_CLOSE' };
-    if (pairs[doc.documentType] !== doc.sourceType) throw new PrinterError('DOCUMENT_INVALID', 422);
-    if (doc.documentType === 'ROUTE_LOAD' && doc.sourceState !== 'CONFIRMED')
-      throw new PrinterError('ROUTE_LOAD_NOT_CONFIRMED', 409);
-    if (
-      doc.state !== 'READY' ||
-      (doc.documentType === 'TICKET' && doc.sourceState !== 'COMPLETED') ||
-      (doc.documentType === 'CASH_CLOSE' && doc.sourceState !== 'CLOSED')
-    )
-      throw new PrinterError('DOCUMENT_NOT_READY', 409);
+    const doc = parsePrintableDocument(raw);
     if (!request || !['PRINT', 'REPRINT'].includes(request.mode))
       throw new PrinterError('PRINT_REQUEST_INVALID', 422);
     const identity = `${doc.id.toLowerCase()}:${doc.contentVersion}`;
