@@ -20,6 +20,7 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSession } from '../../app/session.js';
 import { apiRequest } from '../../lib/api/client.js';
+import { DocumentCenter } from '../documents/document-center.js';
 import {
   localToday,
   PeriodControls,
@@ -225,6 +226,16 @@ export function ReportPages() {
             <Alert severity="success">
               {t('reports.snapshotSaved', { id: snapshot.data.data.id })}
             </Alert>
+          )}
+          {snapshot.isSuccess && (
+            <DocumentCenter
+              source={{
+                documentType: 'REPORT',
+                sourceType: 'REPORT_SNAPSHOT',
+                sourceId: snapshot.data.data.id,
+                sourceState: 'READY',
+              }}
+            />
           )}
         </Stack>
       )}

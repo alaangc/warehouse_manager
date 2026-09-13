@@ -52,7 +52,7 @@ describe('reporting UI', () => {
   it('saves the displayed report period even after draft controls change', async () => {
     const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) =>
       init?.method === 'POST'
-        ? jsonResponse({ data: { id: 'saved-report' } }, 201)
+        ? jsonResponse({ data: { id: '00000000-0000-4000-8000-000000000130' } }, 201)
         : jsonResponse({
             data: {
               reportType: 'BEST_SELLING_PRODUCTS',
@@ -74,7 +74,7 @@ describe('reporting UI', () => {
     fireEvent.change(screen.getByLabelText('Anchor date'), { target: { value: '2026-09-05' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save report snapshot' }));
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Report snapshot saved: saved-report',
+      'Report snapshot saved: 00000000-0000-4000-8000-000000000130',
     );
     const command = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST')!;
     expect(command[0]).toBe('/api/v1/report-snapshots');

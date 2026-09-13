@@ -27,6 +27,7 @@ import { useTranslation } from 'react-i18next';
 import { useSession } from '../../app/session.js';
 import { apiRequest } from '../../lib/api/client.js';
 import { ApiProblem } from '../../lib/api/problem.js';
+import { DocumentCenter } from '../documents/document-center.js';
 import {
   PeriodControls,
   ResolvedBoundaries,
@@ -221,6 +222,14 @@ export function CashClosePages() {
               {selected.closeNumber}
             </Typography>
             <Chip label={t(`reports.${selected.status}`)} />
+            <DocumentCenter
+              source={{
+                documentType: 'CASH_CLOSE',
+                sourceType: 'CASH_CLOSE',
+                sourceId: selected.id,
+                sourceState: 'CLOSED',
+              }}
+            />
             <ResolvedBoundaries {...selected} />
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
               {(

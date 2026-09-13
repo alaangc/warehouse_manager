@@ -31,6 +31,7 @@ const adminLinks: ReadonlyArray<readonly [string, string]> = [
   ['/reports', 'reports.title'],
   ['/users', 'nav.users'],
   ['/printer-profiles', 'printers.title'],
+  ['/documents', 'documents.title'],
   ['/settings', 'nav.settings'],
 ];
 const driverLinks: ReadonlyArray<readonly [string, string]> = [
@@ -38,6 +39,7 @@ const driverLinks: ReadonlyArray<readonly [string, string]> = [
   ['/sales/new', 'nav.newSale'],
   ['/routes', 'nav.myRoute'],
   ['/sales', 'nav.mySales'],
+  ['/documents', 'documents.title'],
   ['/settings', 'nav.settings'],
 ];
 
@@ -82,7 +84,7 @@ export function AppLayout() {
           <Typography variant="h6" sx={{ flexGrow: 1, whiteSpace: 'nowrap' }}>
             {t('app.name')}
           </Typography>
-          <Box sx={{ display: { xs: 'none', lg: 'flex' }, alignItems: 'center' }}>
+          <Box sx={{ display: { xs: 'none', xl: 'flex' }, alignItems: 'center', ml: 2 }}>
             {links.map(([to, label]) => (
               <Button key={to} color="inherit" component={NavLink} to={to}>
                 {t(label)}
@@ -99,7 +101,7 @@ export function AppLayout() {
             aria-label={t('nav.openMenu')}
             color="inherit"
             onClick={() => setMobileMenuOpen(true)}
-            sx={{ display: { xs: 'inline-flex', lg: 'none' }, fontSize: 25 }}
+            sx={{ display: { xs: 'inline-flex', xl: 'none' }, fontSize: 25 }}
           >
             ☰
           </IconButton>
