@@ -71,7 +71,7 @@ export function network(
 }
 // Proposed public component boundaries for T130–T132; no missing-behavior stubs/skips.
 export async function mount(
-  component: 'DocumentCenter' | 'DocumentHistory' | 'PrintDialog',
+  component: 'DocumentCenter' | 'DocumentHistory' | 'DocumentActions' | 'PrintDialog',
   props: Record<string, unknown> = {},
   role: SessionUser['role'] = 'DRIVER',
   path = '/',
@@ -79,6 +79,7 @@ export async function mount(
   const modules = {
     DocumentCenter: '../../src/features/documents/document-center.js',
     DocumentHistory: '../../src/features/documents/document-history.js',
+    DocumentActions: '../../src/features/documents/document-actions.js',
     PrintDialog: '../../src/features/printers/print-dialog.js',
   };
   const module = await import(modules[component]);

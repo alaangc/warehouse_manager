@@ -5,12 +5,13 @@ import {
   type DocumentCreateRequest,
   type SessionUser,
 } from '@warehouse/contracts';
-import { Download, FilePlus2, RefreshCw } from 'lucide-react';
+import { FilePlus2, RefreshCw } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSession } from '../../app/session.js';
 import { ApiProblem } from '../../lib/api/problem.js';
-import { documentError, downloadDocument, readDocument, requestDocument } from './document-api.js';
+import { documentError, readDocument, requestDocument } from './document-api.js';
+import { DocumentActions } from './document-actions.js';
 
 export type DocumentSource = DocumentCreateRequest & { sourceState: string; driverId?: string };
 function allowed(source: DocumentSource, user: SessionUser): boolean {
@@ -64,6 +65,7 @@ function Output({
   const { t } = useTranslation();
   const client = useQueryClient();
   const [id, setId] = useState(documentId);
+  const [outputError, setOutputError] = useState<unknown>(null);
   const requestKey = useRef<string | null>(null);
   const status = useQuery({
     queryKey: ['document-output', actorId, id],
@@ -87,11 +89,10 @@ function Output({
       void client.invalidateQueries({ queryKey: ['document-history'] });
     },
   });
-  const download = useMutation({ mutationFn: () => downloadDocument(id!), retry: false });
-  const error = generate.error ?? status.error ?? download.error;
+  const error = generate.error ?? status.error ?? outputError;
   const denied = error instanceof ApiProblem && [401, 403].includes(error.status);
   const document = status.isError || generate.isError || denied ? undefined : status.data;
-  const busy = generate.isPending || download.isPending;
+  const busy = generate.isPending;
   const createInput = source ?? status.data;
   const canGenerate = !denied && createInput && (!document || document.state === 'FAILED');
   return (
@@ -99,7 +100,7 @@ function Output({
       <Typography variant="h6" component="h2">
         {t('documents.title')}
       </Typography>
-      {error && <Alert severity="error">{documentError(error, t)}</Alert>}
+      {Boolean(error) && <Alert severity="error">{documentError(error, t)}</Alert>}
       {generate.isPending && <CircularProgress size={24} aria-label={t('documents.generating')} />}
       {id && status.isLoading && <CircularProgress size={24} aria-label={t('documents.loading')} />}
       {document && (
@@ -142,7 +143,7 @@ function Output({
             }
             disabled={busy}
             onClick={() => {
-              download.reset();
+              setOutputError(null);
               const input = DocumentCreateSchema.parse({
                 documentType: createInput.documentType,
                 sourceType: createInput.sourceType,
@@ -164,25 +165,20 @@ function Output({
             disabled={busy || status.isFetching}
             onClick={() => {
               generate.reset();
-              download.reset();
+              setOutputError(null);
               void status.refetch();
             }}
           >
             {t('documents.refresh')}
           </Button>
         )}
-        {!denied && document && (
-          <Button
-            startIcon={<Download size={18} />}
-            disabled={busy || status.isFetching || document.state !== 'READY'}
-            onClick={() => download.mutate()}
-          >
-            {t('documents.download')}
-          </Button>
-        )}
       </Stack>
-      {download.isSuccess && !error && (
-        <Typography role="status">{t('documents.downloaded')}</Typography>
+      {!denied && document && (
+        <DocumentActions
+          document={document}
+          disabled={busy || status.isFetching}
+          onDenied={setOutputError}
+        />
       )}
     </Stack>
   );

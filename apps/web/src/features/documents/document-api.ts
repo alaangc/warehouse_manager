@@ -27,30 +27,38 @@ export async function requestDocument(source: DocumentCreateRequest, idempotency
   });
   return DocumentResourceSchema.parse(response.data);
 }
-export async function downloadDocument(id: string): Promise<void> {
+export async function fetchDocumentFile(id: string, signal: AbortSignal): Promise<File> {
+  const combined = AbortSignal.any([signal, AbortSignal.timeout(15_000)]);
   const response = await fetch(`/api/v1/documents/${encodeURIComponent(id)}/content`, {
     credentials: 'include',
     headers: { Accept: 'application/pdf, application/problem+json' },
-    signal: AbortSignal.timeout(15_000),
+    signal: combined,
     cache: 'no-store',
   });
   if (!response.ok) throw await decodeProblem(response);
   if (response.headers.get('Content-Type')?.split(';')[0]?.trim() !== 'application/pdf')
     throw new Error('DOCUMENT_CONTENT_INVALID');
-  const blob = await response.blob();
+  const bytes = await response.arrayBuffer();
+  combined.throwIfAborted();
+  if (!bytes.byteLength || new TextDecoder().decode(bytes.slice(0, 5)) !== '%PDF-')
+    throw new Error('DOCUMENT_CONTENT_INVALID');
   const filename =
     /filename="([a-zA-Z0-9._-]+\.pdf)"/i.exec(
       response.headers.get('Content-Disposition') ?? '',
     )?.[1] ?? `document-${id}.pdf`;
-  const url = URL.createObjectURL(blob);
+  return new File([bytes], filename, { type: 'application/pdf' });
+}
+export function saveDocumentFile(file: File): void {
+  const url = URL.createObjectURL(file);
+  const revoke = URL.revokeObjectURL.bind(URL);
   const link = document.createElement('a');
   link.href = url;
-  link.download = filename;
+  link.download = file.name;
   document.body.append(link);
   try {
     link.click();
   } finally {
     link.remove();
-    window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
+    window.setTimeout(() => revoke(url), 1_000);
   }
 }

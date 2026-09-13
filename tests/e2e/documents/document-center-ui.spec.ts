@@ -17,6 +17,24 @@ for (const width of [1440, 390]) {
   test(`document history and PDF download at ${width}px with HTTP fixtures`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.addInitScript(() => localStorage.setItem('warehouse-manager-language', 'en'));
+    if (width === 390)
+      await page.addInitScript(() => {
+        Object.defineProperty(navigator, 'canShare', {
+          configurable: true,
+          value: (data: ShareData) => data.files?.[0]?.type === 'application/pdf',
+        });
+        Object.defineProperty(navigator, 'share', {
+          configurable: true,
+          value: (data: ShareData) => {
+            Reflect.set(window, 'documentShare', {
+              active: navigator.userActivation.isActive,
+              name: data.files?.[0]?.name,
+              size: data.files?.[0]?.size,
+            });
+            return Promise.resolve();
+          },
+        });
+      });
     await page.route('**/api/v1/**', async (route) => {
       const url = new URL(route.request().url());
       let body: unknown;
@@ -84,16 +102,34 @@ for (const width of [1440, 390]) {
     await expect
       .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
       .toBe(true);
-      await page.screenshot({ path: `output/t130-history-${width}.png`, fullPage: true, animations: 'disabled' });
+    await page.screenshot({
+      path: `output/t130-history-${width}.png`,
+      fullPage: true,
+      animations: 'disabled',
+    });
     await page.getByRole('button', { name: 'Next page' }).click();
     await expect(page.getByRole('button', { name: 'Next page' })).toBeDisabled();
     await page.getByRole('button', { name: 'View document' }).click();
     const dialog = page.getByRole('dialog');
     await expect(dialog.getByRole('button', { name: 'Download PDF' })).toBeEnabled();
-      await page.screenshot({ path: `output/t130-detail-${width}.png`, fullPage: true, animations: 'disabled' });
+    await page.screenshot({
+      path: `output/t130-detail-${width}.png`,
+      fullPage: true,
+      animations: 'disabled',
+    });
     const downloaded = page.waitForEvent('download');
     await dialog.getByRole('button', { name: 'Download PDF' }).click();
     expect((await downloaded).suggestedFilename()).toBe('ticket-130.pdf');
+    if (width === 390) {
+      expect(await page.evaluate(() => Reflect.get(window, 'documentShare'))).toBeUndefined();
+      await dialog.getByRole('button', { name: 'Share PDF' }).click();
+      expect(await page.evaluate(() => Reflect.get(window, 'documentShare'))).toEqual({
+        active: true,
+        name: 'ticket-130.pdf',
+        size: 14,
+      });
+      await expect(dialog.getByRole('status')).toContainText('PDF handed to the share target.');
+    }
     await dialog.getByRole('button', { name: 'Close', exact: true }).click();
     await page.getByRole('tab', { name: 'Output attempts' }).click();
     await page.getByRole('button', { name: 'View attempt' }).click();
