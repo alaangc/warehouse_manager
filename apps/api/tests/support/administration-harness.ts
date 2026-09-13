@@ -1,4 +1,7 @@
 import { fileURLToPath } from 'node:url';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import request from 'supertest';
 import { seedFoundation } from '../../../../database/seeds/001_foundation.js';
 import { createDatabase } from '../../src/db/database.js';
@@ -25,6 +28,9 @@ export const testPrinterProfile = {
 };
 export async function administrationHarness(options: { documentStoragePath?: string } = {}) {
   const postgres = await startPostgres();
+  const ownedStorage = options.documentStoragePath
+    ? undefined
+    : await mkdtemp(join(tmpdir(), 'warehouse-http-'));
   const database = createDatabase(postgres.connectionString);
   const origin = 'https://warehouse.test';
   try {
@@ -36,6 +42,7 @@ export async function administrationHarness(options: { documentStoragePath?: str
   } catch (error) {
     await database.destroy();
     await postgres.container.stop();
+    if (ownedStorage) await rm(ownedStorage, { recursive: true, force: true });
     throw error;
   }
   const app = createServer(
@@ -48,7 +55,7 @@ export async function administrationHarness(options: { documentStoragePath?: str
       BUSINESS_CURRENCY: 'MXN',
       PORT: 3000,
       LOG_LEVEL: 'fatal',
-      DOCUMENT_STORAGE_PATH: options.documentStoragePath ?? '/tmp/warehouse-administration-tests',
+      DOCUMENT_STORAGE_PATH: options.documentStoragePath ?? ownedStorage!,
     },
     { database },
   );
@@ -76,6 +83,8 @@ export async function administrationHarness(options: { documentStoragePath?: str
     body?: object,
   ) {
     let test = request(app)[method](`/api/v1${path}`).set('Origin', origin);
+    if (method === 'post' && path === '/output-attempts')
+      test = test.set('Idempotency-Key', crypto.randomUUID());
     if (principal) test = test.set('Cookie', principal.cookie).set('X-CSRF-Token', principal.csrf);
     return body === undefined ? test : test.send(body);
   }
@@ -87,6 +96,7 @@ export async function administrationHarness(options: { documentStoragePath?: str
     close: async () => {
       await database.destroy();
       await postgres.container.stop();
+      if (ownedStorage) await rm(ownedStorage, { recursive: true, force: true });
     },
   };
 }

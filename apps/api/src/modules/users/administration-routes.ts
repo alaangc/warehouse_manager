@@ -6,8 +6,6 @@ import {
   PrinterProfileResourceSchema,
   PrinterProfileUpdateSchema,
   PrinterProfileWriteSchema,
-  TestPrintRequestSchema,
-  TestPrintResourceSchema,
   UserCreateSchema,
   UserListQuerySchema,
   UserResourceSchema,
@@ -198,20 +196,6 @@ export function createAdministrationRouter(database: AppDatabase): Router {
           PrinterPreferenceResourceSchema,
           await printers.setPreference(
             PrinterPreferenceSchema.parse(request.body),
-            context(request),
-          ),
-        ),
-      });
-    }),
-  );
-  router.post(
-    '/output-attempts',
-    endpoint(async (request, response) => {
-      response.status(201).json({
-        data: resource(
-          TestPrintResourceSchema,
-          await printers.recordTestPrint(
-            TestPrintRequestSchema.parse(request.body),
             context(request),
           ),
         ),

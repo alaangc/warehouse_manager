@@ -21,6 +21,7 @@ import { createRouteRouter } from './modules/routes/route-routes.js';
 import { createReportRouter } from './modules/reports/report-routes.js';
 import { createAdministrationRouter } from './modules/users/administration-routes.js';
 import { createOverviewRouter } from './modules/overview/overview-routes.js';
+import { createDocumentRouter } from './modules/documents/document-routes.js';
 
 export type ServerOptions = { database?: AppDatabase; auth?: AuthenticationGateway };
 
@@ -46,6 +47,7 @@ export function createServer(environment: Environment, options: ServerOptions = 
   app.use('/api/v1', createReportRouter(database));
   app.use('/api/v1', createAdministrationRouter(database));
   app.use('/api/v1', createOverviewRouter(database));
+  app.use('/api/v1', createDocumentRouter(database, environment));
   app.use(notFoundHandler, problemHandler);
   return app;
 }

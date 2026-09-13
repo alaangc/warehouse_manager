@@ -105,6 +105,7 @@ function PrinterPreferencePanel({
     // The authenticated API must accept TEST_PRINT before any physical write.
     await apiRequest('/output-attempts', {
       method: 'POST',
+      idempotencyKey: crypto.randomUUID(),
       body: { mode: 'TEST_PRINT', printerProfileId, state: 'STARTED' },
     });
     // Leaving the page can also change the authenticated account. Do not start
@@ -115,6 +116,7 @@ function PrinterPreferencePanel({
     setResult(outcome);
     await apiRequest('/output-attempts', {
       method: 'POST',
+      idempotencyKey: crypto.randomUUID(),
       body: { mode: 'TEST_PRINT', printerProfileId, ...outcome },
     });
     // A log/preference failure must not send the bytes again.
