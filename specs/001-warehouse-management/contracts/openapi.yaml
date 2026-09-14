@@ -1576,6 +1576,39 @@ paths:
         '404':
           $ref: '#/components/responses/Problem'
 
+  /documents/{documentId}/print-data:
+    parameters:
+      - $ref: '#/components/parameters/DocumentId'
+    get:
+      tags: [Documents, Printers]
+      operationId: getDocumentPrintData
+      description: >-
+        Read-only thermal payload from immutable committed snapshots. The same
+        source-derived authorization as metadata applies before capability checks.
+        Returns 409 for non-ready documents or unconfirmed loads and 422 for REPORT.
+        Does not generate output, record an attempt, or mutate the source.
+      responses:
+        '200':
+          description: Authorized printable snapshot; private, no-store
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ThermalDocument'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
   /documents/{documentId}/content:
     parameters:
       - $ref: '#/components/parameters/DocumentId'
@@ -2081,6 +2114,273 @@ components:
             $ref: '#/components/schemas/Problem'
 
   schemas:
+    ThermalDocument:
+      oneOf:
+        -
+          type: "object"
+          properties:
+            id:
+              type: "string"
+              format: "uuid"
+              pattern: "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            documentType:
+              type: "string"
+              const: "TICKET"
+            sourceType:
+              type: "string"
+            sourceId:
+              type: "string"
+              format: "uuid"
+              pattern: "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            contentVersion:
+              type: "string"
+            state:
+              type: "string"
+              enum:
+                - "PENDING"
+                - "READY"
+                - "FAILED"
+            sourceState:
+              type: "string"
+            snapshot:
+              type: "object"
+              properties:
+                ticketNumber:
+                  type: "string"
+                  minLength: 1
+                saleNumber:
+                  type: "string"
+                  minLength: 1
+                currencyCode:
+                  type: "string"
+                  pattern: "^[A-Z]{3}$"
+                paymentMethod:
+                  type: "string"
+                lines:
+                  minItems: 1
+                  type: "array"
+                  items:
+                    type: "object"
+                    properties:
+                      productName:
+                        type: "string"
+                        minLength: 1
+                      unitCode:
+                        type: "string"
+                        minLength: 1
+                      quantity:
+                        type: "string"
+                        pattern: "^\\d+(?:\\.\\d+)?$"
+                      unitPrice:
+                        type: "string"
+                        pattern: "^\\d+(?:\\.\\d+)?$"
+                      lineAmount:
+                        type: "string"
+                        pattern: "^\\d+(?:\\.\\d+)?$"
+                    required:
+                      - "productName"
+                      - "unitCode"
+                      - "quantity"
+                      - "unitPrice"
+                      - "lineAmount"
+                    additionalProperties: false
+                total:
+                  type: "string"
+                  pattern: "^\\d+(?:\\.\\d+)?$"
+              required:
+                - "ticketNumber"
+                - "saleNumber"
+                - "currencyCode"
+                - "lines"
+                - "total"
+              additionalProperties: false
+          required:
+            - "id"
+            - "documentType"
+            - "sourceType"
+            - "sourceId"
+            - "contentVersion"
+            - "state"
+            - "sourceState"
+            - "snapshot"
+          additionalProperties: false
+        -
+          type: "object"
+          properties:
+            id:
+              type: "string"
+              format: "uuid"
+              pattern: "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            documentType:
+              type: "string"
+              const: "ROUTE_LOAD"
+            sourceType:
+              type: "string"
+            sourceId:
+              type: "string"
+              format: "uuid"
+              pattern: "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            contentVersion:
+              type: "string"
+            state:
+              type: "string"
+              enum:
+                - "PENDING"
+                - "READY"
+                - "FAILED"
+            sourceState:
+              type: "string"
+            snapshot:
+              type: "object"
+              properties:
+                loadNumber:
+                  type: "string"
+                  minLength: 1
+                routeNumber:
+                  type: "string"
+                  minLength: 1
+                lines:
+                  minItems: 1
+                  type: "array"
+                  items:
+                    type: "object"
+                    properties:
+                      productName:
+                        type: "string"
+                        minLength: 1
+                      unitCode:
+                        type: "string"
+                        minLength: 1
+                      quantity:
+                        type: "string"
+                        pattern: "^\\d+(?:\\.\\d+)?$"
+                    required:
+                      - "productName"
+                      - "unitCode"
+                      - "quantity"
+                    additionalProperties: false
+              required:
+                - "loadNumber"
+                - "routeNumber"
+                - "lines"
+              additionalProperties: false
+          required:
+            - "id"
+            - "documentType"
+            - "sourceType"
+            - "sourceId"
+            - "contentVersion"
+            - "state"
+            - "sourceState"
+            - "snapshot"
+          additionalProperties: false
+        -
+          type: "object"
+          properties:
+            id:
+              type: "string"
+              format: "uuid"
+              pattern: "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            documentType:
+              type: "string"
+              const: "CASH_CLOSE"
+            sourceType:
+              type: "string"
+            sourceId:
+              type: "string"
+              format: "uuid"
+              pattern: "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            contentVersion:
+              type: "string"
+            state:
+              type: "string"
+              enum:
+                - "PENDING"
+                - "READY"
+                - "FAILED"
+            sourceState:
+              type: "string"
+            snapshot:
+              type: "object"
+              properties:
+                closeNumber:
+                  type: "string"
+                  minLength: 1
+                currencyCode:
+                  type: "string"
+                  pattern: "^[A-Z]{3}$"
+                grossTotal:
+                  type: "string"
+                  pattern: "^\\d+(?:\\.\\d+)?$"
+                partnerShare:
+                  type: "string"
+                  pattern: "^\\d+(?:\\.\\d+)?$"
+                ownerShare:
+                  type: "string"
+                  pattern: "^\\d+(?:\\.\\d+)?$"
+                expensesTotal:
+                  type: "string"
+                  pattern: "^\\d+(?:\\.\\d+)?$"
+                netTotal:
+                  type: "string"
+                  pattern: "^\\d+(?:\\.\\d+)?$"
+                partnerRate:
+                  type: "string"
+                  pattern: "^\\d+(?:\\.\\d+)?$"
+                periodKind:
+                  type: "string"
+                periodStart:
+                  type: "string"
+                periodEnd:
+                  type: "string"
+                businessTimezone:
+                  type: "string"
+                correctionReason:
+                  anyOf:
+                    -
+                      type: "string"
+                    -
+                      type: "null"
+                supersedesCashCloseId:
+                  anyOf:
+                    -
+                      type: "string"
+                      format: "uuid"
+                      pattern: "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    -
+                      type: "null"
+                lines:
+                  type: "array"
+                  items:
+                    type: "object"
+                    properties:
+                      reportingGroup:
+                        type: "string"
+                        minLength: 1
+                      total:
+                        type: "string"
+                        pattern: "^\\d+(?:\\.\\d+)?$"
+                    required:
+                      - "reportingGroup"
+                      - "total"
+                    additionalProperties: false
+              required:
+                - "closeNumber"
+                - "currencyCode"
+                - "grossTotal"
+                - "partnerShare"
+                - "ownerShare"
+              additionalProperties: false
+          required:
+            - "id"
+            - "documentType"
+            - "sourceType"
+            - "sourceId"
+            - "contentVersion"
+            - "state"
+            - "sourceState"
+            - "snapshot"
+          additionalProperties: false
     Uuid:
       type: string
       format: uuid

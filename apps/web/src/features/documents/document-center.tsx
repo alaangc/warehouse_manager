@@ -12,6 +12,7 @@ import { useSession } from '../../app/session.js';
 import { ApiProblem } from '../../lib/api/problem.js';
 import { documentError, readDocument, requestDocument } from './document-api.js';
 import { DocumentActions } from './document-actions.js';
+import { canOfferPrint, PrintDialog } from '../printers/print-dialog.js';
 
 export type DocumentSource = DocumentCreateRequest & { sourceState: string; driverId?: string };
 function allowed(source: DocumentSource, user: SessionUser): boolean {
@@ -63,6 +64,8 @@ function Output({
   documentId: string | undefined;
 }) {
   const { t } = useTranslation();
+  const { user } = useSession();
+  const [printing, setPrinting] = useState(false);
   const client = useQueryClient();
   const [id, setId] = useState(documentId);
   const [outputError, setOutputError] = useState<unknown>(null);
@@ -174,11 +177,26 @@ function Output({
         )}
       </Stack>
       {!denied && document && (
-        <DocumentActions
-          document={document}
-          disabled={busy || status.isFetching}
-          onDenied={setOutputError}
-        />
+        <>
+          <DocumentActions
+            document={document}
+            disabled={busy || status.isFetching}
+            onDenied={setOutputError}
+          />
+          {user && canOfferPrint(document, user, source) && (
+            <>
+              <Button disabled={busy || status.isFetching} onClick={() => setPrinting(true)}>
+                {t('printers.print')}
+              </Button>
+              <PrintDialog
+                open={printing}
+                document={document}
+                {...(source ? { source } : {})}
+                onClose={() => setPrinting(false)}
+              />
+            </>
+          )}
+        </>
       )}
     </Stack>
   );

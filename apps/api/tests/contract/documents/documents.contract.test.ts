@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { ThermalDocumentSchema } from '@warehouse/contracts';
 import {
   documentHarness,
   documentTypes,
@@ -20,6 +21,7 @@ describe('T119 document OpenAPI contract', () => {
       'listDocuments',
       'listOutputAttempts',
       'getOutputAttempt',
+      'getDocumentPrintData',
     ])
       expect(contract).toContain(`operationId: ${operation}`);
     expect(contract).toContain('enum: [TICKET, ROUTE_LOAD, CASH_CLOSE, REPORT]');
@@ -63,6 +65,13 @@ describe('T119 document HTTP contract (red until T127)', () => {
     'Administrator can PRINT and REPRINT %s',
     async (type) => {
       const doc = await h.ready(h.sources.find((source) => source.documentType === type)!);
+      const payload = await h.send(h.admin, 'get', `/documents/${doc.id}/print-data`);
+      expect(payload.status).toBe(200);
+      expect(payload.headers['cache-control']).toBe('private, no-store');
+      expect(ThermalDocumentSchema.parse(payload.body.data)).toMatchObject({
+        id: doc.id,
+        documentType: type,
+      });
       for (const mode of ['PRINT', 'REPRINT'])
         expect(await h.attempt(doc.id, mode)).toMatchObject({
           mode,
@@ -83,6 +92,9 @@ describe('T119 document HTTP contract (red until T127)', () => {
       expect(detail.status).toBe(200);
       expect(documentResource.parse(detail.body.data).id).toBe(existing.id);
       expect((await h.send(h.driver, 'get', `/documents/${existing.id}/content`)).status).toBe(200);
+      expect((await h.send(h.driver, 'get', `/documents/${existing.id}/print-data`)).status).toBe(
+        200,
+      );
       for (const mode of ['DOWNLOAD', 'SHARE', 'PRINT', 'REPRINT'])
         await h.attempt(existing.id, mode, h.driver);
     },
@@ -95,7 +107,7 @@ describe('T119 document HTTP contract (red until T127)', () => {
       problem(await h.command(h.driver, '/documents', source), 403);
       const doc = await h.create(source);
       problem(await h.command(h.driver, '/documents', source), 403);
-      for (const suffix of ['', '/content'])
+      for (const suffix of ['', '/content', '/print-data'])
         problem(await h.send(h.driver, 'get', `/documents/${doc.id}${suffix}`), 403);
       for (const mode of ['GENERATE', 'DOWNLOAD', 'SHARE', 'PRINT', 'REPRINT']) {
         problem(
@@ -132,6 +144,7 @@ describe('T119 document HTTP contract (red until T127)', () => {
       };
       problem(await h.command(h.driver, '/output-attempts', body), 403);
       problem(await h.command(h.admin, '/output-attempts', body), 422);
+      problem(await h.send(h.admin, 'get', `/documents/${doc.id}/print-data`), 422);
     },
   );
   it('does not persist an accepted attempt for forbidden or non-printable sources', async () => {
@@ -168,6 +181,64 @@ describe('T119 document HTTP contract (red until T127)', () => {
       422,
     );
   }, 15_000);
+  it('rejects non-ready print data and STARTED without recording an attempt', async () => {
+    const pending = await h.database
+      .insertInto('document_output')
+      .values({
+        document_type: 'TICKET',
+        source_type: 'SALE',
+        source_id: h.ticket.sourceId,
+        content_version: 'pending-print-test',
+        content_hash: '',
+        state: 'PENDING',
+        created_by: h.admin.id,
+        storage_key: null,
+        ready_at: null,
+        last_error_code: null,
+      })
+      .returningAll()
+      .executeTakeFirstOrThrow();
+    problem(await h.send(h.driver, 'get', `/documents/${pending.id}/print-data`), 409);
+    for (const mode of ['PRINT', 'REPRINT']) {
+      problem(
+        await h.command(h.driver, '/output-attempts', {
+          documentId: pending.id,
+          printerProfileId: h.printerProfileId,
+          mode,
+          state: 'STARTED',
+        }),
+        409,
+      );
+    }
+    expect(
+      await h.database
+        .selectFrom('output_attempt')
+        .select('id')
+        .where('document_output_id', '=', pending.id)
+        .execute(),
+    ).toEqual([]);
+  });
+  it('returns the saved ticket values without changing the source or attempt history', async () => {
+    const doc = await h.ready(h.ticket);
+    const ticket = await h.database
+      .selectFrom('sale_ticket')
+      .selectAll()
+      .where('sale_id', '=', h.ticket.sourceId)
+      .executeTakeFirstOrThrow();
+    const before = await h.database.selectFrom('output_attempt').selectAll().execute();
+    const response = await h.send(h.driver, 'get', `/documents/${doc.id}/print-data`);
+    expect(response.status).toBe(200);
+    const payload = ThermalDocumentSchema.parse(response.body.data);
+    expect(ticket.printable_snapshot).toMatchObject(payload.snapshot);
+    expect(await h.database.selectFrom('output_attempt').selectAll().execute()).toEqual(before);
+    expect(
+      await h.database
+        .selectFrom('sale_ticket')
+        .selectAll()
+        .where('sale_id', '=', h.ticket.sourceId)
+        .executeTakeFirstOrThrow(),
+    ).toEqual(ticket);
+  });
   const pairs = [
     ['TICKET', 'SALE'],
     ['ROUTE_LOAD', 'ROUTE_LOAD'],
@@ -199,6 +270,7 @@ describe('T119 document HTTP contract (red until T127)', () => {
       '/documents',
       `/documents/${crypto.randomUUID()}`,
       `/documents/${crypto.randomUUID()}/content`,
+      `/documents/${crypto.randomUUID()}/print-data`,
       '/output-attempts',
       `/output-attempts/${crypto.randomUUID()}`,
     ])

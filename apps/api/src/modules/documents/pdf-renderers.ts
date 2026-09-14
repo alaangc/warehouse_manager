@@ -92,6 +92,10 @@ export interface RenderedDocumentPdf {
   contentType: 'application/pdf';
 }
 
+export function documentContentVersion(sourceVersion: string): string {
+  return `${sourceVersion}:pdf-v1`;
+}
+
 export function documentPdfFilename(source: {
   documentType: string;
   sourceId: string;

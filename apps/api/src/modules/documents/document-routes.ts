@@ -7,6 +7,7 @@ import {
   OutputAttemptListQuerySchema,
   OutputAttemptRequestSchema,
   OutputAttemptResourceSchema,
+  ThermalDocumentSchema,
 } from '@warehouse/contracts';
 import { requireAuthenticated } from '../../auth/authorization.js';
 import type { AppDatabase } from '../../db/database.js';
@@ -17,6 +18,7 @@ import { ScopedCursor } from '../../shared/pagination/scoped-cursor.js';
 import { DocumentRepository, type DocumentRow } from './document-repository.js';
 import { OutputAttemptRepository, type OutputAttemptRow } from './output-attempt-repository.js';
 import { DocumentService } from './document-service.js';
+import { documentContentVersion } from './pdf-renderers.js';
 import { IdempotencyRepository } from '../../shared/idempotency/idempotency-repository.js';
 import { canonicalRequestHash } from '../../shared/idempotency/idempotency-service.js';
 
@@ -126,6 +128,35 @@ export function createDocumentRouter(database: AppDatabase, environment: Environ
         'X-Content-Type-Options': 'nosniff',
       })
       .send(result.bytes);
+  });
+  router.get('/documents/:documentId/print-data', async (request, response) => {
+    // Source authorization precedes capability checks and snapshot disclosure.
+    const document = await documents.detail(
+      z.uuid().parse(request.params.documentId),
+      request.principal!,
+    );
+    if (document.document_type === 'REPORT')
+      throw new HttpProblem(
+        422,
+        'DOCUMENT_NOT_PRINTABLE',
+        'Reports do not support thermal printing',
+      );
+    if (document.state !== 'READY')
+      throw new HttpProblem(409, 'DOCUMENT_NOT_READY', 'Document is not ready');
+    const source = await documents.loadSource(request.principal!, {
+      documentType: document.document_type,
+      sourceType: document.source_type,
+      sourceId: document.source_id,
+    });
+    if (documentContentVersion(source.contentVersion) !== document.content_version)
+      throw new HttpProblem(409, 'DOCUMENT_VERSION_CONFLICT', 'Document version changed');
+    response.set('Cache-Control', 'private, no-store').json({
+      data: output(ThermalDocumentSchema, {
+        ...documentResource(document),
+        sourceState: source.state,
+        snapshot: source.snapshot,
+      }),
+    });
   });
   router.get('/output-attempts', async (request, response) => {
     const result = await attempts.list(

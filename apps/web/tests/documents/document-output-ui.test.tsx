@@ -1,6 +1,15 @@
 import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { document, source, mount, network, json, failure, printer } from './document-ui-harness.js';
+import {
+  document,
+  source,
+  mount,
+  network,
+  json,
+  failure,
+  printer,
+  printNetwork,
+} from './document-ui-harness.js';
 
 afterEach(() => {
   cleanup();
@@ -133,32 +142,41 @@ describe('T121 print acceptance and uncertainty UI', () => {
     'does not touch hardware when API acceptance returns %s',
     async (status) => {
       const adapter = printer();
-      network(() => failure(status));
+      printNetwork(() => failure(status));
       await mount('PrintDialog', { open: true, document, source, adapter, onClose: vi.fn() });
-      fireEvent.click(await screen.findByRole('button', { name: /^print$/i }));
+      const button = await screen.findByRole('button', { name: /^print$/i });
+      await waitFor(() => expect(button).toBeEnabled());
+      fireEvent.click(button);
       expect(await screen.findByRole('alert')).toBeVisible();
       expect(adapter.print).not.toHaveBeenCalled();
     },
   );
   it('waits for accepted STARTED, records UNKNOWN and requires explicit reprint without resubmitting a sale', async () => {
     const adapter = printer('UNKNOWN');
-    const s = network((_url, _init, body) =>
-      json({ data: { id: crypto.randomUUID(), ...body } }, 201),
-    );
+    const s = printNetwork();
     await mount('PrintDialog', { open: true, document, source, adapter, onClose: vi.fn() });
-    fireEvent.click(await screen.findByRole('button', { name: /^print$/i }));
+    const button = await screen.findByRole('button', { name: /^print$/i });
+    await waitFor(() => expect(button).toBeEnabled());
+    fireEvent.click(button);
     expect(await screen.findByText(/unknown|may have printed/i)).toBeVisible();
     expect(adapter.print).toHaveBeenCalledTimes(1);
-    expect(s.calls.map((call) => call.body.state)).toEqual(['STARTED', 'UNKNOWN']);
+    expect(s.calls.filter((call) => call.method === 'POST').map((call) => call.body.state)).toEqual(
+      ['STARTED', 'UNKNOWN'],
+    );
     fireEvent.click(screen.getByRole('button', { name: /reprint/i }));
     expect(adapter.print).toHaveBeenCalledTimes(1);
     fireEvent.click(await screen.findByRole('button', { name: /confirm reprint/i }));
     await waitFor(() => expect(adapter.print).toHaveBeenCalledTimes(2));
-    expect(s.calls.every((call) => call.url.pathname === '/api/v1/output-attempts')).toBe(true);
+    expect(
+      s.calls
+        .filter((call) => call.method === 'POST')
+        .every((call) => call.url.pathname === '/api/v1/output-attempts'),
+    ).toBe(true);
     expect(s.calls.at(-1)!.body.mode).toBe('REPRINT');
   });
   it('offers download fallback when Bluetooth is unsupported', async () => {
     const adapter = printer('FAILED', 'UNSUPPORTED');
+    printNetwork();
     await mount('PrintDialog', { open: true, document, source, adapter, onClose: vi.fn() });
     expect(await screen.findByText(/unsupported|not supported/i)).toBeVisible();
     const print = screen.queryByRole('button', { name: /^print$/i });

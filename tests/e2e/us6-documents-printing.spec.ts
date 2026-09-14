@@ -9,8 +9,9 @@ test('Administrator downloads all four PDFs; Driver reuses own Ticket and assign
   test.setTimeout(120_000);
   await login(page, 'admin');
   for (const source of h.sources) {
-    await page.goto(`/documents?${new URLSearchParams(source)}`);
-    await page.getByRole('button', { name: /generate pdf/i }).click();
+    // Generation lives in the committed source views; the document page opens canonical IDs.
+    const doc = await h.create(source);
+    await page.goto(`/documents?documentId=${doc.id}`);
     const button = page.getByRole('button', { name: /download/i });
     await expect(button).toBeEnabled();
     const pending = page.waitForEvent('download');
@@ -120,12 +121,16 @@ test('Chromium prints three supported types, rejects REPORT, and requires explic
   await page.evaluate(() => {
     Reflect.get(window, 'documentPrintTest').failNext = true;
   });
+  // This ticket was already printed above: reopening must not present a fresh PRINT.
   await page
     .getByRole('dialog')
-    .getByRole('button', { name: /^print$/i })
+    .getByRole('button', { name: /^reprint$/i })
     .click();
+  await page.getByRole('button', { name: /confirm reprint/i }).click();
   await expect(page.getByText(/unknown|may have printed/i)).toBeVisible();
   const count = await page.evaluate(() => Reflect.get(window, 'documentPrintTest').writes);
+  // Uncertain delivery disconnects the transport. Reconnection must retain a user gesture.
+  await page.getByRole('button', { name: /connect printer/i }).click();
   await page.getByRole('button', { name: /reprint/i }).click();
   expect(await page.evaluate(() => Reflect.get(window, 'documentPrintTest').writes)).toBe(count);
   await page.getByRole('button', { name: /confirm reprint/i }).click();

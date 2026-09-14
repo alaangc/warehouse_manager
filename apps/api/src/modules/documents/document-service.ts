@@ -13,6 +13,7 @@ import {
 import { OutputAttemptRepository } from './output-attempt-repository.js';
 import {
   documentPdfFilename,
+  documentContentVersion,
   renderDocumentPdf,
   type RenderedDocumentPdf,
 } from './pdf-renderers.js';
@@ -56,7 +57,7 @@ export class DocumentService {
     requestIdSchema.parse(requestId);
     // Authorization and confirmed-source checks precede canonical reuse and every side effect.
     const loaded = await this.documents.loadSource(principal, source);
-    const snapshot = { ...loaded, contentVersion: `${loaded.contentVersion}:pdf-v1` };
+    const snapshot = { ...loaded, contentVersion: documentContentVersion(loaded.contentVersion) };
     const document = await this.documents.createOrReuse(
       principal,
       source,

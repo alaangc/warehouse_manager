@@ -112,3 +112,67 @@ export function printer(result = 'SUCCEEDED', capability = 'AVAILABLE') {
     print: vi.fn(async () => ({ state: result })),
   };
 }
+export const printProfile = {
+  id: '00000000-0000-4000-8000-000000000140',
+  name: 'Approved BLE',
+  model: 'Test',
+  transport: 'WEB_BLUETOOTH_BLE',
+  serviceUuid: 'ffe0',
+  writeCharacteristicUuid: 'ffe1',
+  writeMode: 'WITH_RESPONSE',
+  commandDialect: 'ESC_POS',
+  paperWidthMm: 58,
+  encoding: 'CP850',
+  maxChunkBytes: 20,
+  interChunkDelayMs: 0,
+  active: true,
+  version: 1,
+};
+export const printData = {
+  ...document,
+  sourceState: 'COMPLETED',
+  snapshot: {
+    ticketNumber: 'T-1',
+    saleNumber: 'S-1',
+    currencyCode: 'MXN',
+    total: '12.50',
+    lines: [
+      {
+        productName: 'Product',
+        unitCode: 'EA',
+        quantity: '1',
+        unitPrice: '12.50',
+        lineAmount: '12.50',
+      },
+    ],
+  },
+};
+export function acceptedAttempt(body: Record<string, unknown>) {
+  return json(
+    {
+      data: {
+        id: crypto.randomUUID(),
+        actorId: actor.id,
+        attemptNumber: 1,
+        createdAt: document.createdAt,
+        ...body,
+      },
+    },
+    201,
+  );
+}
+export function printNetwork(
+  post: (body: Record<string, unknown>) => Response | Promise<Response> = acceptedAttempt,
+  prior = false,
+) {
+  return network((url, init, body) => {
+    if (init.method === 'POST') return post(body);
+    if (url.pathname.endsWith('/print-data')) return json({ data: printData });
+    if (url.pathname.endsWith('/printer-profiles')) return json({ data: [printProfile] });
+    if (url.pathname.endsWith('/me/printer-preference'))
+      return json({ data: { printerProfileId: printProfile.id } });
+    if (url.pathname.endsWith('/output-attempts'))
+      return list(prior ? [{ ...attempt, mode: 'PRINT', state: 'STARTED' }] : []);
+    return failure(500);
+  });
+}

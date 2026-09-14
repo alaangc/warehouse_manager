@@ -111,6 +111,15 @@ export class OutputAttemptRepository {
         'Reports do not support thermal printing',
       );
     }
+    if (document && ['PRINT', 'REPRINT'].includes(data.mode) && data.state === 'STARTED') {
+      if (document.state !== 'READY')
+        throw new HttpProblem(409, 'DOCUMENT_NOT_READY', 'Document is not ready');
+      await new DocumentRepository(this.database, this.cursors).loadSource(principal, {
+        documentType: document.document_type,
+        sourceType: document.source_type,
+        sourceId: document.source_id,
+      });
+    }
     if (data.printerProfileId) {
       const printer = await this.database
         .selectFrom('printer_profile')

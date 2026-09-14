@@ -69,6 +69,15 @@ correction returns 409 `CASH_CLOSE_NOT_CURRENT`.
 
 ## Browser Printing Boundary
 
+T132 adds the backward-compatible `GET /documents/{documentId}/print-data` endpoint.
+It returns the existing `ThermalDocumentSchema` payload from persisted snapshots,
+with source authorization before capability checks and `private, no-store` caching.
+No existing response changes. The dialog validates this payload and the accepted
+attempt response before device writes. REPORT is never thermal-printable; a non-ready
+document cannot start printing. Existing PRINT/REPRINT history (including unresolved
+STARTED) requires explicit reprint confirmation when reopening the dialog. Retrying
+terminal-result persistence reuses its idempotency key and never sends bytes again.
+
 The API stores approved PrinterProfile metadata and records output attempts. Physical
 device selection, connection, BLE writes, and disconnect handling occur through the
 frontend PrinterAdapter because Web Bluetooth permission/device handles belong to the

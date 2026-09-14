@@ -1,4 +1,18 @@
 export const printersEn = {
+  documentTitle: 'Print document',
+  print: 'Print',
+  reprint: 'Reprint',
+  confirmReprint: 'Confirm reprint',
+  reprintWarning: 'Check the paper first. This sends another copy marked REIMPRESION.',
+  documentSUCCEEDED: 'Data sent. Check the printed paper to confirm output.',
+  documentFAILED: 'Failed before sending data. Reconnect before explicitly trying again.',
+  documentUNKNOWN:
+    'Result unknown: some data may have printed. Check the paper before reconnecting and confirming a reprint.',
+  resultUnsaved:
+    'The output result has not been saved. Paper may have printed. Retry saving the result only; do not resend the document.',
+  saveResult: 'Retry saving result',
+  documentHelp:
+    'Printing never repeats the sale, load or cash close. A successful transfer does not confirm paper output. PDF download remains available on browsers without Bluetooth.',
   PRINTING: 'Sending document...',
   personal: 'My printer',
   personalHelp: 'Choose an approved printer for this account, then connect it and send a test.',
@@ -53,6 +67,21 @@ export const printersEn = {
   missing: 'The profile is no longer available.',
 };
 export const printersEs = {
+  documentTitle: 'Imprimir documento',
+  print: 'Imprimir',
+  reprint: 'Reimprimir',
+  confirmReprint: 'Confirmar reimpresión',
+  reprintWarning: 'Revisa primero el papel. Se enviará otra copia marcada REIMPRESION.',
+  documentSUCCEEDED: 'Datos enviados. Revisa el papel para confirmar la impresión.',
+  documentFAILED:
+    'Falló antes de enviar datos. Reconecta antes de volver a intentarlo explícitamente.',
+  documentUNKNOWN:
+    'Resultado incierto: pudo imprimirse parte del documento. Revisa el papel antes de reconectar y confirmar una reimpresión.',
+  resultUnsaved:
+    'No se guardó el resultado. El documento pudo imprimirse. Reintenta solo guardar el resultado; no vuelvas a enviarlo.',
+  saveResult: 'Reintentar guardar resultado',
+  documentHelp:
+    'Imprimir nunca repite la venta, carga ni corte. Un envío correcto no confirma la salida de papel. Puedes descargar el PDF en navegadores sin Bluetooth.',
   PRINTING: 'Enviando documento...',
   personal: 'Mi impresora',
   personalHelp: 'Selecciona una impresora aprobada para esta cuenta, conéctala y envía una prueba.',
