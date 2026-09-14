@@ -353,7 +353,7 @@ blocks FR-033/FR-047 rather than being silently accepted.
 **Purpose**: Verify the complete product under production-like conditions and produce
 the evidence required by the constitution.
 
-- [ ] T134 [P] Implement empty-database and production-like migration verification, roll-forward, compatibility, and disposable PITR/restore scripts in `database/scripts/verify-migrations.ts`, `database/scripts/test-recovery.ts`, and `docs/operations/migrations.md`
+- [X] T134 [P] Implement empty-database and production-like migration verification, roll-forward, compatibility, and disposable PITR/restore scripts in `database/scripts/verify-migrations.ts`, `database/scripts/test-recovery.ts`, and `docs/operations/migrations.md`
 - [ ] T135 [P] Configure clean-install, format, lint, type-check, independent builds, unit, contract, PostgreSQL integration, and Playwright CI jobs in `.github/workflows/ci.yml`
 - [ ] T136 Enforce strict OpenAPI linting, generated-contract/type clean diffs, request/response validation, and breaking-change review in `redocly.yaml`, `packages/contracts/scripts/validate-runtime-contract.ts`, and `.github/workflows/ci.yml`
 - [ ] T137 [P] Apply HTTPS proxy assumptions, CSP, `Permissions-Policy: bluetooth=(self)`, secure headers, rate limits, cookie flags, log redaction, and startup-secret checks in `apps/api/src/http/security.ts` and `docs/operations/security.md`

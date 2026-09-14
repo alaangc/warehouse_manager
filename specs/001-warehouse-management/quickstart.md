@@ -125,14 +125,19 @@ The suites MUST prove:
 
 ## Migration and Recovery Gate
 
-Run migrations against both an empty database and a production-like sanitized fixture:
+Run the self-contained drills against an empty database and synthetic production-shaped
+history. Docker must be running; the commands create and remove their own databases:
 
 ```bash
-pnpm db:test:reset
-pnpm db:migrate
+pnpm --filter @warehouse/contracts build
 pnpm db:verify
 pnpm db:recovery:test
 ```
+
+These commands ignore application database URLs and require no development reset.
+See [the migration runbook](../../docs/operations/migrations.md) for safety boundaries,
+the current fixture, migration compatibility and separate logical/WAL recovery checks.
+`pnpm db:migrate` remains the separate command for an explicitly configured target.
 
 For each production-affecting migration, attach evidence of:
 

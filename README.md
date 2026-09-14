@@ -87,6 +87,21 @@ pnpm db:migrate
 pnpm db:seed
 ```
 
+## Verify migrations and recovery safely
+
+With Docker Desktop running, these commands create temporary databases, run the
+checks, then remove only their own containers. They do not reset your development data.
+
+```bash
+pnpm --filter @warehouse/contracts build
+pnpm db:verify
+pnpm db:recovery:test
+```
+
+The first checks migrations and existing business history. The second verifies backup
+restoration and recovery to a specific point using PostgreSQL's write-ahead log.
+See the [migration and recovery runbook](docs/operations/migrations.md) for details.
+
 ## Run automated checks
 
 Docker Desktop must be running for the integration and API contract suites; those
