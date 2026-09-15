@@ -126,7 +126,8 @@ Browser end-to-end tests use Playwright:
 
 ```bash
 pnpm exec playwright install
-pnpm test:e2e
+pnpm --filter @warehouse/contracts build
+E2E_ISOLATED_STACK=1 E2E_BASE_URL=http://127.0.0.1:5173 pnpm test:e2e
 ```
 
 To run the reporting/cash-close walkthrough against a fresh, disposable database:
@@ -145,6 +146,23 @@ For manual reporting tests on your development app, first run `pnpm db:migrate`,
 then `pnpm dev`, sign in as Administrator, and open **Reports** or **Cash closes**.
 Cash-close corrections create new versions; the earlier versions stay in history.
 
+## Continuous integration
+
+Pull requests and pushes to `main` run [.github/workflows/ci.yml](.github/workflows/ci.yml).
+Each job checks out a fresh workspace and installs the lockfile with the Node version
+in `.nvmrc` and pnpm version in `package.json`. Jobs check formatting, lint, types,
+independent API/web builds, unit/component tests, contracts, PostgreSQL integration,
+migration/recovery drills, and Chromium/Firefox/WebKit workflows. Database and browser
+jobs use disposable databases, not application secrets or development data.
+
+The repository owner should require **CI required** in branch protection. It fails
+if any dependency fails, is cancelled, or is skipped. This workflow does not deploy
+or provide physical-printer, usability-participant, or release-review sign-off.
+Browser reports and failure traces are retained for seven days in the Actions run;
+they contain synthetic test data. A successful retry is visible in those reports.
+Stricter API compatibility gates and security scanning are tracked separately in
+T136 and T143.
+
 ## Troubleshooting
 
 ### Windows local setup
@@ -160,10 +178,6 @@ pnpm.cmd dev
 Start Docker Desktop before running migrations. Per-user Docker installations can
 be located under `$env:LOCALAPPDATA\Programs\DockerDesktop`; its CLI is in
 `resources\bin`. Preserve the existing database volume when restarting.
-
-The administration contract suite currently includes intentionally failing tests
-from T105. Its API implementation is tracked by the unchecked T113–T114 tasks in
-`specs/001-warehouse-management/tasks.md`.
 
 - If `docker compose` cannot connect, start Docker Desktop and wait until its engine
   reports that it is running.

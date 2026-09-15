@@ -103,7 +103,7 @@ for (const width of [1440, 390]) {
       .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
       .toBe(true);
     await page.screenshot({
-      path: `output/t130-history-${width}.png`,
+      path: test.info().outputPath(`t130-history-${width}.png`),
       fullPage: true,
       animations: 'disabled',
     });
@@ -113,7 +113,7 @@ for (const width of [1440, 390]) {
     const dialog = page.getByRole('dialog');
     await expect(dialog.getByRole('button', { name: 'Download PDF' })).toBeEnabled();
     await page.screenshot({
-      path: `output/t130-detail-${width}.png`,
+      path: test.info().outputPath(`t130-detail-${width}.png`),
       fullPage: true,
       animations: 'disabled',
     });

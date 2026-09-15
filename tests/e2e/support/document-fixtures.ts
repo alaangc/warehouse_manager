@@ -154,6 +154,20 @@ export const test = base.extend<
   Record<never, never>,
   { warehouse: Awaited<ReturnType<typeof fixture>> }
 >({
+  context: async ({ context, warehouse }, use) => {
+    // A fixture runs for every importing spec; module-level beforeEach hooks
+    // only attach to the suite that first imports this cached module.
+    await context.addInitScript(() => localStorage.setItem('warehouse-manager-language', 'en'));
+    await context.route('**/api/v1/**', async (route) => {
+      const url = new URL(route.request().url());
+      const response = await route.fetch({
+        url: `${warehouse.apiOrigin}${url.pathname}${url.search}`,
+        headers: { ...route.request().headers(), origin: 'https://warehouse.test' },
+      });
+      await route.fulfill({ response });
+    });
+    await use(context);
+  },
   warehouse: [
     async ({ browserName }, use) => {
       void browserName;
@@ -166,17 +180,6 @@ export const test = base.extend<
     },
     { scope: 'worker', timeout: 120_000 },
   ],
-});
-test.beforeEach(async ({ context, warehouse }) => {
-  await context.addInitScript(() => localStorage.setItem('warehouse-manager-language', 'en'));
-  await context.route('**/api/v1/**', async (route) => {
-    const url = new URL(route.request().url());
-    const response = await route.fetch({
-      url: `${warehouse.apiOrigin}${url.pathname}${url.search}`,
-      headers: { ...route.request().headers(), origin: 'https://warehouse.test' },
-    });
-    await route.fulfill({ response });
-  });
 });
 export { expect };
 export async function login(page: Page, username: string) {

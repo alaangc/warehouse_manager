@@ -46,7 +46,8 @@ test('creates a Driver, denies administrator access, revokes access, and retains
   await page.getByLabel('Username').fill('admin');
   await page.locator('input[name="password"]').fill(password);
   await page.getByRole('button', { name: 'Sign in' }).click();
-  await page.getByRole('banner').getByRole('link', { name: 'Users', exact: true }).click();
+  await expect(page).not.toHaveURL(/login/);
+  await page.goto('/users');
   await page.getByRole('button', { name: 'New user' }).click();
   const username = `e2e-${crypto.randomUUID()}`;
   await page.getByLabel('Username').fill(username);
@@ -139,7 +140,7 @@ test('Driver connects and tests only an approved printer without gaining configu
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page.getByRole('region', { name: 'Operational totals' })).toBeVisible();
   await expect(page.getByText('Completed sales total (all dates)')).toHaveCount(0);
-  await page.getByRole('banner').getByRole('link', { name: 'Settings', exact: true }).click();
+  await page.goto('/settings');
   await expect(page.getByLabel('Business timezone')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'New printer' })).toHaveCount(0);
   await page.getByLabel('Printer', { exact: true }).selectOption(profile.body.data.id);

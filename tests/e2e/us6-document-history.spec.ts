@@ -51,7 +51,8 @@ test('history traverses pages, filters and opens Administrator-created own-sourc
     expect((await api(page, `/${endpoint}?cursor=${encodeURIComponent(cursor)}`)).status).toBe(403);
     await login(page, h.own.username);
   }
-  await page.goto('/documents?collection=attempts');
+  await page.goto('/documents');
+  await page.getByRole('tab', { name: 'Output attempts', exact: true }).click();
   await page
     .getByRole('button', { name: /view attempt/i })
     .first()
@@ -124,6 +125,7 @@ test('Driver cannot use forbidden sources, content URLs, attempts, filters or TE
   expect(draft.body.code).toBe('ROUTE_LOAD_NOT_CONFIRMED');
   await login(page, 'admin');
   expect((await api(page, `/output-attempts/${testPrint.body.data.id}`)).status).toBe(200);
-  await page.goto('/documents?collection=attempts&mode=TEST_PRINT');
-  await expect(page.getByRole('table')).toContainText('TEST_PRINT');
+  await page.goto('/documents?mode=TEST_PRINT');
+  await page.getByRole('tab', { name: 'Output attempts', exact: true }).click();
+  await expect(page.getByRole('table')).toContainText('Test print');
 });

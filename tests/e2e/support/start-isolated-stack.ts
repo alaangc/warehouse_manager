@@ -1,5 +1,8 @@
 import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Server } from 'node:http';
 import { startPostgres } from '../../../apps/api/tests/support/postgres-container.js';
@@ -21,6 +24,7 @@ const database = createDatabase(postgres.connectionString);
 let api: Server | undefined;
 let web: ReturnType<typeof spawn> | undefined;
 let closing = false;
+let documentStorage: string | undefined;
 async function stop() {
   if (closing) return;
   closing = true;
@@ -29,6 +33,7 @@ async function stop() {
   if (api) await new Promise<void>((resolve) => api!.close(() => resolve()));
   await database.destroy();
   await postgres.container.stop();
+  if (documentStorage) await rm(documentStorage, { recursive: true, force: true });
 }
 process.once('SIGTERM', () => {
   void stop();
@@ -37,6 +42,7 @@ process.once('SIGINT', () => {
   void stop();
 });
 try {
+  documentStorage = await mkdtemp(join(tmpdir(), 'warehouse-stack-e2e-'));
   await migrateToLatest(database);
   await seedFoundation(database);
   for (const [index, browser] of ['chromium', 'firefox', 'webkit'].entries()) {
@@ -101,7 +107,7 @@ try {
       BUSINESS_CURRENCY: 'MXN',
       PORT: 3000,
       LOG_LEVEL: 'fatal',
-      DOCUMENT_STORAGE_PATH: '/tmp/warehouse-report-e2e-documents',
+      DOCUMENT_STORAGE_PATH: documentStorage,
     },
     { database },
   );

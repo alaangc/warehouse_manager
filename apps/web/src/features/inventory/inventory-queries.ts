@@ -67,9 +67,7 @@ export function useInventoryBalances(
   return useQuery({
     queryKey: ['inventory-balances', filters],
     queryFn: () =>
-      apiRequest<{ data: InventoryBalance[] }>(
-        `/inventory/balances${search ? `?${search}` : ''}`,
-      ),
+      apiRequest<{ data: InventoryBalance[] }>(`/inventory/balances${search ? `?${search}` : ''}`),
   });
 }
 
