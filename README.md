@@ -146,6 +146,37 @@ For manual reporting tests on your development app, first run `pnpm db:migrate`,
 then `pnpm dev`, sign in as Administrator, and open **Reports** or **Cash closes**.
 Cash-close corrections create new versions; the earlier versions stay in history.
 
+## Search performance test (T138)
+
+With Docker Desktop running and the dependencies installed, run from the project root:
+
+```bash
+pnpm exec playwright install chromium
+pnpm test:performance:search
+```
+
+This builds the web app and starts its own local API, 25 authenticated Chromium
+sessions, and a disposable PostgreSQL container. You do not need `pnpm dev` or the
+Compose application stack running. It never uses your development `DATABASE_URL`;
+unset `TEST_POSTGRES_ADMIN_URL` if you have configured it for other tests.
+
+The fixture contains exactly 10,000 products, 10,000 customers, and 100,000 completed
+sales. After 150 warm-up searches, it measures 450 searches and requires at least
+95% to finish within two seconds, with all result fields and actions ready. Allow
+several minutes and avoid other heavy workloads while measuring. Temporary data
+and servers are removed automatically when the test finishes.
+
+Raw timings are written under `test-results/performance/`. To deliberately replace
+the checked-in evidence with a fresh run:
+
+```bash
+RECORD_PERFORMANCE_EVIDENCE=1 pnpm test:performance:search
+```
+
+Also update the accompanying [performance report](specs/001-warehouse-management/evidence/search-performance.md)
+to match that JSON. This dedicated local profile is separate from routine browser
+tests and CI; it does not measure PDF generation or production network latency.
+
 ## Continuous integration
 
 Pull requests and pushes to `main` run [.github/workflows/ci.yml](.github/workflows/ci.yml).

@@ -3221,6 +3221,7 @@ export interface operations {
   listInventoryBalances: {
     parameters: {
       query?: {
+        search?: components['parameters']['Search'];
         cursor?: components['parameters']['Cursor'];
         limit?: components['parameters']['Limit'];
         productId?: components['schemas']['Uuid'];

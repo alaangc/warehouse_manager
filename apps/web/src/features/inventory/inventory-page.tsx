@@ -50,7 +50,7 @@ export function InventoryPage() {
   const [alertsOnly, setAlertsOnly] = useState(false);
   const [search, setSearch] = useState('');
   const [locationId, setLocationId] = useState('');
-  const balances = useInventoryBalances({ alertsOnly });
+  const balances = useInventoryBalances({ alertsOnly, search: search.trim() });
   const rows = useMemo(() => balances.data?.data ?? [], [balances.data?.data]);
   const locations = useMemo(
     () =>
@@ -254,7 +254,7 @@ export function InventoryPage() {
           {t('inventory.balances')}
         </Typography>
         <TableContainer component={Paper} variant="outlined">
-          <Table aria-label={t('inventory.balances')}>
+          <Table aria-label={t('inventory.balances')} aria-busy={balances.isFetching}>
             <TableHead>
               <TableRow>
                 <TableCell>{t('common.product')}</TableCell>

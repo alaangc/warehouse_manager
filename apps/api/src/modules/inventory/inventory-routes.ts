@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { sql } from 'kysely';
+import { z } from 'zod';
 import type { AppDatabase } from '../../db/database.js';
 import type { InventoryOperationType } from '../../db/types.js';
 import { requireAuthenticated, requireRole } from '../../auth/authorization.js';
@@ -170,6 +171,18 @@ export function createInventoryRouter(database: AppDatabase): Router {
       const productId = queryString(request.query.productId);
       const branchFilter = queryString(request.query.branchId);
       const routeFilter = queryString(request.query.routeId);
+      const search = z.string().trim().max(120).optional().parse(request.query.search);
+      if (search) {
+        const pattern = `%${search.replace(/[\\%_]/g, '\\$&')}%`;
+        query = query.where((eb) =>
+          eb.or([
+            eb('product.name', 'ilike', pattern),
+            eb(sql<string>`product.id::text`, 'ilike', pattern),
+            eb('branch.name', 'ilike', pattern),
+            eb('stock_route.route_number', 'ilike', pattern),
+          ]),
+        );
+      }
       if (productId) query = query.where('balance.product_id', '=', productId);
       if (branchFilter) query = query.where('stock.branch_id', '=', branchFilter);
       if (routeFilter) query = query.where('stock.route_id', '=', routeFilter);

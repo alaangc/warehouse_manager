@@ -209,7 +209,12 @@ export function CustomerPages() {
           gridTemplateColumns: { xs: '1fr', lg: 'minmax(300px, 0.7fr) minmax(0, 1.3fr)' },
         }}
       >
-        <Stack spacing={1.5}>
+        <Stack
+          spacing={1.5}
+          role="region"
+          aria-label={t('customers.directory')}
+          aria-busy={customers.isFetching}
+        >
           <Typography variant="h5" sx={{ fontWeight: 700 }}>
             {t('customers.directory')}
           </Typography>
