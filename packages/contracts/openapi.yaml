@@ -1089,6 +1089,12 @@ paths:
       tags: [Inventory]
       operationId: listInventoryBalances
       parameters:
+        - name: search
+          in: query
+          description: Case-insensitive literal match against product name, product ID or location label, applied before the result limit.
+          schema:
+            type: string
+            maxLength: 200
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/Limit'
         - name: productId

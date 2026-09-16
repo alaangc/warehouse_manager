@@ -839,4 +839,57 @@ describe('inventory and catalog HTTP contract', () => {
     expect(missing.status).toBe(404);
     expect(missing.body.code).toBe('RESOURCE_NOT_FOUND');
   });
+
+  it('searches balances before the 100-row limit and preserves Driver scope', async () => {
+    const admin = await login('admin');
+    const driver = await login('driver');
+    const unit = await database.selectFrom('unit').select('id').executeTakeFirstOrThrow();
+    const category = await database.selectFrom('category').select('id').executeTakeFirstOrThrow();
+    const stock = await database
+      .selectFrom('stock_location')
+      .select('id')
+      .where('kind', '=', 'BRANCH')
+      .executeTakeFirstOrThrow();
+    const products = await database
+      .insertInto('product')
+      .values(
+        Array.from({ length: 101 }, (_, index) => ({
+          id: crypto.randomUUID(),
+          sku: `PERF-${crypto.randomUUID()}`,
+          name: `Search fixture ${index}`,
+          category_id: category.id,
+          unit_id: unit.id,
+          standard_unit_price: '1.0000',
+          low_stock_threshold: '0.000',
+        })),
+      )
+      .returning(['id', 'name'])
+      .execute();
+    const target = products[100]!;
+    await database
+      .insertInto('inventory_balance')
+      .values(
+        products.map((product, index) => ({
+          stock_location_id: stock.id,
+          product_id: product.id,
+          quantity: '1.000',
+          updated_at: new Date(Date.UTC(2000, 0, 1, 0, 0, 101 - index)),
+        })),
+      )
+      .execute();
+    const result = await authed(admin).get(
+      `/api/v1/inventory/balances?search=${encodeURIComponent(target.name)}`,
+    );
+    expect(result.status).toBe(200);
+    expect(result.body.data).toHaveLength(1);
+    expect(result.body.data[0].productId).toBe(target.id);
+    const scoped = await authed(driver).get(`/api/v1/inventory/balances?search=${target.id}`);
+    expect(scoped.status).toBe(200);
+    expect(scoped.body.data).toEqual([]);
+    const literal = await authed(admin).get('/api/v1/inventory/balances?search=%25');
+    expect(literal.body.data).toEqual([]);
+    expect(
+      (await authed(admin).get(`/api/v1/inventory/balances?search=${'x'.repeat(201)}`)).status,
+    ).toBe(422);
+  });
 });

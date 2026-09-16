@@ -1,0 +1,9 @@
+{
+  "baseSha256": "62248836e1baf202bd9239549e86e08e1ffd305cdcf806836a325809023b0ffd",
+  "headSha256": "22ef83723e4794c5a8983e8032c3a64f3cc9f08d073fdaf77753272d1b586d47",
+  "classification": "compatible",
+  "rationale": "Add an optional bounded search parameter to inventory balances. Search now covers the authorized database population before the existing result limit, rather than filtering only previously downloaded rows.",
+  "migration": "No migration required. Requests without search retain their existing behavior and response schemas. The bundled client passes search while existing clients may omit it.",
+  "validation": "Inventory contract regression, UI tests, strict contract gates and the T138 25-session search acceptance workload.",
+  "owner": "Codex implementation review for T138"
+}

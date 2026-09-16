@@ -1,19 +1,21 @@
 # Project continuation — T119 completed
 
-## Current continuation (2026-09-15)
+## Current continuation (2026-09-16)
 
-T137 is complete. See evidence/t137-security.md and docs/operations/security.md
-for HTTP security controls, proxy requirements and verification. T136 evidence
-remains in evidence/t136-contract-gates.md.
-The next task is T138 (reproducible search performance acceptance); continue one
-task at a time.
-T133 still requires physical printer acceptance. The user authorized finishing
-T137 and pushing to main. The older T119 notes below are historical only.
+T138 is complete. See evidence/search-performance.md and its raw JSON report for
+SC-006 acceptance with exactly 10,000 products, 10,000 customers, 100,000 completed
+sales and 25 authenticated browser sessions. Inventory search now filters the
+server-side authorized population before the result limit.
+The next task is T139 (document-generation performance); continue one task at a time.
+T133 still requires physical printer acceptance. The user authorized completing
+this continuation and pushing to main.
 
 Do not include unrelated untracked Neon skills, skills-lock.json, output/, tmp/,
 var/*.json, the unused print-job.ts or document-integration-fixtures.ts in this
 task commit. For Windows component verification, a local --testTimeout=15000
 override avoids intermittent five-second startup timeouts. CI defaults remain.
+The existing local PostgreSQL test cluster uses the warehouse_test role; verify
+its current port before setting TEST_POSTGRES_ADMIN_URL.
 
 ## Historical T119 handoff
 

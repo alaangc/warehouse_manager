@@ -58,7 +58,13 @@ export interface InventoryMovementFilters {
 }
 
 export function useInventoryBalances(
-  filters: { productId?: string; branchId?: string; routeId?: string; alertsOnly?: boolean } = {},
+  filters: {
+    productId?: string;
+    branchId?: string;
+    routeId?: string;
+    alertsOnly?: boolean;
+    search?: string;
+  } = {},
 ) {
   const query = new URLSearchParams();
   for (const [key, value] of Object.entries(filters))

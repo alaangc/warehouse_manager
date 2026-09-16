@@ -218,7 +218,7 @@ export function CatalogPages() {
         {products.error && (
           <Alert severity="error">{localizedErrorMessage(products.error, t)}</Alert>
         )}
-        <Table size="small" aria-label={t('catalog.products')}>
+        <Table size="small" aria-label={t('catalog.products')} aria-busy={products.isFetching}>
           <TableHead>
             <TableRow>
               <TableCell>{t('catalog.sku')}</TableCell>

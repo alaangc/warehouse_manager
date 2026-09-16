@@ -1,0 +1,6353 @@
+{
+  "seed": "warehouse-t138-v1",
+  "sourceHashes": {
+    "tests/e2e/support/performance-fixture.ts": "2b7e13e1fdcf607f65a384ef179ee1381041b93890d0dbdc12e1033c368189e1",
+    "tests/e2e/performance-search.spec.ts": "c92e426ca43e65b235baa76ed8ad71773e15dde6cf47ce9df7bab582bfb640d6",
+    "apps/web/dist/index.html": "6096d12e64b8f2b49636828150b97c201d5e2d1a3f46ff71bdf5cdc67a6505d4",
+    "apps/api/src/modules/inventory/inventory-routes.ts": "37483dfd52ef33a075d0dced1728fcf26a4e26f0779711c93eac776a50eacdf6"
+  },
+  "measuredAt": "2026-09-16T19:13:17.511Z",
+  "commit": "6a603aad8420b7a1f46478052538c9a7468eb2b4",
+  "dirty": true,
+  "counts": {
+    "products": 10000,
+    "customers": 10000,
+    "sales": 100000,
+    "lines": 100000,
+    "tickets": 100000
+  },
+  "users": 25,
+  "role": "ADMINISTRATOR",
+  "warmupActions": 150,
+  "measuredActions": 450,
+  "mix": {
+    "products-matching": 75,
+    "products-empty": 75,
+    "customers-matching": 75,
+    "customers-empty": 75,
+    "inventory-matching": 75,
+    "inventory-empty": 75
+  },
+  "environment": {
+    "os": "win32 10.0.26200",
+    "cpu": "AMD Ryzen 7 7445HS w/ Radeon 740M Graphics     ",
+    "logicalCpus": 12,
+    "memoryBytes": 16396115968,
+    "node": "v24.18.0",
+    "browser": "151.0.7922.34",
+    "postgres": "PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35228, 64-bit",
+    "frontend": "Vite production build",
+    "network": "loopback; 25 distinct trusted-proxy client IPs; rate limits enabled",
+    "packageManager": "pnpm@10.28.1"
+  },
+  "timing": "Captured input event through two animation frames with all four DOM predicates true; navigation and warmup excluded; fresh search query per action; no response mocks.",
+  "p50": 185.39999999850988,
+  "p95": 276.69999999552965,
+  "p99": 332,
+  "max": 389.70000000298023,
+  "passed": 450,
+  "passRate": 1,
+  "errors": [],
+  "samples": [
+    {
+      "user": 0,
+      "kind": "products",
+      "match": true,
+      "query": "Product 00001",
+      "elapsedMs": 213.29999999701977,
+      "startedAt": 1789585999289.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 1,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 00380",
+      "elapsedMs": 206.10000000149012,
+      "startedAt": 1789585999289.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 2,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 00759",
+      "elapsedMs": 311.09999999403954,
+      "startedAt": 1789585999191.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 3,
+      "kind": "products",
+      "match": true,
+      "query": "Product 01138",
+      "elapsedMs": 198.30000000447035,
+      "startedAt": 1789585999285.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 4,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 01517",
+      "elapsedMs": 249.10000000149012,
+      "startedAt": 1789585999288.9001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 5,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 01896",
+      "elapsedMs": 280.3999999985099,
+      "startedAt": 1789585999336,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 6,
+      "kind": "products",
+      "match": true,
+      "query": "Product 02275",
+      "elapsedMs": 271.29999999701977,
+      "startedAt": 1789585999289.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 7,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 02654",
+      "elapsedMs": 268.1000000014901,
+      "startedAt": 1789585999305.0999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 8,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 03033",
+      "elapsedMs": 276.19999999552965,
+      "startedAt": 1789585999305.5999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 9,
+      "kind": "products",
+      "match": true,
+      "query": "Product 03412",
+      "elapsedMs": 389.70000000298023,
+      "startedAt": 1789585999307.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 10,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 03791",
+      "elapsedMs": 231.79999999701977,
+      "startedAt": 1789585999287.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 11,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 04170",
+      "elapsedMs": 224.29999999701977,
+      "startedAt": 1789585999326.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 12,
+      "kind": "products",
+      "match": true,
+      "query": "Product 04549",
+      "elapsedMs": 208.60000000149012,
+      "startedAt": 1789585999294.5999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 13,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 04928",
+      "elapsedMs": 235.40000000596046,
+      "startedAt": 1789585999313.9001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 14,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 05307",
+      "elapsedMs": 332,
+      "startedAt": 1789585999325.9,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 15,
+      "kind": "products",
+      "match": true,
+      "query": "Product 05686",
+      "elapsedMs": 254,
+      "startedAt": 1789585999383.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 16,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 06065",
+      "elapsedMs": 319.19999999552965,
+      "startedAt": 1789585999384.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 17,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 06444",
+      "elapsedMs": 204,
+      "startedAt": 1789585999507.1,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 18,
+      "kind": "products",
+      "match": true,
+      "query": "Product 06823",
+      "elapsedMs": 278,
+      "startedAt": 1789585999384.9,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 19,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 07202",
+      "elapsedMs": 318.3999999985099,
+      "startedAt": 1789585999383.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 20,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 07581",
+      "elapsedMs": 231.69999999552965,
+      "startedAt": 1789585999480.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 21,
+      "kind": "products",
+      "match": true,
+      "query": "Product 07960",
+      "elapsedMs": 284.29999999701977,
+      "startedAt": 1789585999388.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 22,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 08339",
+      "elapsedMs": 326.59999999403954,
+      "startedAt": 1789585999386.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 23,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 08718",
+      "elapsedMs": 188,
+      "startedAt": 1789585999570.5999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 24,
+      "kind": "products",
+      "match": true,
+      "query": "Product 09097",
+      "elapsedMs": 233.70000000298023,
+      "startedAt": 1789585999313.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 0,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-0-1",
+      "elapsedMs": 100.70000000298023,
+      "startedAt": 1789585999959,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 1,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-1-1",
+      "elapsedMs": 148.10000000149012,
+      "startedAt": 1789586000097.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 2,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-2-1",
+      "elapsedMs": 154.89999999850988,
+      "startedAt": 1789585999958.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 3,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-3-1",
+      "elapsedMs": 99.39999999850988,
+      "startedAt": 1789585999960.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 4,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-4-1",
+      "elapsedMs": 148.10000000149012,
+      "startedAt": 1789586000097.1,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 5,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-5-1",
+      "elapsedMs": 168.80000000447035,
+      "startedAt": 1789585999944.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 6,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-6-1",
+      "elapsedMs": 115.5,
+      "startedAt": 1789585999944.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 7,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-7-1",
+      "elapsedMs": 148.60000000149012,
+      "startedAt": 1789586000097,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 8,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-8-1",
+      "elapsedMs": 138.69999999552965,
+      "startedAt": 1789586000072.5999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 9,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-9-1",
+      "elapsedMs": 98.79999999701977,
+      "startedAt": 1789585999961,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 10,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-10-1",
+      "elapsedMs": 147.89999999850988,
+      "startedAt": 1789586000097.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 11,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-11-1",
+      "elapsedMs": 132.29999999701977,
+      "startedAt": 1789586000099.1,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 12,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-12-1",
+      "elapsedMs": 114.19999999552965,
+      "startedAt": 1789586000178.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 13,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-13-1",
+      "elapsedMs": 115.60000000149012,
+      "startedAt": 1789585999944.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 14,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-14-1",
+      "elapsedMs": 134.10000000149012,
+      "startedAt": 1789586000097.4,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 15,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-15-1",
+      "elapsedMs": 124.30000000447035,
+      "startedAt": 1789586000106.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 16,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-16-1",
+      "elapsedMs": 163.39999999850988,
+      "startedAt": 1789586000101.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 17,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-17-1",
+      "elapsedMs": 154.39999999850988,
+      "startedAt": 1789585999958.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 18,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-18-1",
+      "elapsedMs": 122.39999999850988,
+      "startedAt": 1789586000106.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 19,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-19-1",
+      "elapsedMs": 130.29999999701977,
+      "startedAt": 1789585999958.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 20,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-20-1",
+      "elapsedMs": 166.10000000149012,
+      "startedAt": 1789586000109.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 21,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-21-1",
+      "elapsedMs": 136,
+      "startedAt": 1789586000097.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 22,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-22-1",
+      "elapsedMs": 166.89999999850988,
+      "startedAt": 1789586000096.9,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 23,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-23-1",
+      "elapsedMs": 136.30000000447035,
+      "startedAt": 1789586000109.4,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 24,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-24-1",
+      "elapsedMs": 138.79999999701977,
+      "startedAt": 1789586000072.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 0,
+      "kind": "products",
+      "match": true,
+      "query": "Product 00255",
+      "elapsedMs": 183.89999999850988,
+      "startedAt": 1789586000553.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 1,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 00634",
+      "elapsedMs": 188.60000000149012,
+      "startedAt": 1789586000532.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 2,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 01013",
+      "elapsedMs": 171.89999999850988,
+      "startedAt": 1789586000552.9,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 3,
+      "kind": "products",
+      "match": true,
+      "query": "Product 01392",
+      "elapsedMs": 174,
+      "startedAt": 1789586000552.9001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 4,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 01771",
+      "elapsedMs": 73.59999999403954,
+      "startedAt": 1789586000419.2002,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 5,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 02150",
+      "elapsedMs": 73.70000000298023,
+      "startedAt": 1789586000419.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 6,
+      "kind": "products",
+      "match": true,
+      "query": "Product 02529",
+      "elapsedMs": 209.70000000298023,
+      "startedAt": 1789586000568.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 7,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 02908",
+      "elapsedMs": 165.20000000298023,
+      "startedAt": 1789586000552.9,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 8,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 03287",
+      "elapsedMs": 208.70000000298023,
+      "startedAt": 1789586000568.2998,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 9,
+      "kind": "products",
+      "match": true,
+      "query": "Product 03666",
+      "elapsedMs": 197.29999999701977,
+      "startedAt": 1789586000532.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 10,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 04045",
+      "elapsedMs": 166.10000000149012,
+      "startedAt": 1789586000553,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 11,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 04424",
+      "elapsedMs": 164.29999999701977,
+      "startedAt": 1789586000514.1,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 12,
+      "kind": "products",
+      "match": true,
+      "query": "Product 04803",
+      "elapsedMs": 184.69999999552965,
+      "startedAt": 1789586000553.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 13,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 05182",
+      "elapsedMs": 163.60000000149012,
+      "startedAt": 1789586000514.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 14,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 05561",
+      "elapsedMs": 155.30000000447035,
+      "startedAt": 1789586000568.4,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 15,
+      "kind": "products",
+      "match": true,
+      "query": "Product 05940",
+      "elapsedMs": 192.39999999850988,
+      "startedAt": 1789586000532.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 16,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 06319",
+      "elapsedMs": 164.60000000149012,
+      "startedAt": 1789586000514.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 17,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 06698",
+      "elapsedMs": 164.70000000298023,
+      "startedAt": 1789586000515,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 18,
+      "kind": "products",
+      "match": true,
+      "query": "Product 07077",
+      "elapsedMs": 146.39999999850988,
+      "startedAt": 1789586000532.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 19,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 07456",
+      "elapsedMs": 246.79999999701977,
+      "startedAt": 1789586000568.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 20,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 07835",
+      "elapsedMs": 163.89999999850988,
+      "startedAt": 1789586000515,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 21,
+      "kind": "products",
+      "match": true,
+      "query": "Product 08214",
+      "elapsedMs": 143.39999999850988,
+      "startedAt": 1789586000514.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 22,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 08593",
+      "elapsedMs": 190.29999999701977,
+      "startedAt": 1789586000532.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 23,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 08972",
+      "elapsedMs": 208.69999999552965,
+      "startedAt": 1789586000568.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 24,
+      "kind": "products",
+      "match": true,
+      "query": "Product 09351",
+      "elapsedMs": 155.09999999403954,
+      "startedAt": 1789586000514.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 0,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-0-3",
+      "elapsedMs": 148.70000000298023,
+      "startedAt": 1789586001163.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 1,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-1-3",
+      "elapsedMs": 180.10000000149012,
+      "startedAt": 1789586001094.0999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 2,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-2-3",
+      "elapsedMs": 158.59999999403954,
+      "startedAt": 1789586001085.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 3,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-3-3",
+      "elapsedMs": 155.69999999552965,
+      "startedAt": 1789586001086.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 4,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-4-3",
+      "elapsedMs": 116.19999999552965,
+      "startedAt": 1789586001276.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 5,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-5-3",
+      "elapsedMs": 134.39999999850988,
+      "startedAt": 1789586001276.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 6,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-6-3",
+      "elapsedMs": 180.30000000447035,
+      "startedAt": 1789586001099.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 7,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-7-3",
+      "elapsedMs": 203.39999999850988,
+      "startedAt": 1789586001101.4,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 8,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-8-3",
+      "elapsedMs": 149.69999999552965,
+      "startedAt": 1789586001093.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 9,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-9-3",
+      "elapsedMs": 197.79999999701977,
+      "startedAt": 1789586001113.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 10,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-10-3",
+      "elapsedMs": 147.69999999552965,
+      "startedAt": 1789586001094.2002,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 11,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-11-3",
+      "elapsedMs": 166.70000000298023,
+      "startedAt": 1789586001111.9001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 12,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-12-3",
+      "elapsedMs": 173.60000000149012,
+      "startedAt": 1789586001163.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 13,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-13-3",
+      "elapsedMs": 160.19999999552965,
+      "startedAt": 1789586001085.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 14,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-14-3",
+      "elapsedMs": 143,
+      "startedAt": 1789586001169.0999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 15,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-15-3",
+      "elapsedMs": 173.39999999850988,
+      "startedAt": 1789586001163.1,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 16,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-16-3",
+      "elapsedMs": 177.39999999850988,
+      "startedAt": 1789586001096.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 17,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-17-3",
+      "elapsedMs": 158.89999999850988,
+      "startedAt": 1789586001085.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 18,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-18-3",
+      "elapsedMs": 198,
+      "startedAt": 1789586001113.4,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 19,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-19-3",
+      "elapsedMs": 205.20000000298023,
+      "startedAt": 1789586001099.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 20,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-20-3",
+      "elapsedMs": 173.79999999701977,
+      "startedAt": 1789586001163.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 21,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-21-3",
+      "elapsedMs": 145.79999999701977,
+      "startedAt": 1789586001096.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 22,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-22-3",
+      "elapsedMs": 203.5,
+      "startedAt": 1789586001099.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 23,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-23-3",
+      "elapsedMs": 222.80000000447035,
+      "startedAt": 1789586001113.9,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 24,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-24-3",
+      "elapsedMs": 146.89999999850988,
+      "startedAt": 1789586001098.9001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 0,
+      "kind": "products",
+      "match": true,
+      "query": "Product 00509",
+      "elapsedMs": 218.29999999701977,
+      "startedAt": 1789586001599.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 1,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 00888",
+      "elapsedMs": 180.69999999552965,
+      "startedAt": 1789586001600.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 2,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 01267",
+      "elapsedMs": 218.39999999850988,
+      "startedAt": 1789586001599.5999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 3,
+      "kind": "products",
+      "match": true,
+      "query": "Product 01646",
+      "elapsedMs": 198.60000000149012,
+      "startedAt": 1789586001632.4001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 4,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 02025",
+      "elapsedMs": 246,
+      "startedAt": 1789586001599.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 5,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 02404",
+      "elapsedMs": 253,
+      "startedAt": 1789586001600.4,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 6,
+      "kind": "products",
+      "match": true,
+      "query": "Product 02783",
+      "elapsedMs": 245.60000000149012,
+      "startedAt": 1789586001599.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 7,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 03162",
+      "elapsedMs": 226.39999999850988,
+      "startedAt": 1789586001599.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 8,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 03541",
+      "elapsedMs": 218.10000000149012,
+      "startedAt": 1789586001599.9,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 9,
+      "kind": "products",
+      "match": true,
+      "query": "Product 03920",
+      "elapsedMs": 188.59999999403954,
+      "startedAt": 1789586001646.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 10,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 04299",
+      "elapsedMs": 226.19999999552965,
+      "startedAt": 1789586001599.7002,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 11,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 04678",
+      "elapsedMs": 198.5,
+      "startedAt": 1789586001646.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 12,
+      "kind": "products",
+      "match": true,
+      "query": "Product 05057",
+      "elapsedMs": 181.20000000298023,
+      "startedAt": 1789586001669.4,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 13,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 05436",
+      "elapsedMs": 189.30000000447035,
+      "startedAt": 1789586001600,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 14,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 05815",
+      "elapsedMs": 211.30000000447035,
+      "startedAt": 1789586001633.4,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 15,
+      "kind": "products",
+      "match": true,
+      "query": "Product 06194",
+      "elapsedMs": 183,
+      "startedAt": 1789586001633.4,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 16,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 06573",
+      "elapsedMs": 197.29999999701977,
+      "startedAt": 1789586001647.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 17,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 06952",
+      "elapsedMs": 201.90000000596046,
+      "startedAt": 1789586001632.4001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 18,
+      "kind": "products",
+      "match": true,
+      "query": "Product 07331",
+      "elapsedMs": 198.40000000596046,
+      "startedAt": 1789586001632.2998,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 19,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 07710",
+      "elapsedMs": 206.60000000149012,
+      "startedAt": 1789586001634.9001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 20,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 08089",
+      "elapsedMs": 198.5,
+      "startedAt": 1789586001600.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 21,
+      "kind": "products",
+      "match": true,
+      "query": "Product 08468",
+      "elapsedMs": 198.10000000149012,
+      "startedAt": 1789586001646.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 22,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 08847",
+      "elapsedMs": 180.30000000447035,
+      "startedAt": 1789586001656.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 23,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 09226",
+      "elapsedMs": 198.80000000447035,
+      "startedAt": 1789586001632.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 24,
+      "kind": "products",
+      "match": true,
+      "query": "Product 09605",
+      "elapsedMs": 211.60000000149012,
+      "startedAt": 1789586001633.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 0,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-0-5",
+      "elapsedMs": 189.79999999701977,
+      "startedAt": 1789586002184,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 1,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-1-5",
+      "elapsedMs": 188.69999999552965,
+      "startedAt": 1789586002183.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 2,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-2-5",
+      "elapsedMs": 138.20000000298023,
+      "startedAt": 1789586002182.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 3,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-3-5",
+      "elapsedMs": 193.5,
+      "startedAt": 1789586002197.9001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 4,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-4-5",
+      "elapsedMs": 139,
+      "startedAt": 1789586002183.7002,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 5,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-5-5",
+      "elapsedMs": 193.29999999701977,
+      "startedAt": 1789586002197.9,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 6,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-6-5",
+      "elapsedMs": 165.5,
+      "startedAt": 1789586002274.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 7,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-7-5",
+      "elapsedMs": 145.10000000149012,
+      "startedAt": 1789586002183.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 8,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-8-5",
+      "elapsedMs": 196.80000000447035,
+      "startedAt": 1789586002198.7998,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 9,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-9-5",
+      "elapsedMs": 153.70000000298023,
+      "startedAt": 1789586002276.4001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 10,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-10-5",
+      "elapsedMs": 173.19999999552965,
+      "startedAt": 1789586002183.7002,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 11,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-11-5",
+      "elapsedMs": 181.5,
+      "startedAt": 1789586002281.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 12,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-12-5",
+      "elapsedMs": 136.10000000149012,
+      "startedAt": 1789586002298.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 13,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-13-5",
+      "elapsedMs": 175.79999999701977,
+      "startedAt": 1789586002304.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 14,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-14-5",
+      "elapsedMs": 146.70000000298023,
+      "startedAt": 1789586002279.9,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 15,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-15-5",
+      "elapsedMs": 139,
+      "startedAt": 1789586002298.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 16,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-16-5",
+      "elapsedMs": 172.60000000149012,
+      "startedAt": 1789586002276.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 17,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-17-5",
+      "elapsedMs": 139.70000000298023,
+      "startedAt": 1789586002309.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 18,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-18-5",
+      "elapsedMs": 152.39999999850988,
+      "startedAt": 1789586002310.5999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 19,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-19-5",
+      "elapsedMs": 182.09999999403954,
+      "startedAt": 1789586002298.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 20,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-20-5",
+      "elapsedMs": 166.30000000447035,
+      "startedAt": 1789586002298.4,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 21,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-21-5",
+      "elapsedMs": 159.39999999850988,
+      "startedAt": 1789586002303.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 22,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-22-5",
+      "elapsedMs": 173.10000000149012,
+      "startedAt": 1789586002276.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 23,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-23-5",
+      "elapsedMs": 151.30000000447035,
+      "startedAt": 1789586002276.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 24,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-24-5",
+      "elapsedMs": 153,
+      "startedAt": 1789586002310,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 0,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 00763",
+      "elapsedMs": 283.90000000596046,
+      "startedAt": 1789586004307.2998,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 1,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 01142",
+      "elapsedMs": 210,
+      "startedAt": 1789586004241.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 2,
+      "kind": "products",
+      "match": true,
+      "query": "Product 01521",
+      "elapsedMs": 165.79999999701977,
+      "startedAt": 1789586004434.7002,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 3,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 01900",
+      "elapsedMs": 209.79999999701977,
+      "startedAt": 1789586004243.7998,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 4,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 02279",
+      "elapsedMs": 283.59999999403954,
+      "startedAt": 1789586004307.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 5,
+      "kind": "products",
+      "match": true,
+      "query": "Product 02658",
+      "elapsedMs": 226.69999999552965,
+      "startedAt": 1789586004307.7002,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 6,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 03037",
+      "elapsedMs": 233.10000000149012,
+      "startedAt": 1789586004469.9001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 7,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 03416",
+      "elapsedMs": 239.20000000298023,
+      "startedAt": 1789586004336.4001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 8,
+      "kind": "products",
+      "match": true,
+      "query": "Product 03795",
+      "elapsedMs": 191.20000000298023,
+      "startedAt": 1789586004307.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 9,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 04174",
+      "elapsedMs": 233.60000000149012,
+      "startedAt": 1789586004470.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 10,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 04553",
+      "elapsedMs": 256.8999999985099,
+      "startedAt": 1789586004343.4,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 11,
+      "kind": "products",
+      "match": true,
+      "query": "Product 04932",
+      "elapsedMs": 206,
+      "startedAt": 1789586004469.9,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 12,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 05311",
+      "elapsedMs": 261,
+      "startedAt": 1789586004335.4,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 13,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 05690",
+      "elapsedMs": 282.3999999985099,
+      "startedAt": 1789586004307.5999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 14,
+      "kind": "products",
+      "match": true,
+      "query": "Product 06069",
+      "elapsedMs": 175.29999999701977,
+      "startedAt": 1789586004427.7002,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 15,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 06448",
+      "elapsedMs": 278.70000000298023,
+      "startedAt": 1789586004319.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 16,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 06827",
+      "elapsedMs": 229.20000000298023,
+      "startedAt": 1789586004346,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 17,
+      "kind": "products",
+      "match": true,
+      "query": "Product 07206",
+      "elapsedMs": 185.39999999850988,
+      "startedAt": 1789586004318.1,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 18,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 07585",
+      "elapsedMs": 276.69999999552965,
+      "startedAt": 1789586004318.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 19,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 07964",
+      "elapsedMs": 209.10000000149012,
+      "startedAt": 1789586004470.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 20,
+      "kind": "products",
+      "match": true,
+      "query": "Product 08343",
+      "elapsedMs": 187.80000000447035,
+      "startedAt": 1789586004307.4001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 21,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 08722",
+      "elapsedMs": 246.89999999850988,
+      "startedAt": 1789586004446.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 22,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 09101",
+      "elapsedMs": 260.30000000447035,
+      "startedAt": 1789586004335.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 23,
+      "kind": "products",
+      "match": true,
+      "query": "Product 09480",
+      "elapsedMs": 115.09999999403954,
+      "startedAt": 1789586004624.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 24,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 09859",
+      "elapsedMs": 213.09999999403954,
+      "startedAt": 1789586004471.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 0,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-0-7",
+      "elapsedMs": 177.70000000298023,
+      "startedAt": 1789586004968,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 1,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-1-7",
+      "elapsedMs": 176,
+      "startedAt": 1789586004982.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 2,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-2-7",
+      "elapsedMs": 169.70000000298023,
+      "startedAt": 1789586004970.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 3,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-3-7",
+      "elapsedMs": 168.70000000298023,
+      "startedAt": 1789586004968.4,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 4,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-4-7",
+      "elapsedMs": 153.10000000149012,
+      "startedAt": 1789586005106.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 5,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-5-7",
+      "elapsedMs": 177.60000000149012,
+      "startedAt": 1789586004981,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 6,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-6-7",
+      "elapsedMs": 177.20000000298023,
+      "startedAt": 1789586004968,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 7,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-7-7",
+      "elapsedMs": 171.70000000298023,
+      "startedAt": 1789586004969.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 8,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-8-7",
+      "elapsedMs": 188.70000000298023,
+      "startedAt": 1789586004968.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 9,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-9-7",
+      "elapsedMs": 188.39999999850988,
+      "startedAt": 1789586004969,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 10,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-10-7",
+      "elapsedMs": 221,
+      "startedAt": 1789586004983.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 11,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-11-7",
+      "elapsedMs": 157.70000000298023,
+      "startedAt": 1789586005005,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 12,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-12-7",
+      "elapsedMs": 207.60000000149012,
+      "startedAt": 1789586005016.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 13,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-13-7",
+      "elapsedMs": 153.10000000149012,
+      "startedAt": 1789586005106.5999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 14,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-14-7",
+      "elapsedMs": 158.30000000447035,
+      "startedAt": 1789586005004.4001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 15,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-15-7",
+      "elapsedMs": 175.30000000447035,
+      "startedAt": 1789586004983.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 16,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-16-7",
+      "elapsedMs": 176.89999999850988,
+      "startedAt": 1789586004968,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 17,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-17-7",
+      "elapsedMs": 157.10000000149012,
+      "startedAt": 1789586005005.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 18,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-18-7",
+      "elapsedMs": 200.80000000447035,
+      "startedAt": 1789586005004.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 19,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-19-7",
+      "elapsedMs": 161.79999999701977,
+      "startedAt": 1789586005040.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 20,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-20-7",
+      "elapsedMs": 195.5,
+      "startedAt": 1789586005006.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 21,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-21-7",
+      "elapsedMs": 200.79999999701977,
+      "startedAt": 1789586005004.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 22,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-22-7",
+      "elapsedMs": 200.60000000149012,
+      "startedAt": 1789586005004.4,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 23,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-23-7",
+      "elapsedMs": 191.70000000298023,
+      "startedAt": 1789586005005.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 24,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-24-7",
+      "elapsedMs": 182.90000000596046,
+      "startedAt": 1789586005040.7002,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 0,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 01017",
+      "elapsedMs": 143.20000000298023,
+      "startedAt": 1789586005453.7998,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 1,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 01396",
+      "elapsedMs": 214.80000000447035,
+      "startedAt": 1789586005468.9,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 2,
+      "kind": "products",
+      "match": true,
+      "query": "Product 01775",
+      "elapsedMs": 151.89999999850988,
+      "startedAt": 1789586005490.7002,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 3,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 02154",
+      "elapsedMs": 215.20000000298023,
+      "startedAt": 1789586005473,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 4,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 02533",
+      "elapsedMs": 180.10000000149012,
+      "startedAt": 1789586005473.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 5,
+      "kind": "products",
+      "match": true,
+      "query": "Product 02912",
+      "elapsedMs": 177.20000000298023,
+      "startedAt": 1789586005475.4001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 6,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 03291",
+      "elapsedMs": 189.40000000596046,
+      "startedAt": 1789586005484.4001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 7,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 03670",
+      "elapsedMs": 215.5,
+      "startedAt": 1789586005472.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 8,
+      "kind": "products",
+      "match": true,
+      "query": "Product 04049",
+      "elapsedMs": 151.30000000447035,
+      "startedAt": 1789586005490.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 9,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 04428",
+      "elapsedMs": 196.89999999850988,
+      "startedAt": 1789586005468.9001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 10,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 04807",
+      "elapsedMs": 215.60000000149012,
+      "startedAt": 1789586005472.5999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 11,
+      "kind": "products",
+      "match": true,
+      "query": "Product 05186",
+      "elapsedMs": 154.40000000596046,
+      "startedAt": 1789586005488.9,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 12,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 05565",
+      "elapsedMs": 168.30000000447035,
+      "startedAt": 1789586005538,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 13,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 05944",
+      "elapsedMs": 214.89999999850988,
+      "startedAt": 1789586005473.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 14,
+      "kind": "products",
+      "match": true,
+      "query": "Product 06323",
+      "elapsedMs": 140.19999999552965,
+      "startedAt": 1789586005475.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 15,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 06702",
+      "elapsedMs": 206.59999999403954,
+      "startedAt": 1789586005484.1,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 16,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 07081",
+      "elapsedMs": 204.80000000447035,
+      "startedAt": 1789586005483.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 17,
+      "kind": "products",
+      "match": true,
+      "query": "Product 07460",
+      "elapsedMs": 159.10000000149012,
+      "startedAt": 1789586005490.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 18,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 07839",
+      "elapsedMs": 189.80000000447035,
+      "startedAt": 1789586005484,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 19,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 08218",
+      "elapsedMs": 185.5,
+      "startedAt": 1789586005496.9001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 20,
+      "kind": "products",
+      "match": true,
+      "query": "Product 08597",
+      "elapsedMs": 164.39999999850988,
+      "startedAt": 1789586005496.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 21,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 08976",
+      "elapsedMs": 193,
+      "startedAt": 1789586005472.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 22,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 09355",
+      "elapsedMs": 199.60000000149012,
+      "startedAt": 1789586005483.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 23,
+      "kind": "products",
+      "match": true,
+      "query": "Product 09734",
+      "elapsedMs": 183.10000000149012,
+      "startedAt": 1789586005499,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 24,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 00113",
+      "elapsedMs": 179.10000000149012,
+      "startedAt": 1789586005503.9001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 0,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-0-9",
+      "elapsedMs": 156.60000000149012,
+      "startedAt": 1789586005973,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 1,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-1-9",
+      "elapsedMs": 210.19999999552965,
+      "startedAt": 1789586005991.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 2,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-2-9",
+      "elapsedMs": 147.19999999552965,
+      "startedAt": 1789586006002.2002,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 3,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-3-9",
+      "elapsedMs": 207.59999999403954,
+      "startedAt": 1789586005973.2998,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 4,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-4-9",
+      "elapsedMs": 198.29999999701977,
+      "startedAt": 1789586005997.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 5,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-5-9",
+      "elapsedMs": 151,
+      "startedAt": 1789586005991.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 6,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-6-9",
+      "elapsedMs": 155.70000000298023,
+      "startedAt": 1789586005991.1,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 7,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-7-9",
+      "elapsedMs": 210,
+      "startedAt": 1789586005991,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 8,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-8-9",
+      "elapsedMs": 193.89999999850988,
+      "startedAt": 1789586006002.7002,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 9,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-9-9",
+      "elapsedMs": 207.29999999701977,
+      "startedAt": 1789586005973.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 10,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-10-9",
+      "elapsedMs": 193.70000000298023,
+      "startedAt": 1789586006002.2998,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 11,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-11-9",
+      "elapsedMs": 157.5,
+      "startedAt": 1789586005991.4,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 12,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-12-9",
+      "elapsedMs": 155.70000000298023,
+      "startedAt": 1789586005991.4,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 13,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-13-9",
+      "elapsedMs": 185.79999999701977,
+      "startedAt": 1789586006015.0999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 14,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-14-9",
+      "elapsedMs": 130.20000000298023,
+      "startedAt": 1789586006015.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 15,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-15-9",
+      "elapsedMs": 185.79999999701977,
+      "startedAt": 1789586006027,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 16,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-16-9",
+      "elapsedMs": 181.70000000298023,
+      "startedAt": 1789586006015.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 17,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-17-9",
+      "elapsedMs": 129.70000000298023,
+      "startedAt": 1789586006016,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 18,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-18-9",
+      "elapsedMs": 151.89999999850988,
+      "startedAt": 1789586005991.2002,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 19,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-19-9",
+      "elapsedMs": 177.20000000298023,
+      "startedAt": 1789586006020,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 20,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-20-9",
+      "elapsedMs": 170.29999999701977,
+      "startedAt": 1789586006001.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 21,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-21-9",
+      "elapsedMs": 151,
+      "startedAt": 1789586005992,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 22,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-22-9",
+      "elapsedMs": 208.5,
+      "startedAt": 1789586005991.1,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 23,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-23-9",
+      "elapsedMs": 168.10000000149012,
+      "startedAt": 1789586006033.1,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 24,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-24-9",
+      "elapsedMs": 147.89999999850988,
+      "startedAt": 1789586005995.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 0,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 01271",
+      "elapsedMs": 169.89999999850988,
+      "startedAt": 1789586006449,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 1,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 01650",
+      "elapsedMs": 263.6000000014901,
+      "startedAt": 1789586006449.0999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 2,
+      "kind": "products",
+      "match": true,
+      "query": "Product 02029",
+      "elapsedMs": 227.09999999403954,
+      "startedAt": 1789586006486.2002,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 3,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 02408",
+      "elapsedMs": 233.10000000149012,
+      "startedAt": 1789586006449.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 4,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 02787",
+      "elapsedMs": 197.19999999552965,
+      "startedAt": 1789586006494.1,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 5,
+      "kind": "products",
+      "match": true,
+      "query": "Product 03166",
+      "elapsedMs": 171.5,
+      "startedAt": 1789586006449.9001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 6,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 03545",
+      "elapsedMs": 169,
+      "startedAt": 1789586006449.1,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 7,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 03924",
+      "elapsedMs": 239,
+      "startedAt": 1789586006450.1,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 8,
+      "kind": "products",
+      "match": true,
+      "query": "Product 04303",
+      "elapsedMs": 214.39999999850988,
+      "startedAt": 1789586006476.4001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 9,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 04682",
+      "elapsedMs": 166.89999999850988,
+      "startedAt": 1789586006450.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 10,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 05061",
+      "elapsedMs": 239.20000000298023,
+      "startedAt": 1789586006450.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 11,
+      "kind": "products",
+      "match": true,
+      "query": "Product 05440",
+      "elapsedMs": 214.80000000447035,
+      "startedAt": 1789586006476.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 12,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 05819",
+      "elapsedMs": 222.5,
+      "startedAt": 1789586006483.4,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 13,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 06198",
+      "elapsedMs": 229.5,
+      "startedAt": 1789586006476.5999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 14,
+      "kind": "products",
+      "match": true,
+      "query": "Product 06577",
+      "elapsedMs": 214.10000000149012,
+      "startedAt": 1789586006476.9001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 15,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 06956",
+      "elapsedMs": 215.10000000149012,
+      "startedAt": 1789586006475.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 16,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 07335",
+      "elapsedMs": 220.79999999701977,
+      "startedAt": 1789586006582.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 17,
+      "kind": "products",
+      "match": true,
+      "query": "Product 07714",
+      "elapsedMs": 213.79999999701977,
+      "startedAt": 1789586006572.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 18,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 08093",
+      "elapsedMs": 281.29999999701977,
+      "startedAt": 1789586006476.7002,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 19,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 08472",
+      "elapsedMs": 215,
+      "startedAt": 1789586006476.4001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 20,
+      "kind": "products",
+      "match": true,
+      "query": "Product 08851",
+      "elapsedMs": 183.10000000149012,
+      "startedAt": 1789586006582.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 21,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 09230",
+      "elapsedMs": 240.10000000149012,
+      "startedAt": 1789586006566.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 22,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 09609",
+      "elapsedMs": 234.60000000149012,
+      "startedAt": 1789586006455.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 23,
+      "kind": "products",
+      "match": true,
+      "query": "Product 09988",
+      "elapsedMs": 134.60000000149012,
+      "startedAt": 1789586006481.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 24,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 00367",
+      "elapsedMs": 228.89999999850988,
+      "startedAt": 1789586006476.9001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 0,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-0-11",
+      "elapsedMs": 142,
+      "startedAt": 1789586007074.4,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 1,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-1-11",
+      "elapsedMs": 152.89999999850988,
+      "startedAt": 1789586007074.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 2,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-2-11",
+      "elapsedMs": 169.70000000298023,
+      "startedAt": 1789586007078,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 3,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-3-11",
+      "elapsedMs": 159.10000000149012,
+      "startedAt": 1789586007078.9,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 4,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-4-11",
+      "elapsedMs": 163,
+      "startedAt": 1789586007074.4,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 5,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-5-11",
+      "elapsedMs": 160.20000000298023,
+      "startedAt": 1789586007077.4001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 6,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-6-11",
+      "elapsedMs": 191.5,
+      "startedAt": 1789586007108.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 7,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-7-11",
+      "elapsedMs": 176.69999999552965,
+      "startedAt": 1789586007060.7002,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 8,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-8-11",
+      "elapsedMs": 149.5,
+      "startedAt": 1789586007077.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 9,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-9-11",
+      "elapsedMs": 158.89999999850988,
+      "startedAt": 1789586007079.4001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 10,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-10-11",
+      "elapsedMs": 174.10000000149012,
+      "startedAt": 1789586007094.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 11,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-11-11",
+      "elapsedMs": 175.20000000298023,
+      "startedAt": 1789586007095,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 12,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-12-11",
+      "elapsedMs": 141,
+      "startedAt": 1789586007074.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 13,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-13-11",
+      "elapsedMs": 192.79999999701977,
+      "startedAt": 1789586007097,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 14,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-14-11",
+      "elapsedMs": 139.39999999850988,
+      "startedAt": 1789586007108.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 15,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-15-11",
+      "elapsedMs": 151.5,
+      "startedAt": 1789586007086.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 16,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-16-11",
+      "elapsedMs": 154.89999999850988,
+      "startedAt": 1789586007084.1,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 17,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-17-11",
+      "elapsedMs": 198.20000000298023,
+      "startedAt": 1789586007101.4001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 18,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-18-11",
+      "elapsedMs": 160.5,
+      "startedAt": 1789586007077.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 19,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-19-11",
+      "elapsedMs": 131.79999999701977,
+      "startedAt": 1789586007095.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 20,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-20-11",
+      "elapsedMs": 191.5,
+      "startedAt": 1789586007108.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 21,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-21-11",
+      "elapsedMs": 160.5,
+      "startedAt": 1789586007078.1,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 22,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-22-11",
+      "elapsedMs": 182.19999999552965,
+      "startedAt": 1789586007108.1,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 23,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-23-11",
+      "elapsedMs": 140.69999999552965,
+      "startedAt": 1789586007097.1,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 24,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-24-11",
+      "elapsedMs": 126.19999999552965,
+      "startedAt": 1789586007095,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 0,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 01525",
+      "elapsedMs": 310.5,
+      "startedAt": 1789586009297.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 1,
+      "kind": "products",
+      "match": true,
+      "query": "Product 01904",
+      "elapsedMs": 213.20000000298023,
+      "startedAt": 1789586009391.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 2,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 02283",
+      "elapsedMs": 368.29999999701977,
+      "startedAt": 1789586009297.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 3,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 02662",
+      "elapsedMs": 368.59999999403954,
+      "startedAt": 1789586009297.2998,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 4,
+      "kind": "products",
+      "match": true,
+      "query": "Product 03041",
+      "elapsedMs": 193.39999999850988,
+      "startedAt": 1789586009410.0999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 5,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 03420",
+      "elapsedMs": 253.90000000596046,
+      "startedAt": 1789586009371.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 6,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 03799",
+      "elapsedMs": 273.1000000014901,
+      "startedAt": 1789586009354.7998,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 7,
+      "kind": "products",
+      "match": true,
+      "query": "Product 04178",
+      "elapsedMs": 271.80000000447035,
+      "startedAt": 1789586009419.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 8,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 04557",
+      "elapsedMs": 265.30000000447035,
+      "startedAt": 1789586009385.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 9,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 04936",
+      "elapsedMs": 249.29999999701977,
+      "startedAt": 1789586009384.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 10,
+      "kind": "products",
+      "match": true,
+      "query": "Product 05315",
+      "elapsedMs": 190.59999999403954,
+      "startedAt": 1789586009412.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 11,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 05694",
+      "elapsedMs": 232,
+      "startedAt": 1789586009371.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 12,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 06073",
+      "elapsedMs": 322,
+      "startedAt": 1789586009391.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 13,
+      "kind": "products",
+      "match": true,
+      "query": "Product 06452",
+      "elapsedMs": 290.69999999552965,
+      "startedAt": 1789586009405.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 14,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 06831",
+      "elapsedMs": 259.29999999701977,
+      "startedAt": 1789586009432.5999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 15,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 07210",
+      "elapsedMs": 361.20000000298023,
+      "startedAt": 1789586009371.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 16,
+      "kind": "products",
+      "match": true,
+      "query": "Product 07589",
+      "elapsedMs": 256.8999999985099,
+      "startedAt": 1789586009371.5999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 17,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 07968",
+      "elapsedMs": 259.79999999701977,
+      "startedAt": 1789586009371.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 18,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 08347",
+      "elapsedMs": 248.10000000149012,
+      "startedAt": 1789586009435.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 19,
+      "kind": "products",
+      "match": true,
+      "query": "Product 08726",
+      "elapsedMs": 293.59999999403954,
+      "startedAt": 1789586009419.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 20,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 09105",
+      "elapsedMs": 236.10000000149012,
+      "startedAt": 1789586009373.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 21,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 09484",
+      "elapsedMs": 261.79999999701977,
+      "startedAt": 1789586009421.9001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 22,
+      "kind": "products",
+      "match": true,
+      "query": "Product 09863",
+      "elapsedMs": 223.5,
+      "startedAt": 1789586009405.1,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 23,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 00242",
+      "elapsedMs": 293.3999999985099,
+      "startedAt": 1789586009371.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 24,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 00621",
+      "elapsedMs": 257.1000000014901,
+      "startedAt": 1789586009410,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 0,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-0-13",
+      "elapsedMs": 201.79999999701977,
+      "startedAt": 1789586010041.1,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 1,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-1-13",
+      "elapsedMs": 178.10000000149012,
+      "startedAt": 1789586010073.5999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 2,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-2-13",
+      "elapsedMs": 194.29999999701977,
+      "startedAt": 1789586010052,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 3,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-3-13",
+      "elapsedMs": 216.89999999850988,
+      "startedAt": 1789586010054,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 4,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-4-13",
+      "elapsedMs": 95.19999999552965,
+      "startedAt": 1789586009914.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 5,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-5-13",
+      "elapsedMs": 201.10000000149012,
+      "startedAt": 1789586010041.0999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 6,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-6-13",
+      "elapsedMs": 89.29999999701977,
+      "startedAt": 1789586009936.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 7,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-7-13",
+      "elapsedMs": 162,
+      "startedAt": 1789586010051.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 8,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-8-13",
+      "elapsedMs": 106.69999999552965,
+      "startedAt": 1789586009936.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 9,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-9-13",
+      "elapsedMs": 215.80000000447035,
+      "startedAt": 1789586010073.9,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 10,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-10-13",
+      "elapsedMs": 163.20000000298023,
+      "startedAt": 1789586010051.9,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 11,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-11-13",
+      "elapsedMs": 195.70000000298023,
+      "startedAt": 1789586010093.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 12,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-12-13",
+      "elapsedMs": 217,
+      "startedAt": 1789586010054,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 13,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-13-13",
+      "elapsedMs": 149.89999999850988,
+      "startedAt": 1789586010064,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 14,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-14-13",
+      "elapsedMs": 210.30000000447035,
+      "startedAt": 1789586010081.2998,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 15,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-15-13",
+      "elapsedMs": 218.79999999701977,
+      "startedAt": 1789586010051.7002,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 16,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-16-13",
+      "elapsedMs": 210.89999999850988,
+      "startedAt": 1789586010073.9,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 17,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-17-13",
+      "elapsedMs": 192.5,
+      "startedAt": 1789586010051.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 18,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-18-13",
+      "elapsedMs": 202.59999999403954,
+      "startedAt": 1789586010087.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 19,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-19-13",
+      "elapsedMs": 160.19999999552965,
+      "startedAt": 1789586010091.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 20,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-20-13",
+      "elapsedMs": 162.60000000149012,
+      "startedAt": 1789586010051.9,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 21,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-21-13",
+      "elapsedMs": 197.29999999701977,
+      "startedAt": 1789586010073.4001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 22,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-22-13",
+      "elapsedMs": 192.5,
+      "startedAt": 1789586010092.4,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 23,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-23-13",
+      "elapsedMs": 216.10000000149012,
+      "startedAt": 1789586010073.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 24,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-24-13",
+      "elapsedMs": 216.09999999403954,
+      "startedAt": 1789586010073.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 0,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 01779",
+      "elapsedMs": 197.5,
+      "startedAt": 1789586010559.4,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 1,
+      "kind": "products",
+      "match": true,
+      "query": "Product 02158",
+      "elapsedMs": 157.70000000298023,
+      "startedAt": 1789586010539.4,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 2,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 02537",
+      "elapsedMs": 166.80000000447035,
+      "startedAt": 1789586010567.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 3,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 02916",
+      "elapsedMs": 162.39999999850988,
+      "startedAt": 1789586010536.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 4,
+      "kind": "products",
+      "match": true,
+      "query": "Product 03295",
+      "elapsedMs": 131.39999999850988,
+      "startedAt": 1789586010550.5999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 5,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 03674",
+      "elapsedMs": 211.60000000149012,
+      "startedAt": 1789586010528.0999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 6,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 04053",
+      "elapsedMs": 174.89999999850988,
+      "startedAt": 1789586010549.4,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 7,
+      "kind": "products",
+      "match": true,
+      "query": "Product 04432",
+      "elapsedMs": 157.20000000298023,
+      "startedAt": 1789586010567.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 8,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 04811",
+      "elapsedMs": 211.69999999552965,
+      "startedAt": 1789586010528.1,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 9,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 05190",
+      "elapsedMs": 147.79999999701977,
+      "startedAt": 1789586010551,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 10,
+      "kind": "products",
+      "match": true,
+      "query": "Product 05569",
+      "elapsedMs": 185.79999999701977,
+      "startedAt": 1789586010539.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 11,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 05948",
+      "elapsedMs": 185.29999999701977,
+      "startedAt": 1789586010548.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 12,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 06327",
+      "elapsedMs": 149.80000000447035,
+      "startedAt": 1789586010549.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 13,
+      "kind": "products",
+      "match": true,
+      "query": "Product 06706",
+      "elapsedMs": 189.79999999701977,
+      "startedAt": 1789586010606.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 14,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 07085",
+      "elapsedMs": 185.19999999552965,
+      "startedAt": 1789586010549.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 15,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 07464",
+      "elapsedMs": 175.79999999701977,
+      "startedAt": 1789586010606.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 16,
+      "kind": "products",
+      "match": true,
+      "query": "Product 07843",
+      "elapsedMs": 149,
+      "startedAt": 1789586010562.7998,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 17,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 08222",
+      "elapsedMs": 184.80000000447035,
+      "startedAt": 1789586010549.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 18,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 08601",
+      "elapsedMs": 205.5,
+      "startedAt": 1789586010539.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 19,
+      "kind": "products",
+      "match": true,
+      "query": "Product 08980",
+      "elapsedMs": 161.29999999701977,
+      "startedAt": 1789586010606.5999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 20,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 09359",
+      "elapsedMs": 165.39999999850988,
+      "startedAt": 1789586010559.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 21,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 09738",
+      "elapsedMs": 185.89999999850988,
+      "startedAt": 1789586010548.4001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 22,
+      "kind": "products",
+      "match": true,
+      "query": "Product 00117",
+      "elapsedMs": 161.09999999403954,
+      "startedAt": 1789586010606.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 23,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 00496",
+      "elapsedMs": 174.39999999850988,
+      "startedAt": 1789586010565,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 24,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 00875",
+      "elapsedMs": 160.5,
+      "startedAt": 1789586010559,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 0,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-0-15",
+      "elapsedMs": 193.89999999850988,
+      "startedAt": 1789586011068.4,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 1,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-1-15",
+      "elapsedMs": 120.5,
+      "startedAt": 1789586011060.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 2,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-2-15",
+      "elapsedMs": 133.39999999850988,
+      "startedAt": 1789586011069,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 3,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-3-15",
+      "elapsedMs": 155.79999999701977,
+      "startedAt": 1789586011068.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 4,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-4-15",
+      "elapsedMs": 148.79999999701977,
+      "startedAt": 1789586011104.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 5,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-5-15",
+      "elapsedMs": 136.90000000596046,
+      "startedAt": 1789586011068.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 6,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-6-15",
+      "elapsedMs": 194,
+      "startedAt": 1789586011068.4,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 7,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-7-15",
+      "elapsedMs": 155.60000000149012,
+      "startedAt": 1789586011068.4001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 8,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-8-15",
+      "elapsedMs": 132.39999999850988,
+      "startedAt": 1789586011068.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 9,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-9-15",
+      "elapsedMs": 183.40000000596046,
+      "startedAt": 1789586011068.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 10,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-10-15",
+      "elapsedMs": 177.70000000298023,
+      "startedAt": 1789586011074.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 11,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-11-15",
+      "elapsedMs": 136.70000000298023,
+      "startedAt": 1789586011068.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 12,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-12-15",
+      "elapsedMs": 156.10000000149012,
+      "startedAt": 1789586011068.9,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 13,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-13-15",
+      "elapsedMs": 137.79999999701977,
+      "startedAt": 1789586011175.0999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 14,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-14-15",
+      "elapsedMs": 148.59999999403954,
+      "startedAt": 1789586011104.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 15,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-15-15",
+      "elapsedMs": 167.79999999701977,
+      "startedAt": 1789586011175.2002,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 16,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-16-15",
+      "elapsedMs": 137.39999999850988,
+      "startedAt": 1789586011175,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 17,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-17-15",
+      "elapsedMs": 151.5,
+      "startedAt": 1789586011177.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 18,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-18-15",
+      "elapsedMs": 150.10000000149012,
+      "startedAt": 1789586011070.9,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 19,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-19-15",
+      "elapsedMs": 138,
+      "startedAt": 1789586011175.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 20,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-20-15",
+      "elapsedMs": 142.69999999552965,
+      "startedAt": 1789586011153.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 21,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-21-15",
+      "elapsedMs": 145.30000000447035,
+      "startedAt": 1789586011151.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 22,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-22-15",
+      "elapsedMs": 134.59999999403954,
+      "startedAt": 1789586011175.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 23,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-23-15",
+      "elapsedMs": 176,
+      "startedAt": 1789586011153.1,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 24,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-24-15",
+      "elapsedMs": 147.89999999850988,
+      "startedAt": 1789586011211.0999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 0,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 02033",
+      "elapsedMs": 205.09999999403954,
+      "startedAt": 1789586011564.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 1,
+      "kind": "products",
+      "match": true,
+      "query": "Product 02412",
+      "elapsedMs": 187.20000000298023,
+      "startedAt": 1789586011644.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 2,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 02791",
+      "elapsedMs": 199.39999999850988,
+      "startedAt": 1789586011592.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 3,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 03170",
+      "elapsedMs": 251.59999999403954,
+      "startedAt": 1789586011564.2998,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 4,
+      "kind": "products",
+      "match": true,
+      "query": "Product 03549",
+      "elapsedMs": 217.80000000447035,
+      "startedAt": 1789586011598.4,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 5,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 03928",
+      "elapsedMs": 228.90000000596046,
+      "startedAt": 1789586011586.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 6,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 04307",
+      "elapsedMs": 228.39999999850988,
+      "startedAt": 1789586011587.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 7,
+      "kind": "products",
+      "match": true,
+      "query": "Product 04686",
+      "elapsedMs": 233.20000000298023,
+      "startedAt": 1789586011587,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 8,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 05065",
+      "elapsedMs": 233.89999999850988,
+      "startedAt": 1789586011587.1,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 9,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 05444",
+      "elapsedMs": 234.60000000149012,
+      "startedAt": 1789586011582,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 10,
+      "kind": "products",
+      "match": true,
+      "query": "Product 05823",
+      "elapsedMs": 201.70000000298023,
+      "startedAt": 1789586011582.5999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 11,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 06202",
+      "elapsedMs": 214,
+      "startedAt": 1789586011613.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 12,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 06581",
+      "elapsedMs": 234.40000000596046,
+      "startedAt": 1789586011581.9,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 13,
+      "kind": "products",
+      "match": true,
+      "query": "Product 06960",
+      "elapsedMs": 234.10000000149012,
+      "startedAt": 1789586011582.0999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 14,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 07339",
+      "elapsedMs": 198.5,
+      "startedAt": 1789586011629.2998,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 15,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 07718",
+      "elapsedMs": 212.80000000447035,
+      "startedAt": 1789586011615.4001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 16,
+      "kind": "products",
+      "match": true,
+      "query": "Product 08097",
+      "elapsedMs": 217.59999999403954,
+      "startedAt": 1789586011593.5999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 17,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 08476",
+      "elapsedMs": 185.60000000149012,
+      "startedAt": 1789586011606.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 18,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 08855",
+      "elapsedMs": 213,
+      "startedAt": 1789586011615.5,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 19,
+      "kind": "products",
+      "match": true,
+      "query": "Product 09234",
+      "elapsedMs": 207.19999999552965,
+      "startedAt": 1789586011623.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 20,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 09613",
+      "elapsedMs": 212.19999999552965,
+      "startedAt": 1789586011616.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 21,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 09992",
+      "elapsedMs": 233.39999999850988,
+      "startedAt": 1789586011586.9001,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 22,
+      "kind": "products",
+      "match": true,
+      "query": "Product 00371",
+      "elapsedMs": 186.39999999850988,
+      "startedAt": 1789586011644.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 23,
+      "kind": "customers",
+      "match": true,
+      "query": "Customer 00750",
+      "elapsedMs": 223.70000000298023,
+      "startedAt": 1789586011601.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 24,
+      "kind": "inventory",
+      "match": true,
+      "query": "Product 01129",
+      "elapsedMs": 213,
+      "startedAt": 1789586011618.0999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 0,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-0-17",
+      "elapsedMs": 150.90000000596046,
+      "startedAt": 1789586012416.3,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 1,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-1-17",
+      "elapsedMs": 193.70000000298023,
+      "startedAt": 1789586012433.9,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 2,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-2-17",
+      "elapsedMs": 170.39999999850988,
+      "startedAt": 1789586012396.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 3,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-3-17",
+      "elapsedMs": 82.60000000149012,
+      "startedAt": 1789586012276.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 4,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-4-17",
+      "elapsedMs": 153.69999999552965,
+      "startedAt": 1789586012396.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 5,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-5-17",
+      "elapsedMs": 65.39999999850988,
+      "startedAt": 1789586012278.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 6,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-6-17",
+      "elapsedMs": 147,
+      "startedAt": 1789586012421,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 7,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-7-17",
+      "elapsedMs": 197.29999999701977,
+      "startedAt": 1789586012430.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 8,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-8-17",
+      "elapsedMs": 197,
+      "startedAt": 1789586012430.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 9,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-9-17",
+      "elapsedMs": 199.39999999850988,
+      "startedAt": 1789586012463.9,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 10,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-10-17",
+      "elapsedMs": 170.89999999850988,
+      "startedAt": 1789586012396.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 11,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-11-17",
+      "elapsedMs": 150.69999999552965,
+      "startedAt": 1789586012416.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 12,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-12-17",
+      "elapsedMs": 199.5,
+      "startedAt": 1789586012463.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 13,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-13-17",
+      "elapsedMs": 164.39999999850988,
+      "startedAt": 1789586012470,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 14,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-14-17",
+      "elapsedMs": 151.10000000149012,
+      "startedAt": 1789586012415.9,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 15,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-15-17",
+      "elapsedMs": 147.60000000149012,
+      "startedAt": 1789586012419.8,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 16,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-16-17",
+      "elapsedMs": 161.69999999552965,
+      "startedAt": 1789586012468.0999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 17,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-17-17",
+      "elapsedMs": 151,
+      "startedAt": 1789586012416,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 18,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-18-17",
+      "elapsedMs": 146.60000000149012,
+      "startedAt": 1789586012421.0999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 19,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-19-17",
+      "elapsedMs": 174.79999999701977,
+      "startedAt": 1789586012463.5999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 20,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-20-17",
+      "elapsedMs": 200.19999999552965,
+      "startedAt": 1789586012427.2,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 21,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-21-17",
+      "elapsedMs": 197,
+      "startedAt": 1789586012430.6,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 22,
+      "kind": "products",
+      "match": false,
+      "query": "Missing-measure-22-17",
+      "elapsedMs": 166.39999999850988,
+      "startedAt": 1789586012463.7,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 23,
+      "kind": "customers",
+      "match": false,
+      "query": "Missing-measure-23-17",
+      "elapsedMs": 197.19999999552965,
+      "startedAt": 1789586012430.1,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "user": 24,
+      "kind": "inventory",
+      "match": false,
+      "query": "Missing-measure-24-17",
+      "elapsedMs": 201.79999999701977,
+      "startedAt": 1789586012426.0999,
+      "conditions": [
+        true,
+        true,
+        true,
+        true
+      ]
+    }
+  ]
+}

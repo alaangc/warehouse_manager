@@ -74,6 +74,31 @@ afterEach(() => {
 });
 
 describe('inventory and catalog UI', () => {
+  it('requests inventory search from the API and exposes pending/result readiness', async () => {
+    let complete!: (response: Response) => void;
+    const fetchMock = vi.fn((input: RequestInfo | URL) =>
+      String(input).includes('search=remote')
+        ? new Promise<Response>((resolve) => {
+            complete = resolve;
+          })
+        : Promise.resolve(jsonResponse({ data: [] })),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    renderWithQuery(<InventoryPage />);
+    const table = screen.getByRole('table', { name: 'Inventory balances' });
+    await waitFor(() => expect(table).toHaveAttribute('aria-busy', 'false'));
+    fireEvent.change(screen.getByLabelText('Search product or location'), {
+      target: { value: 'remote' },
+    });
+    await waitFor(() => expect(table).toHaveAttribute('aria-busy', 'true'));
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/inventory/balances?alertsOnly=false&search=remote',
+      expect.anything(),
+    );
+    complete(jsonResponse({ data: [] }));
+    await waitFor(() => expect(table).toHaveAttribute('aria-busy', 'false'));
+    expect(within(table).getByText('No inventory balances match these filters.')).toBeVisible();
+  });
   it('converts positive and negative fixed-scale quantities exactly', () => {
     expect(scaledQuantity('9007199254740993.125')).toBe(9007199254740993125n);
     expect(scaledQuantity('-0.500')).toBe(-500n);
