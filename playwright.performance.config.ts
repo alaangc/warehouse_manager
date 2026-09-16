@@ -5,8 +5,16 @@ export default defineConfig({
   testMatch: ['performance-search.spec.ts', 'performance-success-criteria.spec.ts'],
   workers: 1,
   retries: 0,
-  timeout: 600_000,
+  timeout: 900_000,
+  forbidOnly: true,
   reporter: [['list']],
-  use: { ...devices['Desktop Chrome'], trace: 'off' },
-  projects: [{ name: 'chromium-performance' }],
+  outputDir: 'test-results/performance',
+  use: {
+    ...devices['Desktop Chrome'],
+    trace: 'off',
+    screenshot: 'off',
+    launchOptions: {
+      args: ['--disable-background-timer-throttling', '--disable-renderer-backgrounding'],
+    },
+  },
 });

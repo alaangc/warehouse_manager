@@ -3,11 +3,7 @@ import { createHash } from 'node:crypto';
 import { readFile, writeFile } from 'node:fs/promises';
 import { cpus, totalmem, platform, release } from 'node:os';
 import { execFileSync } from 'node:child_process';
-import {
-  startPerformanceFixture,
-  performancePassword,
-  performanceSeed,
-} from './support/performance-fixture.js';
+import { createPerformanceFixture, PERFORMANCE_SEED } from './support/performance-fixture.js';
 import {
   documentKinds,
   documentPerformanceSeed,
@@ -68,7 +64,10 @@ async function generateAndDownload(page: Page, source: PerformanceSource, csrf: 
 test('SC-007: 25 users download 400 uncached PDFs from distinct committed sources', async ({
   browser,
 }, testInfo) => {
-  const fixture = await startPerformanceFixture({ salesIntervalSeconds: 108 });
+  const fixture = await createPerformanceFixture({
+    salesIntervalSeconds: 108,
+    allowLocalPostgres: true,
+  });
   const contexts: BrowserContext[] = [];
   const browserErrors: string[] = [];
   try {
@@ -78,13 +77,13 @@ test('SC-007: 25 users download 400 uncached PDFs from distinct committed source
       const context = await browser.newContext({
         baseURL: fixture.origin,
         viewport: { width: 1440, height: 1000 },
-        extraHTTPHeaders: { 'X-Forwarded-For': `198.51.100.${user + 1}` },
+        extraHTTPHeaders: { 'X-Performance-Client': String(user + 1) },
       });
       contexts.push(context);
       await context.addInitScript(() => localStorage.setItem('warehouse-manager-language', 'en'));
       const login = await context.request.post('/api/v1/auth/login', {
         headers: { Origin: fixture.origin },
-        data: { username: `perf-${user}`, password: performancePassword },
+        data: { username: `perf-${user + 1}`, password: 'development-password-change-me' },
       });
       expect(login.status()).toBe(200);
       const csrf = login.headers()['x-csrf-token'];
@@ -149,7 +148,7 @@ test('SC-007: 25 users download 400 uncached PDFs from distinct committed source
     );
     const report = {
       seed: documentPerformanceSeed,
-      baseSeed: performanceSeed,
+      baseSeed: PERFORMANCE_SEED,
       measuredAt,
       commit: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
       sourceHashes: Object.fromEntries(
@@ -158,6 +157,8 @@ test('SC-007: 25 users download 400 uncached PDFs from distinct committed source
             'tests/e2e/performance-success-criteria.spec.ts',
             'tests/e2e/support/document-performance-fixture.ts',
             'tests/e2e/support/performance-fixture.ts',
+            'apps/api/tests/support/performance-fixture.ts',
+            'tests/e2e/support/performance-seed.sql',
             'apps/api/src/modules/documents/document-service.ts',
             'apps/api/src/modules/documents/pdf-renderers.ts',
             'apps/web/dist/index.html',
@@ -169,7 +170,7 @@ test('SC-007: 25 users download 400 uncached PDFs from distinct committed source
           ]),
         ),
       ),
-      counts: fixture.counts,
+      counts: fixture.metadata.counts,
       users: 25,
       role: 'ADMINISTRATOR',
       warmupActions: 100,
@@ -205,7 +206,7 @@ test('SC-007: 25 users download 400 uncached PDFs from distinct committed source
         memoryBytes: totalmem(),
         node: process.version,
         browser: browser.version(),
-        postgres: fixture.postgresVersion,
+        postgres: fixture.metadata.postgres,
         frontend: 'Vite production build',
         network: 'loopback; rate limits enabled; 25 distinct trusted-proxy IPs',
         packageManager: JSON.parse(await readFile('package.json', 'utf8')).packageManager,

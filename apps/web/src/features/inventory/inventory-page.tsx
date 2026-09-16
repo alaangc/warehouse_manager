@@ -50,7 +50,7 @@ export function InventoryPage() {
   const [alertsOnly, setAlertsOnly] = useState(false);
   const [search, setSearch] = useState('');
   const [locationId, setLocationId] = useState('');
-  const balances = useInventoryBalances({ alertsOnly, search });
+  const balances = useInventoryBalances({ alertsOnly, search: search.trim() });
   const rows = useMemo(() => balances.data?.data ?? [], [balances.data?.data]);
   const locations = useMemo(
     () =>

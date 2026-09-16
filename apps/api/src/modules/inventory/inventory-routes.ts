@@ -171,13 +171,13 @@ export function createInventoryRouter(database: AppDatabase): Router {
       const productId = queryString(request.query.productId);
       const branchFilter = queryString(request.query.branchId);
       const routeFilter = queryString(request.query.routeId);
-      const search = z.string().trim().max(200).optional().parse(request.query.search);
+      const search = z.string().trim().max(120).optional().parse(request.query.search);
       if (search) {
         const pattern = `%${search.replace(/[\\%_]/g, '\\$&')}%`;
         query = query.where((eb) =>
           eb.or([
             eb('product.name', 'ilike', pattern),
-            sql<boolean>`product.id::text ilike ${pattern}`,
+            eb(sql<string>`product.id::text`, 'ilike', pattern),
             eb('branch.name', 'ilike', pattern),
             eb('stock_route.route_number', 'ilike', pattern),
           ]),

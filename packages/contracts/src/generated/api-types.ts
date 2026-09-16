@@ -3221,8 +3221,7 @@ export interface operations {
   listInventoryBalances: {
     parameters: {
       query?: {
-        /** @description Case-insensitive literal match against product name, product ID or location label, applied before the result limit. */
-        search?: string;
+        search?: components['parameters']['Search'];
         cursor?: components['parameters']['Cursor'];
         limit?: components['parameters']['Limit'];
         productId?: components['schemas']['Uuid'];

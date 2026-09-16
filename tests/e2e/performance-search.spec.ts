@@ -1,302 +1,185 @@
-import { test, expect, type Page, type BrowserContext } from '@playwright/test';
-import { cpus, totalmem, platform, release } from 'node:os';
+import { test, expect, type Page } from '@playwright/test';
+import { writeFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
-import { readFile, writeFile } from 'node:fs/promises';
 import {
-  startPerformanceFixture,
-  performancePassword,
-  performanceSeed,
+  createPerformanceFixture,
+  PERFORMANCE_USERS,
+  SEARCH_ROUNDS,
+  searchAction,
+  performanceId,
+  summarizeSearch,
+  type SearchMeasurement,
 } from './support/performance-fixture.js';
+import { searchCompletion } from './support/search-completion.js';
 
-const views = [
-  {
-    name: 'products',
-    path: '/catalog',
-    label: 'Search products',
-    scope: 'table[aria-label="Products"]',
-    empty: 'No records found.',
-    endpoint: '/products',
-  },
-  {
-    name: 'customers',
-    path: '/customers',
-    label: 'Search customers',
-    scope: '[role="region"][aria-label="Customer directory"]',
-    empty: 'No customers match these filters.',
-    endpoint: '/customers',
-  },
-  {
-    name: 'inventory',
-    path: '/inventory',
-    label: 'Search product or location',
-    scope: 'table[aria-label="Inventory balances"]',
-    empty: 'No inventory balances match these filters.',
-    endpoint: '/inventory/balances',
-  },
-] as const;
-type Sample = {
-  user: number;
-  kind: string;
-  match: boolean;
-  query: string;
-  elapsedMs: number;
-  startedAt: number;
-  conditions: boolean[];
-};
-
-async function search(page: Page, user: number, step: number, warm: boolean): Promise<Sample> {
-  const viewIndex = (Math.floor(step / (warm ? 2 : 6)) + user) % 3;
-  const view = views[viewIndex]!;
-  if (new URL(page.url()).pathname !== view.path) {
-    await page.goto(view.path);
-    await expect(page.locator(view.scope)).toHaveAttribute('aria-busy', 'false');
-  }
-  const match = step % 2 === 0;
-  const number = 1 + ((user * 379 + step * 127 + (warm ? 5000 : 0)) % 10000);
-  const suffix = String(number).padStart(5, '0');
-  const query = match
-    ? `${view.name === 'customers' ? 'Customer' : 'Product'} ${suffix}`
-    : `Missing-${warm ? 'warm' : 'measure'}-${user}-${step}`;
-  const expected =
-    view.name === 'products'
-      ? [query, `SKU-${suffix}`, '10.0000', 'Active']
-      : view.name === 'customers'
-        ? [query, `CUS-${suffix}`, 'Magdalena', 'Active']
-        : [
-            query,
-            `00000000-0000-4000-8000-04${String(number).padStart(10, '0')}`,
-            'Magdalena',
-            'PERF-ROUTE',
-            '50.000',
-            '40.000',
-            'Available',
-          ];
-  await page.getByLabel(view.label, { exact: true }).scrollIntoViewIfNeeded();
-  await page.evaluate(
-    ({ scope, match, expected, empty, query }) => {
-      const state = window as unknown as {
-        measurement?: { result?: { elapsedMs: number; startedAt: number; conditions: boolean[] } };
-      };
-      state.measurement = {};
-      document.addEventListener(
-        'input',
-        function begin(event) {
-          if (!(event.target instanceof HTMLInputElement) || event.target.value !== query) return;
-          document.removeEventListener('input', begin, true);
-          const start = performance.now();
-          let readyFrames = 0;
-          const visible = (element: Element) => {
-            const rect = element.getBoundingClientRect();
-            const style = getComputedStyle(element);
-            return (
-              rect.width > 0 &&
-              rect.height > 0 &&
-              style.visibility !== 'hidden' &&
-              style.display !== 'none'
-            );
-          };
-          const check = () => {
-            const root = document.querySelector(scope);
-            const text = root?.textContent ?? '';
-            const rows = root
-              ? [...root.querySelectorAll('tbody tr')].filter((row) =>
-                  row.textContent?.includes(query),
-                )
-              : [];
-            const actions = root ? [...root.querySelectorAll('button, a[href]')] : [];
-            const conditions = [
-              root?.getAttribute('aria-busy') === 'false' &&
-                !document.querySelector('[role="progressbar"]'),
-              Boolean(
-                root &&
-                visible(root) &&
-                (match
-                  ? rows.length > 0 || actions.some((action) => action.textContent?.includes(query))
-                  : text.includes(empty)),
-              ),
-              match
-                ? expected.every(
-                    (value) =>
-                      root &&
-                      [...root.querySelectorAll('td, p, span, button')].some(
-                        (element) => visible(element) && element.textContent?.includes(value),
-                      ),
-                  )
-                : text.includes(empty) && rows.length === 0,
-              match
-                ? actions.length > 0 &&
-                  actions.every(
-                    (action) =>
-                      visible(action) && !action.matches(':disabled, [aria-disabled="true"]'),
-                  )
-                : actions.length === 0,
-            ];
-            readyFrames = conditions.every(Boolean) ? readyFrames + 1 : 0;
-            if (readyFrames === 2) {
-              state.measurement!.result = {
-                elapsedMs: performance.now() - start,
-                startedAt: performance.timeOrigin + start,
-                conditions,
-              };
-              return;
-            }
-            requestAnimationFrame(check);
-          };
-          requestAnimationFrame(check);
-        },
-        true,
-      );
-    },
-    { scope: view.scope, match, expected, empty: view.empty, query },
-  );
-  const responsePromise = page.waitForResponse((response) => {
-    const url = new URL(response.url());
-    return url.pathname === `/api/v1${view.endpoint}` && url.searchParams.get('search') === query;
-  });
-  await page.getByLabel(view.label, { exact: true }).fill(query);
-  const response = await responsePromise;
-  expect(response.status()).toBe(200);
-  await page.waitForFunction(
-    () => (window as unknown as { measurement?: { result?: unknown } }).measurement?.result,
-    undefined,
-    { timeout: 30000 },
-  );
-  const result = await page.evaluate(
-    () =>
-      (
-        window as unknown as {
-          measurement: { result: { elapsedMs: number; startedAt: number; conditions: boolean[] } };
-        }
-      ).measurement.result,
-  );
-  expect(result.conditions).toEqual([true, true, true, true]);
-  if (match) {
-    const actions = page.locator(view.scope).locator('button, a[href]');
-    for (const action of await actions.all()) await expect(action).toBeEnabled();
-  } else await expect(page.locator(view.scope)).toContainText(view.empty);
-  return { user, kind: view.name, match, query, ...result };
-}
-
-test('SC-006: 25 authenticated sessions complete 450 warmed searches', async ({
+test('SC-006: 25 authenticated users complete 450 warmed visible searches', async ({
   browser,
 }, testInfo) => {
-  const fixture = await startPerformanceFixture();
-  const contexts: BrowserContext[] = [];
-  const samples: Sample[] = [];
-  const errors: string[] = [];
+  const fixture = await createPerformanceFixture();
+  const contexts: Awaited<ReturnType<typeof browser.newContext>>[] = [];
+  const measured: SearchMeasurement[] = [];
+  const warmup: SearchMeasurement[] = [];
+  const startedAt = new Date().toISOString();
   try {
-    const pages: Page[] = [];
-    // Authentication and initial bundle compilation/rendering are outside search timing.
-    for (let user = 0; user < 25; user++) {
-      const context = await browser.newContext({
-        baseURL: fixture.origin,
-        viewport: { width: 1440, height: 1000 },
-        extraHTTPHeaders: { 'X-Forwarded-For': `198.51.100.${user + 1}` },
-      });
-      contexts.push(context);
-      await context.addInitScript(() => localStorage.setItem('warehouse-manager-language', 'en'));
-      const login = await context.request.post('/api/v1/auth/login', {
-        headers: { Origin: fixture.origin },
-        data: { username: `perf-${user}`, password: performancePassword },
-      });
-      expect(login.status()).toBe(200);
-      const page = await context.newPage();
-      page.on('pageerror', (error) => errors.push(error.message));
-      await page.goto('/inventory');
-      await expect(page.getByLabel('Search product or location')).toBeVisible();
-      pages.push(page);
+    const pages = await Promise.all(
+      Array.from({ length: PERFORMANCE_USERS }, async (_, user) => {
+        const context = await browser.newContext({
+          viewport: { width: 1440, height: 900 },
+          locale: 'en-US',
+          extraHTTPHeaders: { 'X-Performance-Client': String(user + 1) },
+        });
+        contexts.push(context);
+        await context.addInitScript(() => localStorage.setItem('warehouse-manager-language', 'en'));
+        const login = await context.request.post(`${fixture.origin}/api/v1/auth/login`, {
+          headers: { Origin: fixture.origin },
+          data: { username: `perf-${user + 1}`, password: 'development-password-change-me' },
+        });
+        expect(login.status()).toBe(200);
+        expect((await login.json()).data.id).toBe(performanceId('user', user + 1));
+        const page = await context.newPage();
+        page.setDefaultTimeout(15_000);
+        return page;
+      }),
+    );
+    expect(
+      new Set(
+        await Promise.all(
+          contexts.map(
+            async (context) =>
+              (await context.cookies(fixture.origin)).find((cookie) => cookie.name === 'wm_session')
+                ?.value,
+          ),
+        ),
+      ).size,
+    ).toBe(25);
+
+    async function search(page: Page, user: number, round: number): Promise<SearchMeasurement> {
+      const action = searchAction(user, round);
+      const labels = {
+        products: ['/catalog', 'Search products', 'Products', '/api/v1/products'],
+        customers: ['/customers', 'Search customers', 'Customer directory', '/api/v1/customers'],
+        inventory: [
+          '/inventory',
+          'Search product or location',
+          'Inventory balances',
+          '/api/v1/inventory/balances',
+        ],
+      };
+      const [path, label, regionName, endpoint] = labels[action.kind];
+      let start = 0;
+      try {
+        // Navigation/initial data load is preparation, not the search action.
+        await page.goto(`${fixture.origin}${path}`);
+        const input = page.getByLabel(label!, { exact: true });
+        await expect(input).toBeVisible();
+        const region =
+          action.kind === 'customers'
+            ? page.getByRole('region', { name: regionName, exact: true })
+            : page.getByRole('table', { name: regionName, exact: true });
+        await expect(region).toHaveAttribute('aria-busy', 'false');
+        const response = page.waitForResponse((response) => {
+          const url = new URL(response.url());
+          return url.pathname === endpoint && url.searchParams.get('search') === action.query;
+        });
+        start = await page.evaluate(() => performance.now());
+        const [resultResponse] = await Promise.all([response, input.fill(action.query)]);
+        expect(resultResponse.status()).toBe(200);
+        await region.scrollIntoViewIfNeeded();
+        const done = await page.waitForFunction(
+          searchCompletion,
+          { ...action, productId: performanceId('product', action.number) },
+          { timeout: 15_000 },
+        );
+        const result = await done.jsonValue();
+        if (!result) throw new Error('Incomplete search');
+        expect(result.checks).toEqual({
+          loadingEnded: true,
+          visibleResult: true,
+          identifyingValues: true,
+          enabledActions: true,
+        });
+        return { user, round, ...action, elapsedMs: result.finishedAt - start, complete: true };
+      } catch (error) {
+        const end = await page.evaluate(() => performance.now()).catch(() => start + 15_000);
+        return {
+          user,
+          round,
+          ...action,
+          elapsedMs: start ? end - start : 15_000,
+          complete: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
     }
-    for (let step = 0; step < 6; step++)
-      await Promise.all(pages.map((page, user) => search(page, user, step, true)));
-    const measuredAt = new Date().toISOString();
-    for (let step = 0; step < 18; step++) {
-      samples.push(
-        ...(await Promise.all(pages.map((page, user) => search(page, user, step, false)))),
-      );
-      if (step >= 16)
-        for (let user = 0; user < 3; user++)
-          await pages[user]!.screenshot({
-            path: testInfo.outputPath(`search-${user}-${step % 2 ? 'empty' : 'matching'}.png`),
-            fullPage: true,
-          });
-      process.stdout.write(`Measured ${samples.length}/450 searches\n`);
-    }
-    await pages[0]!.screenshot({ path: testInfo.outputPath('search-results.png'), fullPage: true });
-    const sorted = samples.map((sample) => sample.elapsedMs).sort((a, b) => a - b);
-    const percentile = (p: number) => sorted[Math.ceil(sorted.length * p) - 1];
-    const passed = samples.filter((sample) => sample.elapsedMs <= 2000).length;
+    await Promise.all(
+      pages.map(async (page, user) => {
+        for (let round = SEARCH_ROUNDS; round < SEARCH_ROUNDS + 6; round++)
+          warmup.push(await search(page, user, round));
+      }),
+    );
+    // All 25 users finish warm-up before the common measurement start barrier.
+    const measurementStartedAt = new Date().toISOString();
+    await Promise.all(
+      pages.map(async (page, user) => {
+        for (let round = 0; round < SEARCH_ROUNDS; round++)
+          measured.push(await search(page, user, round));
+      }),
+    );
+    const summary = summarizeSearch(measured);
     const mix = Object.fromEntries(
-      views.flatMap((view) =>
-        [true, false].map((match) => [
-          `${view.name}-${match ? 'matching' : 'empty'}`,
-          samples.filter((sample) => sample.kind === view.name && sample.match === match).length,
-        ]),
+      ['products', 'customers', 'inventory'].flatMap((kind) =>
+        [true, false].map((matches) => {
+          const samples = measured.filter(
+            (sample) => sample.kind === kind && sample.matches === matches,
+          );
+          return [`${kind}:${matches ? 'matching' : 'no-results'}`, summarizeSearch(samples)];
+        }),
       ),
     );
     const report = {
-      seed: performanceSeed,
-      sourceHashes: Object.fromEntries(
-        await Promise.all(
-          [
-            'tests/e2e/support/performance-fixture.ts',
-            'tests/e2e/performance-search.spec.ts',
-            'apps/web/dist/index.html',
-            'apps/api/src/modules/inventory/inventory-routes.ts',
-          ].map(async (path) => [
-            path,
-            createHash('sha256')
-              .update(await readFile(path))
-              .digest('hex'),
-          ]),
-        ),
-      ),
-      measuredAt,
-      commit: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
-      dirty: Boolean(execFileSync('git', ['diff', '--name-only'], { encoding: 'utf8' }).trim()),
-      counts: fixture.counts,
+      startedAt,
+      measurementStartedAt,
+      endedAt: new Date().toISOString(),
+      ...fixture.metadata,
+      revision: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
+      revisionIncludesUncommittedChanges:
+        execFileSync('git', ['status', '--porcelain'], { encoding: 'utf8' }).trim() !== '',
+      browser: browser.version(),
       users: 25,
-      role: 'ADMINISTRATOR',
       warmupActions: 150,
-      measuredActions: samples.length,
-      mix,
-      environment: {
-        os: `${platform()} ${release()}`,
-        cpu: cpus()[0]?.model,
-        logicalCpus: cpus().length,
-        memoryBytes: totalmem(),
-        node: process.version,
-        browser: browser.version(),
-        postgres: fixture.postgresVersion,
-        frontend: 'Vite production build',
-        network: 'loopback; 25 distinct trusted-proxy client IPs; rate limits enabled',
-        packageManager: JSON.parse(await readFile('package.json', 'utf8')).packageManager,
-      },
+      measuredActions: 450,
+      thresholdMs: 2000,
+      retries: 0,
       timing:
-        'Captured input event through two animation frames with all four DOM predicates true; navigation and warmup excluded; fresh search query per action; no response mocks.',
-      p50: percentile(0.5),
-      p95: percentile(0.95),
-      p99: percentile(0.99),
-      max: sorted.at(-1),
-      passed,
-      passRate: passed / samples.length,
-      errors,
-      samples,
+        'Browser performance.now before fill through simultaneous four-condition DOM completion; includes browser automation, request, rendering and result scroll; preparation navigation is unmeasured.',
+      summary,
+      mix,
+      warmup,
+      measurements: measured.sort((a, b) => a.user - b.user || a.round - b.round),
     };
-    await writeFile(
-      testInfo.outputPath('search-performance.json'),
-      JSON.stringify(report, null, 2),
-    );
+    const reportPath = testInfo.outputPath('search-performance.json');
+    await writeFile(reportPath, JSON.stringify(report, null, 2));
+    if (process.env.RECORD_PERFORMANCE_EVIDENCE === '1')
+      await writeFile(
+        new URL(
+          '../../specs/001-warehouse-management/evidence/search-performance.json',
+          import.meta.url,
+        ),
+        JSON.stringify(report, null, 2) + '\n',
+      );
     await testInfo.attach('search-performance', {
-      body: JSON.stringify(report, null, 2),
+      path: reportPath,
       contentType: 'application/json',
     });
-    expect(samples).toHaveLength(450);
-    expect(Object.values(mix)).toEqual([75, 75, 75, 75, 75, 75]);
-    expect(errors).toEqual([]);
-    expect(passed, 'SC-006 requires at least 95% at or below 2 seconds').toBeGreaterThanOrEqual(
-      428,
-    );
+    console.log(JSON.stringify({ summary, mix }));
+    expect(
+      warmup.every((sample) => sample.complete),
+      'All warmup DOM conditions must pass',
+    ).toBe(true);
+    expect(measured).toHaveLength(450);
+    expect(Object.values(mix).every((cell) => cell.count === 75)).toBe(true);
+    expect(summary.completeCount).toBe(450);
+    expect(summary.passCount).toBeGreaterThanOrEqual(summary.requiredPassCount);
   } finally {
     await Promise.all(contexts.map((context) => context.close()));
     await fixture.close();

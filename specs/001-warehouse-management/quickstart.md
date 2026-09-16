@@ -352,6 +352,25 @@ BLE design does not satisfy those conditions.
 
 ## Performance and Completion Evidence
 
+The T138 search profile is implemented as a dedicated, disposable local run:
+
+```bash
+pnpm exec playwright install chromium
+pnpm test:performance:search
+```
+
+Docker must be running. Do not set `TEST_POSTGRES_ADMIN_URL`; the profile deliberately
+refuses shared databases and ignores the application's `DATABASE_URL`. It builds
+production web assets, binds its API/web server to a dynamic loopback port, and
+removes its own database/container and document-storage directory afterward.
+The normal browser suite excludes this resource-heavy profile.
+
+Read `evidence/search-performance.md` for the environment, limitations, and measured
+SC-006 result. Raw per-action evidence is emitted under `test-results/performance/`.
+Use `RECORD_PERFORMANCE_EVIDENCE=1 pnpm test:performance:search` only when intentionally
+refreshing `evidence/search-performance.json`, then reconcile the Markdown summary.
+The separate PDF profile remains T139; a search pass does not satisfy SC-007.
+
 Create a deterministic acceptance fixture containing exactly 10,000 products, 10,000
 customers, and 100,000 completed sales. After an unmeasured warm-up, run two separate
 closed-loop profiles with 25 concurrent users and at least 400 measurements each:

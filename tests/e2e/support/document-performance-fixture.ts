@@ -5,6 +5,7 @@ import type { AppDatabase } from '../../../apps/api/src/db/database.js';
 import { RouteLoadService } from '../../../apps/api/src/modules/routes/route-load-service.js';
 import { CashCloseService } from '../../../apps/api/src/modules/reports/cash-close-service.js';
 import { ReportService } from '../../../apps/api/src/modules/reports/report-service.js';
+import { performanceId } from './performance-profile.js';
 
 export const documentPerformanceSeed = 'warehouse-t139-v1';
 export const documentKinds = ['TICKET', 'ROUTE_LOAD', 'CASH_CLOSE', 'REPORT'] as const;
@@ -63,7 +64,7 @@ export async function prepareDocumentSources(database: AppDatabase) {
         registration: null,
       })
       .execute();
-    const date = new Date(Date.UTC(2030, 0, 1 + n)).toISOString().slice(0, 10);
+    const date = new Date(Date.UTC(2026, 0, 1 + n)).toISOString().slice(0, 10);
     const route = await loads.create(
       {
         routeNumber: `PDF-ROUTE-${n}`,
@@ -78,7 +79,7 @@ export async function prepareDocumentSources(database: AppDatabase) {
       route.id,
       1,
       Array.from({ length: 10 }, (_, line) => ({
-        productId: id(4, n * 10 + line + 1),
+        productId: performanceId('product', n * 10 + line + 1),
         quantity: '1.000',
       })),
       context(driverId),
@@ -98,7 +99,11 @@ export async function prepareDocumentSources(database: AppDatabase) {
       { reportType: 'FINANCIAL_SUMMARY', filters: period },
       context(),
     );
-    sources.TICKET.push({ documentType: 'TICKET', sourceType: 'SALE', sourceId: id(12, n + 1) });
+    sources.TICKET.push({
+      documentType: 'TICKET',
+      sourceType: 'SALE',
+      sourceId: performanceId('sale', n + 1),
+    });
     sources.ROUTE_LOAD.push({
       documentType: 'ROUTE_LOAD',
       sourceType: 'ROUTE_LOAD',
