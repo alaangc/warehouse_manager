@@ -1,6 +1,17 @@
-# Project continuation — T140 completed
+# Project continuation — T141 preparation, participants pending
 
 ## Current continuation (2026-09-16)
+
+T141 preparation is recorded in evidence/usability.md: frozen U-SCRIPT-1,
+U-FIXTURE-1-D/A and ten pending participant records. The owner explicitly chose
+"Preparar protocolo; participantes pendientes". T141 remains unchecked; SC-003
+and SC-009 have no human evidence. Continue with the remaining accessibility
+audit and real sessions when participants are available, not with invented scores.
+Reconciliation now validates required reasons and quantities before submitting,
+compares equivalent decimal quantities correctly, and groups controls by product.
+Seven new regression tests plus existing sale/route tests: 16 passed. Real route
+keyboard/focus and 390px container-fit checks passed in all three browsers,
+with final CLOSED/zero-stock verification. See usability.md for audit limitations.
 
 T140 is complete. See evidence/cross-browser-e2e.md and its JSON report for the
 complete three-engine suite and the inventory correction verification. Final case

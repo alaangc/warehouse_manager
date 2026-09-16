@@ -362,6 +362,19 @@ test('route lifecycle remains retry-safe, reconciled, scoped, and immutable', as
   const differenceReasons = administratorPage.getByLabel('Difference reason');
   const reconciliationProducts = administratorPage.getByLabel('Product');
   await expect(physicalReturns).toHaveCount(2);
+  await administratorPage.setViewportSize({ width: 390, height: 844 });
+  const reconciliationForm = administratorPage.getByRole('form', { name: 'Route reconciliation' });
+  await expect(reconciliationForm.getByRole('group')).toHaveCount(2);
+  expect(
+    await reconciliationForm.evaluate((element) => element.scrollWidth <= element.clientWidth),
+  ).toBe(true);
+  await physicalReturns.first().fill('0');
+  await administratorPage.getByRole('button', { name: 'Approve reconciliation' }).click();
+  await expect(differenceReasons.first()).toBeFocused();
+  await physicalReturns.first().focus();
+  await administratorPage.keyboard.press('Tab');
+  await expect(differenceReasons.first()).toBeFocused();
+  await administratorPage.setViewportSize({ width: 1280, height: 800 });
   for (let index = 0; index < 2; index += 1) {
     const isShortage =
       (await reconciliationProducts.nth(index).inputValue()) === shortageProduct.id;
@@ -373,7 +386,8 @@ test('route lifecycle remains retry-safe, reconciled, scoped, and immutable', as
       new URL(response.url()).pathname === `/api/v1/routes/${createdRoute.id}/reconciliation` &&
       response.request().method() === 'PUT',
   );
-  await administratorPage.getByRole('button', { name: 'Approve reconciliation' }).click();
+  await administratorPage.getByRole('button', { name: 'Approve reconciliation' }).focus();
+  await administratorPage.keyboard.press('Enter');
   expect((await reconciliationResponse).status()).toBe(200);
   await expect(administratorPage.getByRole('button', { name: 'Close route' })).toBeVisible();
   const closeResponse = administratorPage.waitForResponse(
