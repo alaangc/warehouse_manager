@@ -1,0 +1,9 @@
+{
+  "baseSha256": "89da439cf8e0206d0f67159fdf11bdd5e07d3e50cafcf778293a3465b4e24227",
+  "headSha256": "62248836e1baf202bd9239549e86e08e1ffd305cdcf806836a325809023b0ffd",
+  "classification": "breaking",
+  "rationale": "T136 documents shared Problem responses and existing quote fields, adds optional routeNumber input, and aligns catalog and inventory command responses with the published camelCase resources. Catalog responses no longer expose raw database columns; PostgreSQL DATE values now serialize as calendar dates. Consumers relying on the accidental raw-column shapes must migrate.",
+  "migration": "Coordinated API and web release on main before production acceptance. The bundled client uses the documented camelCase resources and date-only businessDate. Retain existing quote quantity and add requestedQuantity. No database migration or historical record rewrite is required. External consumers of raw snake_case catalog or movement fields must move to the published camelCase schemas before adopting this release.",
+  "validation": "Strict OpenAPI lint, generated artifact freshness, schema compilation, negative gate tests, and HTTP request/response contract validation. Detailed executed results are recorded in evidence/t136-contract-gates.md.",
+  "owner": "Codex implementation review; repository maintainer retains release approval"
+}

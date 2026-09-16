@@ -40,4 +40,9 @@ export default tseslint.config(
       'vitest.workspace.ts',
     ],
   })),
+  {
+    files: ['packages/contracts/src/generated/api-types.ts'],
+    // OpenAPI allOf preserves schema constraints as intersections of aliases.
+    rules: { '@typescript-eslint/no-duplicate-type-constituents': 'off' },
+  },
 );

@@ -253,6 +253,7 @@ export function createRouteRouter(database: AppDatabase): Router {
             occurredAt: new Date(movement.occurred_at).toISOString(),
             relatedEntityType: movement.related_entity_type,
             relatedEntityId: movement.related_entity_id,
+            reversesMovementId: movement.reverses_movement_id,
           })),
           sales: sales.map((sale) => ({
             id: sale.id,

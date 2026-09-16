@@ -90,6 +90,28 @@ function mapProduct(row: Selectable<ProductTable>) {
   };
 }
 
+function mapCatalog(row: {
+  id: string;
+  name: string;
+  active: boolean;
+  version: number;
+  code?: string;
+  quantity_scale?: number;
+  reporting_group?: string;
+  registration?: string | null;
+}) {
+  return {
+    id: row.id,
+    name: row.name,
+    active: row.active,
+    version: row.version,
+    ...(row.code === undefined ? {} : { code: row.code }),
+    ...(row.quantity_scale === undefined ? {} : { quantityScale: row.quantity_scale }),
+    ...(row.reporting_group === undefined ? {} : { reportingGroup: row.reporting_group }),
+    ...(row.registration === undefined ? {} : { registration: row.registration }),
+  };
+}
+
 export function createCatalogRouter(database: AppDatabase): Router {
   const router = Router();
   const catalogService = new CatalogService(database);
@@ -112,7 +134,9 @@ export function createCatalogRouter(database: AppDatabase): Router {
     '/locations',
     requireRole('ADMINISTRATOR'),
     writeHandler(LocationWriteSchema, (input, request) =>
-      catalogService.createLocation(input, request.principal!.id, requestIdentifier(request)),
+      catalogService
+        .createLocation(input, request.principal!.id, requestIdentifier(request))
+        .then(mapCatalog),
     ),
   );
   router.patch(
@@ -121,12 +145,14 @@ export function createCatalogRouter(database: AppDatabase): Router {
     writeHandler(
       LocationUpdateSchema,
       (input, request) =>
-        catalogService.updateLocation(
-          pathId(request.params.locationId),
-          input,
-          request.principal!.id,
-          requestIdentifier(request),
-        ),
+        catalogService
+          .updateLocation(
+            pathId(request.params.locationId),
+            input,
+            request.principal!.id,
+            requestIdentifier(request),
+          )
+          .then(mapCatalog),
       200,
     ),
   );
@@ -151,7 +177,9 @@ export function createCatalogRouter(database: AppDatabase): Router {
     '/categories',
     requireRole('ADMINISTRATOR'),
     writeHandler(CategoryWriteSchema, (input, request) =>
-      catalogService.createCategory(input, request.principal!.id, requestIdentifier(request)),
+      catalogService
+        .createCategory(input, request.principal!.id, requestIdentifier(request))
+        .then(mapCatalog),
     ),
   );
   router.patch(
@@ -160,12 +188,14 @@ export function createCatalogRouter(database: AppDatabase): Router {
     writeHandler(
       CategoryUpdateSchema,
       (input, request) =>
-        catalogService.updateCategory(
-          pathId(request.params.categoryId),
-          input,
-          request.principal!.id,
-          requestIdentifier(request),
-        ),
+        catalogService
+          .updateCategory(
+            pathId(request.params.categoryId),
+            input,
+            request.principal!.id,
+            requestIdentifier(request),
+          )
+          .then(mapCatalog),
       200,
     ),
   );
@@ -191,7 +221,9 @@ export function createCatalogRouter(database: AppDatabase): Router {
     '/units',
     requireRole('ADMINISTRATOR'),
     writeHandler(UnitWriteSchema, (input, request) =>
-      catalogService.createUnit(input, request.principal!.id, requestIdentifier(request)),
+      catalogService
+        .createUnit(input, request.principal!.id, requestIdentifier(request))
+        .then(mapCatalog),
     ),
   );
   router.patch(
@@ -200,12 +232,14 @@ export function createCatalogRouter(database: AppDatabase): Router {
     writeHandler(
       UnitUpdateSchema,
       (input, request) =>
-        catalogService.updateUnit(
-          pathId(request.params.unitId),
-          input,
-          request.principal!.id,
-          requestIdentifier(request),
-        ),
+        catalogService
+          .updateUnit(
+            pathId(request.params.unitId),
+            input,
+            request.principal!.id,
+            requestIdentifier(request),
+          )
+          .then(mapCatalog),
       200,
     ),
   );
@@ -213,7 +247,9 @@ export function createCatalogRouter(database: AppDatabase): Router {
   router.get('/vehicles', async (_request, response, next) => {
     try {
       response.json({
-        data: await database.selectFrom('vehicle').selectAll().orderBy('name').execute(),
+        data: (await database.selectFrom('vehicle').selectAll().orderBy('name').execute()).map(
+          mapCatalog,
+        ),
       });
     } catch (error) {
       next(error);
@@ -223,7 +259,9 @@ export function createCatalogRouter(database: AppDatabase): Router {
     '/vehicles',
     requireRole('ADMINISTRATOR'),
     writeHandler(VehicleWriteSchema, (input, request) =>
-      catalogService.createVehicle(input, request.principal!.id, requestIdentifier(request)),
+      catalogService
+        .createVehicle(input, request.principal!.id, requestIdentifier(request))
+        .then(mapCatalog),
     ),
   );
   router.patch(
@@ -232,12 +270,14 @@ export function createCatalogRouter(database: AppDatabase): Router {
     writeHandler(
       VehicleUpdateSchema,
       (input, request) =>
-        catalogService.updateVehicle(
-          pathId(request.params.vehicleId),
-          input,
-          request.principal!.id,
-          requestIdentifier(request),
-        ),
+        catalogService
+          .updateVehicle(
+            pathId(request.params.vehicleId),
+            input,
+            request.principal!.id,
+            requestIdentifier(request),
+          )
+          .then(mapCatalog),
       200,
     ),
   );

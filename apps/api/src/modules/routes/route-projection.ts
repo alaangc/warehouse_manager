@@ -63,6 +63,7 @@ export async function getRouteProjection(database: AppDatabase, id: string, prin
         'movement.occurred_at as occurredAt',
         'movement.related_entity_type as relatedEntityType',
         'movement.related_entity_id as relatedEntityId',
+        'movement.reverses_movement_id as reversesMovementId',
         'source.id as sourceId',
         'source.kind as sourceKind',
         'source.branch_id as sourceBranchId',

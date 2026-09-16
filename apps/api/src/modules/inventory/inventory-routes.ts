@@ -92,6 +92,56 @@ function mapDomainError(error: unknown): never {
 export function createInventoryRouter(database: AppDatabase): Router {
   const router = Router();
   const service = new InventoryService(database);
+  async function operationResource(
+    result: Awaited<ReturnType<InventoryService['createBranchOperation']>>,
+  ) {
+    const ids = [
+      ...new Set(
+        result.movements
+          .flatMap((row) => [row.source_stock_location_id, row.destination_stock_location_id])
+          .filter((id): id is string => id !== null),
+      ),
+    ];
+    const stocks = ids.length
+      ? await database.selectFrom('stock_location').selectAll().where('id', 'in', ids).execute()
+      : [];
+    const stockById = new Map(
+      stocks.map((stock) => [
+        stock.id,
+        {
+          id: stock.id,
+          kind: stock.kind,
+          branchId: stock.branch_id,
+          routeId: stock.route_id,
+          label: stock.kind === 'BRANCH' ? 'Branch' : 'Route',
+        },
+      ]),
+    );
+    return {
+      ...result,
+      movements: result.movements.map((row) => ({
+        id: row.id,
+        operationId: row.operation_id,
+        operationType: result.operationType,
+        productId: row.product_id,
+        source: row.source_stock_location_id
+          ? (stockById.get(row.source_stock_location_id) ?? null)
+          : null,
+        destination: row.destination_stock_location_id
+          ? (stockById.get(row.destination_stock_location_id) ?? null)
+          : null,
+        quantity: row.quantity,
+        sourceBalanceAfter: row.source_balance_after,
+        destinationBalanceAfter: row.destination_balance_after,
+        actorId: row.actor_id,
+        reason: row.reason,
+        occurredAt: new Date(row.occurred_at).toISOString(),
+        relatedEntityType: row.related_entity_type,
+        relatedEntityId: row.related_entity_id,
+        reversesMovementId: row.reverses_movement_id,
+      })),
+    };
+  }
   router.get('/inventory/balances', requireAuthenticated, async (request, response, next) => {
     try {
       let query = database
@@ -290,7 +340,7 @@ export function createInventoryRouter(database: AppDatabase): Router {
           idempotencyKey: key(request),
           requestId: request.id as string,
         });
-        response.status(201).json({ data: result });
+        response.status(201).json({ data: await operationResource(result) });
       } catch (error) {
         try {
           mapDomainError(error);
@@ -311,7 +361,7 @@ export function createInventoryRouter(database: AppDatabase): Router {
           idempotencyKey: key(request),
           requestId: request.id as string,
         });
-        response.status(201).json({ data: result });
+        response.status(201).json({ data: await operationResource(result) });
       } catch (error) {
         try {
           mapDomainError(error);
@@ -335,7 +385,7 @@ export function createInventoryRouter(database: AppDatabase): Router {
           idempotencyKey: key(request),
           requestId: request.id as string,
         });
-        response.status(201).json({ data: result });
+        response.status(201).json({ data: await operationResource(result) });
       } catch (error) {
         try {
           mapDomainError(error);

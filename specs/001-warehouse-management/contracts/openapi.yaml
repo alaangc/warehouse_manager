@@ -4,25 +4,34 @@ info:
   title: Warehouse Manager API
   version: 1.0.0
   description: >-
-    Authoritative HTTP contract for warehouse, route, sale, reconciliation, reporting,
-    document, user, and printer-profile operations. Money and quantities are decimal
-    strings. All protected authorization and business rules are enforced by the API.
+    Authoritative HTTP contract for warehouse, route, sale, reconciliation, reporting, document, user, and printer-profile operations. Money and quantities are decimal strings. All protected authorization and business rules are enforced by the API.
 servers:
   - url: /api/v1
 security:
   - sessionCookie: []
 tags:
   - name: Authentication
+    description: Session authentication and CSRF token lifecycle.
   - name: Users
+    description: Administrator-managed users and role assignments.
   - name: Catalog
+    description: Products, units, categories, locations and business settings.
   - name: Customers
+    description: Customers and effective product prices.
   - name: Inventory
+    description: Balances, movements and transactional inventory commands.
   - name: Routes
+    description: Route assignment, loading, reconciliation and closure.
   - name: Sales
+    description: Sale pricing, confirmation, cancellation and history.
   - name: Cash closes
+    description: Immutable cash-close snapshots and corrections.
   - name: Reports
+    description: Business-period reports and saved report snapshots.
   - name: Documents
+    description: Canonical PDFs and authorized output history.
   - name: Printers
+    description: Approved printer profiles, preferences and output attempts.
 paths:
   /health:
     get:
@@ -42,6 +51,11 @@ paths:
                     const: ok
         '503':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Get health
 
   /auth/login:
     post:
@@ -72,6 +86,17 @@ paths:
           $ref: '#/components/responses/Problem'
         '429':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "403":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Login
 
   /auth/session:
     get:
@@ -91,6 +116,21 @@ paths:
                 $ref: '#/components/schemas/SessionResponse'
         '401':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "403":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Get session
 
   /auth/logout:
     post:
@@ -105,6 +145,19 @@ paths:
           $ref: '#/components/responses/Problem'
         '403':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Logout
 
   /overview:
     get:
@@ -118,6 +171,21 @@ paths:
                 $ref: '#/components/schemas/OverviewResponse'
         '401':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "403":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Get role overview
 
   /users:
     get:
@@ -140,6 +208,21 @@ paths:
                 $ref: '#/components/schemas/UserListResponse'
         '403':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: List users
     post:
       tags: [Users]
       operationId: createUser
@@ -164,6 +247,17 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Create user
 
   /users/{userId}:
     parameters:
@@ -182,6 +276,19 @@ paths:
           $ref: '#/components/responses/Problem'
         '404':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Get user
     patch:
       tags: [Users]
       operationId: updateUser
@@ -208,6 +315,15 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Update user
 
   /locations:
     get:
@@ -220,6 +336,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LocationListResponse'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "403":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: List locations
     post:
       tags: [Catalog]
       operationId: createLocation
@@ -244,6 +377,17 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Create location
 
   /categories:
     get:
@@ -256,6 +400,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CategoryListResponse'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "403":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: List categories
     post:
       tags: [Catalog]
       operationId: createCategory
@@ -280,6 +441,17 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Create category
 
   /units:
     get:
@@ -292,6 +464,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UnitListResponse'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "403":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: List units
     post:
       tags: [Catalog]
       operationId: createUnit
@@ -316,6 +505,17 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Create unit
 
   /products:
     get:
@@ -336,6 +536,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProductListResponse'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "403":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: List products
     post:
       tags: [Catalog]
       operationId: createProduct
@@ -360,6 +577,17 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Create product
 
   /products/{productId}:
     parameters:
@@ -376,6 +604,21 @@ paths:
                 $ref: '#/components/schemas/ProductResponse'
         '404':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "403":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Get product
     patch:
       tags: [Catalog]
       operationId: updateProduct
@@ -402,6 +645,15 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Update product
 
   /customers:
     get:
@@ -422,6 +674,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CustomerListResponse'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "403":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: List customers
     post:
       tags: [Customers]
       operationId: createCustomer
@@ -446,6 +715,17 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Create customer
 
   /customers/{customerId}:
     parameters:
@@ -462,6 +742,21 @@ paths:
                 $ref: '#/components/schemas/CustomerResponse'
         '404':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "403":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Get customer
     patch:
       tags: [Customers]
       operationId: updateCustomer
@@ -488,6 +783,15 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Update customer
 
   /customers/{customerId}/prices:
     parameters:
@@ -504,6 +808,21 @@ paths:
                 $ref: '#/components/schemas/CustomerPriceListResponse'
         '403':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: List customer prices
     post:
       tags: [Customers]
       operationId: createCustomerPrice
@@ -528,6 +847,17 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Create customer price
 
   /customers/{customerId}/sales:
     parameters:
@@ -546,6 +876,21 @@ paths:
                 $ref: '#/components/schemas/SaleListResponse'
         '403':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: List customer sales
 
   /vehicles:
     get:
@@ -558,6 +903,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VehicleListResponse'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "403":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: List vehicles
     post:
       tags: [Catalog]
       operationId: createVehicle
@@ -582,6 +944,17 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Create vehicle
 
   /printer-profiles:
     get:
@@ -594,6 +967,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PrinterProfileListResponse'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "403":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: List printer profiles
     post:
       tags: [Printers]
       operationId: createPrinterProfile
@@ -618,6 +1008,17 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Create printer profile
 
   /me/printer-preference:
     get:
@@ -630,6 +1031,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PrinterPreferenceResponse'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "403":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Get my printer preference
     put:
       tags: [Printers]
       operationId: setMyPrinterPreference
@@ -650,6 +1068,21 @@ paths:
                 $ref: '#/components/schemas/PrinterPreferenceResponse'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "403":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Set my printer preference
 
   /inventory/balances:
     get:
@@ -683,16 +1116,28 @@ paths:
                 $ref: '#/components/schemas/InventoryBalanceListResponse'
         '403':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: List inventory balances
 
   /inventory/movements:
     get:
       tags: [Inventory]
       operationId: listInventoryMovements
       description: >-
-        Administrators may query all permitted inventory movements. Drivers may query
-        movements only for routes assigned to them, including Returned and Closed
-        routes; branch-wide, general-inventory, and unrelated-route movements are
-        forbidden. Query parameters never broaden the authenticated caller's scope.
+        Administrators may query all permitted inventory movements. Drivers may query movements only for routes assigned to them, including Returned and Closed routes; branch-wide, general-inventory, and unrelated-route movements are forbidden. Query parameters never broaden the authenticated caller's scope.
       parameters:
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/Limit'
@@ -731,14 +1176,28 @@ paths:
                 $ref: '#/components/schemas/InventoryMovementListResponse'
         '403':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: List inventory movements
 
   /inventory/operations:
     post:
       tags: [Inventory]
       operationId: createInventoryOperation
       description: >-
-        Administrator-only entry, manual exit, or positive/negative adjustment.
-        Transfers use the dedicated endpoint.
+        Administrator-only entry, manual exit, or positive/negative adjustment. Transfers use the dedicated endpoint.
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -761,6 +1220,17 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Create inventory operation
 
   /inventory/transfers:
     post:
@@ -788,6 +1258,17 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Create inventory transfer
 
   /inventory/operations/{operationId}/reversal:
     parameters:
@@ -800,8 +1281,7 @@ paths:
       tags: [Inventory]
       operationId: reverseInventoryOperation
       description: >-
-        Appends an administrator-authorized compensating operation and movements;
-        never edits the original operation or ledger rows.
+        Appends an administrator-authorized compensating operation and movements; never edits the original operation or ledger rows.
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -826,15 +1306,22 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Reverse inventory operation
 
   /routes:
     get:
       tags: [Routes]
       operationId: listRoutes
       description: >-
-        Administrators may list all routes. Drivers receive every route assigned to
-        them, including Returned and Closed history. A Driver-provided filter cannot
-        expand visibility to another Driver's routes.
+        Administrators may list all routes. Drivers receive every route assigned to them, including Returned and Closed history. A Driver-provided filter cannot expand visibility to another Driver's routes.
       parameters:
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/Limit'
@@ -861,6 +1348,21 @@ paths:
                 $ref: '#/components/schemas/RouteListResponse'
         '403':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: List routes
     post:
       tags: [Routes]
       operationId: createRoute
@@ -885,6 +1387,17 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Create route
 
   /routes/{routeId}:
     parameters:
@@ -893,8 +1406,7 @@ paths:
       tags: [Routes]
       operationId: getRoute
       description: >-
-        Administrators may retrieve any route. Drivers may retrieve only routes
-        assigned to them, in any state; another Driver's route is forbidden.
+        Administrators may retrieve any route. Drivers may retrieve only routes assigned to them, in any state; another Driver's route is forbidden.
       responses:
         '200':
           description: Route with load, balances, movements, sales, return, reconciliation, and closure history
@@ -906,6 +1418,19 @@ paths:
           $ref: '#/components/responses/Problem'
         '404':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Get route
 
   /routes/{routeId}/load:
     parameters:
@@ -937,6 +1462,15 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Replace route load draft
 
   /routes/{routeId}/load/confirmation:
     parameters:
@@ -966,6 +1500,17 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Confirm route load
 
   /routes/{routeId}/start:
     parameters:
@@ -993,6 +1538,19 @@ paths:
           $ref: '#/components/responses/Problem'
         '409':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Start route
 
   /routes/{routeId}/return:
     parameters:
@@ -1020,6 +1578,19 @@ paths:
           $ref: '#/components/responses/Problem'
         '409':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Return route
 
   /routes/{routeId}/reconciliation:
     parameters:
@@ -1028,8 +1599,7 @@ paths:
       tags: [Routes]
       operationId: approveRouteReconciliation
       description: >-
-        Administrator records physical returns, provides mandatory reasons for
-        differences, creates adjustments, and returns stock to the origin atomically.
+        Administrator records physical returns, provides mandatory reasons for differences, creates adjustments, and returns stock to the origin atomically.
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -1052,6 +1622,17 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Approve route reconciliation
 
   /routes/{routeId}/close:
     parameters:
@@ -1079,15 +1660,26 @@ paths:
           $ref: '#/components/responses/Problem'
         '409':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Close route
 
   /sales:
     get:
       tags: [Sales]
       operationId: listSales
       description: >-
-        Administrators may list all sales. Drivers receive only sales attributed to
-        their authenticated identity, including preserved cancellation status. A
-        Driver-provided filter cannot expand visibility to another Driver's sales.
+        Administrators may list all sales. Drivers receive only sales attributed to their authenticated identity, including preserved cancellation status. A Driver-provided filter cannot expand visibility to another Driver's sales.
       parameters:
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/Limit'
@@ -1123,12 +1715,26 @@ paths:
                 $ref: '#/components/schemas/SaleListResponse'
         '403':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: List sales
     post:
       tags: [Sales]
       operationId: confirmSale
       description: >-
-        Assigned driver confirms a sale against products in an En Route route. Price,
-        totals, sale, sale ticket, movements, and idempotency result commit atomically.
+        Assigned driver confirms a sale against products in an En Route route. Price, totals, sale, sale ticket, movements, and idempotency result commit atomically.
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -1151,14 +1757,24 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Confirm sale
 
   /sales/quote:
     post:
       tags: [Sales]
       operationId: quoteSale
       description: >-
-        Returns advisory effective prices and current route availability without
-        committing a sale. Sale confirmation recalculates and revalidates everything.
+        Returns advisory effective prices and current route availability without committing a sale. Sale confirmation recalculates and revalidates everything.
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
       requestBody:
@@ -1180,6 +1796,17 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Quote sale
 
   /sales/{saleId}:
     parameters:
@@ -1188,8 +1815,7 @@ paths:
       tags: [Sales]
       operationId: getSale
       description: >-
-        Administrators may retrieve any sale. Drivers may retrieve only a sale
-        attributed to them; another Driver's sale is forbidden.
+        Administrators may retrieve any sale. Drivers may retrieve only a sale attributed to them; another Driver's sale is forbidden.
       responses:
         '200':
           description: Preserved sale and sale-ticket detail
@@ -1201,6 +1827,19 @@ paths:
           $ref: '#/components/responses/Problem'
         '404':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Get sale
 
   /sales/{saleId}/cancellation:
     parameters:
@@ -1232,15 +1871,22 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Cancel sale
 
   /cash-closes:
     get:
       tags: [Cash closes]
       operationId: listCashCloses
       description: >-
-        Lists immutable cash-close versions. Administrators may filter by the
-        calendar period resolved in the configured business timezone and by whether
-        a version is current or superseded.
+        Lists immutable cash-close versions. Administrators may filter by the calendar period resolved in the configured business timezone and by whether a version is current or superseded.
       parameters:
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/Limit'
@@ -1268,6 +1914,21 @@ paths:
                 $ref: '#/components/schemas/CashCloseListResponse'
         '403':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: List cash closes
     post:
       tags: [Cash closes]
       operationId: createCashClose
@@ -1291,9 +1952,7 @@ paths:
           $ref: '#/components/responses/Problem'
         '409':
           description: >-
-            CASH_CLOSE_PERIOD_ALREADY_CURRENT when a different request attempts to
-            create another current close for the exact resolved period, or
-            IDEMPOTENCY_KEY_REUSED when a key is reused with different content.
+            CASH_CLOSE_PERIOD_ALREADY_CURRENT when a different request attempts to create another current close for the exact resolved period, or IDEMPOTENCY_KEY_REUSED when a key is reused with different content.
           content:
             application/problem+json:
               schema:
@@ -1304,6 +1963,17 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Create cash close
 
   /cash-closes/{cashCloseId}:
     parameters:
@@ -1322,6 +1992,19 @@ paths:
           $ref: '#/components/responses/Problem'
         '404':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Get cash close
 
   /cash-closes/{cashCloseId}/corrections:
     parameters:
@@ -1330,9 +2013,7 @@ paths:
       tags: [Cash closes]
       operationId: correctCashClose
       description: >-
-        Creates an immutable successor for the current close of the same exact
-        reporting period and atomically makes the successor current. The superseded
-        close remains readable; stale or branching correction attempts conflict.
+        Creates an immutable successor for the current close of the same exact reporting period and atomically makes the successor current. The superseded close remains readable; stale or branching correction attempts conflict.
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -1361,6 +2042,15 @@ paths:
                 $ref: '#/components/schemas/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Correct cash close
 
   /reports/sales-by-driver:
     get:
@@ -1384,6 +2074,19 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Get sales by driver report
 
   /reports/best-selling-products:
     get:
@@ -1407,6 +2110,19 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Get best selling products report
 
   /reports/inventory-by-branch:
     get:
@@ -1421,6 +2137,21 @@ paths:
                 $ref: '#/components/schemas/ReportResponse'
         '403':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Get inventory by branch report
 
   /reports/financial-summary:
     get:
@@ -1444,6 +2175,19 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Get financial summary report
 
   /report-snapshots:
     post:
@@ -1472,17 +2216,24 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Create report snapshot
 
   /documents:
     get:
       tags: [Documents]
       operationId: listDocuments
       description: >-
-        Administrators see all document history. Drivers see only Tickets sourced
-        from their own Sales and confirmed Route Loads for Routes assigned to them,
-        regardless of who created the output. Filters and opaque cursors only narrow
-        that source-derived scope and never broaden it. Results use stable keyset
-        ordering by createdAt DESC, id DESC.
+        Administrators see all document history. Drivers see only Tickets sourced from their own Sales and confirmed Route Loads for Routes assigned to them, regardless of who created the output. Filters and opaque cursors only narrow that source-derived scope and never broaden it. Results use stable keyset ordering by createdAt DESC, id DESC.
       parameters:
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/Limit'
@@ -1515,19 +2266,26 @@ paths:
                 $ref: '#/components/schemas/DocumentListResponse'
         '403':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: List documents
     post:
       tags: [Documents]
       operationId: requestDocument
       description: >-
-        Creates or reuses a portable canonical PDF from an already committed source
-        record. TICKET, ROUTE_LOAD, CASH_CLOSE, and REPORT are all supported;
-        ROUTE_LOAD requires a confirmed immutable load. Administrators may request all
-        four types. Drivers may request only a TICKET whose Sale belongs to them or a
-        confirmed ROUTE_LOAD whose Route is assigned to them. Driver requests for
-        CASH_CLOSE, REPORT, another Driver's Sale, or an unassigned Route return 403
-        without creating/exposing output. An authorized DRAFT-load request returns 409
-        ROUTE_LOAD_NOT_CONFIRMED. Source authorization is checked before reusing an
-        existing canonical output and never derives from DocumentOutput.createdBy.
+        Creates or reuses a portable canonical PDF from an already committed source record. TICKET, ROUTE_LOAD, CASH_CLOSE, and REPORT are all supported; ROUTE_LOAD requires a confirmed immutable load. Administrators may request all four types. Drivers may request only a TICKET whose Sale belongs to them or a confirmed ROUTE_LOAD whose Route is assigned to them. Driver requests for CASH_CLOSE, REPORT, another Driver's Sale, or an unassigned Route return 403 without creating/exposing output. An authorized DRAFT-load request returns 409 ROUTE_LOAD_NOT_CONFIRMED. Source authorization is checked before reusing an existing canonical output and never derives from DocumentOutput.createdBy.
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -1552,6 +2310,15 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Request document
 
   /documents/{documentId}:
     parameters:
@@ -1560,10 +2327,7 @@ paths:
       tags: [Documents]
       operationId: getDocument
       description: >-
-        Administrators may retrieve any document metadata. Drivers may retrieve only
-        their own Sale Tickets and confirmed route-load documents for assigned Routes,
-        including outputs created by an Administrator. Other direct IDs return 403
-        without exposing metadata.
+        Administrators may retrieve any document metadata. Drivers may retrieve only their own Sale Tickets and confirmed route-load documents for assigned Routes, including outputs created by an Administrator. Other direct IDs return 403 without exposing metadata.
       responses:
         '200':
           description: Document generation status and source metadata
@@ -1575,6 +2339,19 @@ paths:
           $ref: '#/components/responses/Problem'
         '404':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Get document
 
   /documents/{documentId}/print-data:
     parameters:
@@ -1583,10 +2360,7 @@ paths:
       tags: [Documents, Printers]
       operationId: getDocumentPrintData
       description: >-
-        Read-only thermal payload from immutable committed snapshots. The same
-        source-derived authorization as metadata applies before capability checks.
-        Returns 409 for non-ready documents or unconfirmed loads and 422 for REPORT.
-        Does not generate output, record an attempt, or mutate the source.
+        Read-only thermal payload from immutable committed snapshots. The same source-derived authorization as metadata applies before capability checks. Returns 409 for non-ready documents or unconfirmed loads and 422 for REPORT. Does not generate output, record an attempt, or mutate the source.
       responses:
         '200':
           description: Authorized printable snapshot; private, no-store
@@ -1608,6 +2382,13 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Get document print data
 
   /documents/{documentId}/content:
     parameters:
@@ -1616,10 +2397,7 @@ paths:
       tags: [Documents]
       operationId: downloadDocument
       description: >-
-        Downloads/saves any ready TICKET, ROUTE_LOAD, CASH_CLOSE, or REPORT PDF. The
-        browser may offer the same bytes through Web Share when supported. The same
-        source-derived authorization as document metadata applies; output creator and
-        possession of the document ID never broaden Driver access.
+        Downloads/saves any ready TICKET, ROUTE_LOAD, CASH_CLOSE, or REPORT PDF. The browser may offer the same bytes through Web Share when supported. The same source-derived authorization as document metadata applies; output creator and possession of the document ID never broaden Driver access.
       responses:
         '200':
           description: Ready canonical PDF
@@ -1638,18 +2416,24 @@ paths:
           $ref: '#/components/responses/Problem'
         '409':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Download document
 
   /output-attempts:
     get:
       tags: [Documents, Printers]
       operationId: listOutputAttempts
       description: >-
-        Administrators see all output-attempt history. Drivers see attempts only
-        when the related document is sourced from their own Sale or from a confirmed
-        Route Load for an assigned Route. OutputAttempt.actorId does not grant
-        access, and TEST_PRINT attempts have no eligible business source and are
-        therefore administrator-only. Filters and cursors only narrow the authorized
-        scope. Results use stable keyset ordering by createdAt DESC, id DESC.
+        Administrators see all output-attempt history. Drivers see attempts only when the related document is sourced from their own Sale or from a confirmed Route Load for an assigned Route. OutputAttempt.actorId does not grant access, and TEST_PRINT attempts have no eligible business source and are therefore administrator-only. Filters and cursors only narrow the authorized scope. Results use stable keyset ordering by createdAt DESC, id DESC.
       parameters:
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/Limit'
@@ -1678,19 +2462,26 @@ paths:
                 $ref: '#/components/schemas/OutputAttemptListResponse'
         '403':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: List output attempts
     post:
       tags: [Documents, Printers]
       operationId: recordOutputAttempt
       description: >-
-        Records generation/download/share/print/test outcomes only. It never performs
-        or retries the source business transaction. PRINT and REPRINT are valid only
-        for TICKET, ROUTE_LOAD, and CASH_CLOSE; REPORT is portable-only. A REPORT
-        PRINT/REPRINT request returns 422 and creates no accepted OutputAttempt.
-        TEST_PRINT validates a printer profile without a business document. For every
-        document mode, the API first resolves the immutable source and authorizes the
-        actor: Drivers are limited to their own Sale Tickets and confirmed loads for
-        assigned Routes. Forbidden source access returns 403 with no accepted attempt;
-        capability validation follows, so Administrator REPORT printing returns 422.
+        Records generation/download/share/print/test outcomes only. It never performs or retries the source business transaction. PRINT and REPRINT are valid only for TICKET, ROUTE_LOAD, and CASH_CLOSE; REPORT is portable-only. A REPORT PRINT/REPRINT request returns 422 and creates no accepted OutputAttempt. TEST_PRINT validates a printer profile without a business document. For every document mode, the API first resolves the immutable source and authorizes the actor: Drivers are limited to their own Sale Tickets and confirmed loads for assigned Routes. Forbidden source access returns 403 with no accepted attempt; capability validation follows, so Administrator REPORT printing returns 422.
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -1713,6 +2504,17 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Record output attempt
 
   /output-attempts/{outputAttemptId}:
     parameters:
@@ -1721,9 +2523,7 @@ paths:
       tags: [Documents, Printers]
       operationId: getOutputAttempt
       description: >-
-        Uses the same source-derived authorization as the history list. A direct ID,
-        attempt actor, output creator, or prior cursor cannot broaden Driver access;
-        TEST_PRINT detail is administrator-only.
+        Uses the same source-derived authorization as the history list. A direct ID, attempt actor, output creator, or prior cursor cannot broaden Driver access; TEST_PRINT detail is administrator-only.
       responses:
         '200':
           description: Authorized output-attempt detail
@@ -1735,6 +2535,19 @@ paths:
           $ref: '#/components/responses/Problem'
         '404':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Get output attempt
 
   /locations/{locationId}:
     parameters:
@@ -1769,6 +2582,15 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Update location
 
   /categories/{categoryId}:
     parameters:
@@ -1803,6 +2625,15 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Update category
 
   /units/{unitId}:
     parameters:
@@ -1837,6 +2668,15 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Update unit
 
   /vehicles/{vehicleId}:
     parameters:
@@ -1871,6 +2711,15 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Update vehicle
 
   /printer-profiles/{printerProfileId}:
     parameters:
@@ -1905,6 +2754,15 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Update printer profile
 
   /customer-prices/{customerPriceId}/deactivation:
     parameters:
@@ -1937,6 +2795,17 @@ paths:
           $ref: '#/components/responses/Problem'
         '409':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Deactivate customer price
 
   /settings/business:
     get:
@@ -1951,6 +2820,21 @@ paths:
                 $ref: '#/components/schemas/BusinessSettingResponse'
         '403':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Get business settings
     patch:
       tags: [Catalog]
       operationId: updateBusinessSettings
@@ -1975,6 +2859,17 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Update business settings
 
 components:
   securitySchemes:
@@ -2116,8 +3011,7 @@ components:
   schemas:
     ThermalDocument:
       oneOf:
-        -
-          type: "object"
+        - type: "object"
           properties:
             id:
               type: "string"
@@ -2204,8 +3098,7 @@ components:
             - "sourceState"
             - "snapshot"
           additionalProperties: false
-        -
-          type: "object"
+        - type: "object"
           properties:
             id:
               type: "string"
@@ -2274,8 +3167,7 @@ components:
             - "sourceState"
             - "snapshot"
           additionalProperties: false
-        -
-          type: "object"
+        - type: "object"
           properties:
             id:
               type: "string"
@@ -2337,18 +3229,14 @@ components:
                   type: "string"
                 correctionReason:
                   anyOf:
-                    -
-                      type: "string"
-                    -
-                      type: "null"
+                    - type: "string"
+                    - type: "null"
                 supersedesCashCloseId:
                   anyOf:
-                    -
-                      type: "string"
+                    - type: "string"
                       format: "uuid"
                       pattern: "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-                    -
-                      type: "null"
+                    - type: "null"
                 lines:
                   type: "array"
                   items:
@@ -2400,6 +3288,8 @@ components:
       type: string
       pattern: '^(0|[1-9][0-9]*)\.[0-9]{2}$'
       examples: ['1250.00']
+      allOf:
+        - $ref: "#/components/schemas/Money"
     UnitPrice:
       type: string
       pattern: '^(0|[1-9][0-9]*)(\.[0-9]{1,4})?$'
@@ -2441,6 +3331,14 @@ components:
                 type: string
               message:
                 type: string
+        requestId:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
     PageInfo:
       type: object
       additionalProperties: false
@@ -3613,6 +4511,10 @@ components:
         businessDate:
           type: string
           format: date
+        routeNumber:
+          type: string
+          minLength: 1
+          maxLength: 64
     Route:
       type: object
       additionalProperties: false
@@ -3891,6 +4793,25 @@ components:
           $ref: '#/components/schemas/UnitPrice'
         lineAmount:
           $ref: '#/components/schemas/NonnegativeMoney'
+        quantity:
+          $ref: "#/components/schemas/PositiveQuantity"
+        productName:
+          type: string
+        categoryName:
+          type: string
+        reportingGroup:
+          type: string
+          enum:
+            - SODAS
+            - CHARCOAL
+            - TOSTADAS
+            - OTHER
+        unitCode:
+          type: string
+        customerPriceId:
+          oneOf:
+            - $ref: "#/components/schemas/Uuid"
+            - type: "null"
     SaleQuoteResponse:
       type: object
       additionalProperties: false
@@ -4247,8 +5168,7 @@ components:
     DocumentType:
       type: string
       description: >-
-        TICKET is the sole customer-facing Sale Ticket document type. All values are
-        portable PDF types; only TICKET, ROUTE_LOAD, and CASH_CLOSE are thermal-printable.
+        TICKET is the sole customer-facing Sale Ticket document type. All values are portable PDF types; only TICKET, ROUTE_LOAD, and CASH_CLOSE are thermal-printable.
       enum: [TICKET, ROUTE_LOAD, CASH_CLOSE, REPORT]
     DocumentCreateRequest:
       oneOf:
@@ -4345,10 +5265,7 @@ components:
           $ref: '#/components/schemas/PageInfo'
     OutputAttemptRequest:
       description: >-
-        PRINT/REPRINT require a printer and a TICKET, ROUTE_LOAD, or CASH_CLOSE
-        document. REPORT print/reprint is rejected with 422. TEST_PRINT has a printer
-        but no document. Cross-resource document-type validation is authoritative in
-        the API and database.
+        PRINT/REPRINT require a printer and a TICKET, ROUTE_LOAD, or CASH_CLOSE document. REPORT print/reprint is rejected with 422. TEST_PRINT has a printer but no document. Cross-resource document-type validation is authoritative in the API and database.
       oneOf:
         - type: object
           additionalProperties: false

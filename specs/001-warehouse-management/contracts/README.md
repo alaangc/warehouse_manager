@@ -60,12 +60,78 @@ correction returns 409 `CASH_CLOSE_NOT_CURRENT`.
 
 ## Compatibility Policy
 
+T136 enforces this policy with `pnpm contract:lint`, `pnpm test:contract`,
+`pnpm contract:runtime`, and `pnpm test:contract-gates`. The HTTP contract suite
+validates every response and every successful request against OpenAPI, including
+headers, parameters, decimal strings, and PDF media. Rejected requests may be
+deliberately invalid and are checked through their Problem responses.
+
+Run `pnpm contract:generate` after editing the normative contract. CI regenerates
+the OpenAPI copy, complete path/schema types, and version/hash stamp and rejects
+drift. `CONTRACT_BASE_REF=<base> pnpm contract:compatibility` compares semantic
+hashes against the actual push or pull-request base. Any non-editorial change
+requires `compatibility/<headSha256>.json` with matching base/head hashes,
+classification, rationale, migration, validation, and owner. This conservative
+gate requests review even for additions; it is not a schema-subtyping proof or
+an automated substitute for maintainer approval of a breaking release.
+
 - Backward-compatible optional fields/endpoints may be added within `/api/v1` after
   frontend compatibility review.
 - Removing/renaming fields, narrowing accepted values, changing decimal semantics, or
   changing state transitions requires a coordinated migration or `/api/v2`.
 - CI rejects uncommitted generated contract/type changes and breaking contract diffs
   without an approved migration note.
+
+## Browser Printing Boundary
+
+## Enforced Contract Gates (T136)
+
+Run from the repository root:
+
+```sh
+pnpm contract:generate
+pnpm contract:lint
+pnpm contract:check-diff
+pnpm contract:runtime
+pnpm test:contract-gates
+pnpm test:api
+CONTRACT_BASE_REF=<base-commit-sha> pnpm contract:compatibility
+```
+
+The reviewed planning YAML is the source for the checked-in OpenAPI copy and
+`openapi-typescript` path/schema declarations. Generation also records its version and
+SHA-256. Freshness checking computes expected artifacts in memory and fails on a
+changed or missing file; it never repairs a stale file before checking it. CI also
+regenerates and rejects a Git diff in the generated directory. Zod remains the API's
+input boundary; the independent OpenAPI validator detects drift through actual HTTP
+exchanges instead of assuming these two schema representations are equivalent.
+
+Root `redocly.yaml` uses `recommended-strict` (warnings become errors). The sole
+exception is public license metadata for this private application. The runtime checker
+compiles every component and inline request/response schema using JSON Schema 2020-12.
+Every Supertest exchange in the `api-contract` project validates its documented status,
+media type, response body and declared headers; successful exchanges also validate
+their request body and path/query/header parameters. Negative requests may intentionally
+violate input schemas. Unknown routes must return a valid 404 `RESOURCE_NOT_FOUND`
+problem. PDF responses require binary PDF content and 204 responses must be empty.
+This is a CI test boundary, not new production middleware, so domain authorization and
+transaction ordering remain unchanged. Passing tests cover the exercised exchanges;
+they do not prove every possible payload or schema refinement is equivalent to Zod.
+
+Compatibility comparison uses the PR base SHA or the push event's previous SHA, with
+full Git history. Manual runs compare the previous commit unless an explicit base is
+supplied. Any non-editorial change, including additive changes, requires
+`compatibility/<headSha256>.json` containing both hashes printed by the checker,
+`classification` (`compatible` or `breaking`), `owner`, `rationale`, `migration`, and
+`validation`. This intentionally conservative gate does not attempt to prove JSON
+Schema subtyping. A stale note cannot authorize a later schema change. Breaking
+changes must explain coordinated client migration or API versioning and rollback.
+The note must receive ordinary frontend/API code review; its presence does not prove
+human approval, and this task does not configure repository branch protections.
+
+Pinned `openapi-typescript@7.13.0` predates the repository's TypeScript 6 peer range.
+The narrow pnpm peer exception permits only TypeScript 6.0.3 for this generator; type
+checks and independent builds validate its emitted declarations.
 
 ## Browser Printing Boundary
 

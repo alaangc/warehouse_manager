@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
+import type { Selectable } from 'kysely';
 import type { AppDatabase } from '../../db/database.js';
-import type { InventoryOperationType, JsonValue } from '../../db/types.js';
+import type { InventoryMovementTable, InventoryOperationType, JsonValue } from '../../db/types.js';
 import { runSerializable } from '../../db/serializable-transaction.js';
 import { AuditWriter } from '../../shared/audit/audit-service.js';
 import { IdempotencyRepository } from '../../shared/idempotency/idempotency-repository.js';
@@ -17,7 +18,7 @@ export interface OperationResult {
   operationType: InventoryOperationType;
   actorId: string;
   reason: string | null;
-  movements: unknown[];
+  movements: Selectable<InventoryMovementTable>[];
   occurredAt: string;
 }
 export interface OperationContext {
@@ -154,7 +155,7 @@ export class InventoryService {
       repository: InventoryRepository,
       operationId: string,
       lines: InventoryLine[],
-    ) => Promise<unknown[]>,
+    ) => Promise<Selectable<InventoryMovementTable>[]>,
     reversesOperationId: string | null = null,
   ): Promise<OperationResult> {
     return runSerializable(this.database, async (transaction) => {

@@ -1,6 +1,19 @@
 # Project continuation — T119 completed
 
-## Latest completed task
+## Current continuation (2026-09-15)
+
+T136 is complete. See evidence/t136-contract-gates.md for strict OpenAPI,
+generated-artifact, HTTP validation and compatibility-gate evidence.
+The next task is T137 (security hardening); continue one task at a time.
+T133 still requires physical printer acceptance. The user authorized finishing
+T136 and pushing to main. The older T119 notes below are historical only.
+
+Do not include unrelated untracked Neon skills, skills-lock.json, output/, tmp/,
+var/*.json, the unused print-job.ts or document-integration-fixtures.ts in this
+task commit. For Windows component verification, a local --testTimeout=15000
+override avoids intermittent five-second startup timeouts. CI defaults remain.
+
+## Historical T119 handoff
 
 T119 adds document and output-attempt history HTTP contracts using a shared disposable PostgreSQL fixture harness. Coverage includes four document/source pairs, portable PDF output, allowed print modes, Driver source authorization, canonical reuse, draft/report rejection, response shapes, paginated filtered history, scoped cursors and Administrator-only TEST_PRINT history.
 

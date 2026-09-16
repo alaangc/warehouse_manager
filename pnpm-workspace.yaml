@@ -6,3 +6,9 @@ packages:
 onlyBuiltDependencies:
   - argon2
   - esbuild
+
+# The generator's published peer range predates this workspace's TypeScript 6.
+# T136 verifies generated declarations with TS 6.0.3 and both application builds.
+peerDependencyRules:
+  allowedVersions:
+    'openapi-typescript@7.13.0>typescript': '6.0.3'

@@ -134,7 +134,8 @@ export async function reviewedMigrations() {
   const actual: Record<string, string> = {};
   for (const file of files)
     actual[file] = createHash('sha256')
-      .update(await readFile(`${migrationDirectory}/${file}`))
+      // Hash the Git text representation consistently across Windows checkouts.
+      .update((await readFile(`${migrationDirectory}/${file}`, 'utf8')).replaceAll('\r\n', '\n'))
       .digest('hex');
   verifyManifest(actual, manifest);
   const migrations: Record<string, Migration> = {};

@@ -58,16 +58,37 @@ jobs:
       - run: pnpm test:unit --maxWorkers=2
 
   contract:
-    name: Contract freshness
+    name: Strict contracts, runtime schemas, and compatibility
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
+          fetch-depth: 0
       - uses: ./.github/actions/setup
       - run: pnpm contract:lint
       - run: pnpm test:contract
+      - run: pnpm contract:runtime
+      - run: pnpm test:contract-gates
+      - name: Verify regeneration leaves committed artifacts unchanged
+        run: |
+          pnpm contract:generate
+          git diff --exit-code -- packages/contracts/openapi.yaml packages/contracts/src/generated/
+      - name: Review compatibility against the actual event base
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PUSH_BASE: ${{ github.event.before }}
+        run: |
+          if [ "$EVENT_NAME" = pull_request ]; then
+            export CONTRACT_BASE_REF="$PR_BASE"
+          elif [ "$EVENT_NAME" = push ] && [ -n "$PUSH_BASE" ] && [ "$PUSH_BASE" != 0000000000000000000000000000000000000000 ]; then
+            export CONTRACT_BASE_REF="$PUSH_BASE"
+          else
+            export CONTRACT_BASE_REF="$(git rev-parse HEAD^)"
+          fi
+          pnpm contract:compatibility
 
   database:
     name: PostgreSQL tests (${{ matrix.suite }})

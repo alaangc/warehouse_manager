@@ -77,7 +77,12 @@ export function createSalesRouter(database: AppDatabase): Router {
         .execute((transaction) =>
           new PricingService(transaction).price(input.customerId, input.routeId, input.lines),
         );
-      response.json({ data: quote });
+      response.json({
+        data: {
+          ...quote,
+          lines: quote.lines.map((line) => ({ ...line, requestedQuantity: line.quantity })),
+        },
+      });
     } catch (error) {
       try {
         mapSaleError(error);
