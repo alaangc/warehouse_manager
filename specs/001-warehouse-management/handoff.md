@@ -1,13 +1,18 @@
-# Project continuation — T139 completed
+# Project continuation — T140 completed
 
 ## Current continuation (2026-09-16)
 
-T139 is complete. See evidence/document-performance.md and its raw JSON report for
-SC-007: 400/400 new PDFs downloaded within 10 seconds using 25 authenticated
-closed-loop browser sessions. The benchmark reuses T138's population with sales
-spaced 108 seconds apart for distinct nonempty daily cash closes and reports.
-T138 evidence remains in evidence/search-performance.md.
-The next task is T140 (critical cross-browser workflows); continue one task at a time.
+T140 is complete. See evidence/cross-browser-e2e.md and its JSON report for the
+complete three-engine suite and the inventory correction verification. Final case
+results: Chromium 14 passed; Firefox and WebKit each 13 passed and one expected
+Chromium-only BLE skip. Zero unresolved failures or automatic retries.
+The first run hit WebKit's 30-second whole-test inventory budget; that walkthrough
+now has 60 seconds and passed again in all three browsers (WebKit: 33.6 seconds).
+The evidence preserves the initial failure and non-blocking React/MUI diagnostics.
+T138/T139 performance evidence remains in search-performance.md and document-performance.md.
+The next task is T141 (accessibility and human usability); continue one task at a time.
+T141's human acceptance requires five Drivers and five Administrators; do not
+substitute automated timings for participant results.
 T133 still requires physical printer acceptance. The user authorized completing
 this continuation and pushing to main at https://github.com/alaangc/warehouse_manager.git.
 

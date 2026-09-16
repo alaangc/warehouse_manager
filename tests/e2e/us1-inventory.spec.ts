@@ -76,6 +76,9 @@ test('administrator inventory workflow is atomic and Driver mutations are denied
   administratorPage,
   driverPage,
 }, testInfo) => {
+  // This two-session walkthrough includes catalog setup and six inventory commands.
+  // Keep per-assertion limits; WebKit on Windows exceeds the default 30s total.
+  test.setTimeout(60_000);
   test.skip(!process.env.E2E_BASE_URL, 'Set E2E_BASE_URL to run against the isolated full stack.');
 
   const suffix = `${testInfo.project.name}-${testInfo.workerIndex}-${Date.now()}`
