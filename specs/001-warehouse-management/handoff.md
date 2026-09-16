@@ -2,11 +2,13 @@
 
 ## Current continuation (2026-09-15)
 
-T136 is complete. See evidence/t136-contract-gates.md for strict OpenAPI,
-generated-artifact, HTTP validation and compatibility-gate evidence.
-The next task is T137 (security hardening); continue one task at a time.
+T137 is complete. See evidence/t137-security.md and docs/operations/security.md
+for HTTP security controls, proxy requirements and verification. T136 evidence
+remains in evidence/t136-contract-gates.md.
+The next task is T138 (reproducible search performance acceptance); continue one
+task at a time.
 T133 still requires physical printer acceptance. The user authorized finishing
-T136 and pushing to main. The older T119 notes below are historical only.
+T137 and pushing to main. The older T119 notes below are historical only.
 
 Do not include unrelated untracked Neon skills, skills-lock.json, output/, tmp/,
 var/*.json, the unused print-job.ts or document-integration-fixtures.ts in this
