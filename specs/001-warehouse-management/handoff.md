@@ -1,14 +1,15 @@
-# Project continuation — T119 completed
+# Project continuation — T139 completed
 
 ## Current continuation (2026-09-16)
 
-T138 is complete. See evidence/search-performance.md and its raw JSON report for
-SC-006 acceptance with exactly 10,000 products, 10,000 customers, 100,000 completed
-sales and 25 authenticated browser sessions. Inventory search now filters the
-server-side authorized population before the result limit.
-The next task is T139 (document-generation performance); continue one task at a time.
+T139 is complete. See evidence/document-performance.md and its raw JSON report for
+SC-007: 400/400 new PDFs downloaded within 10 seconds using 25 authenticated
+closed-loop browser sessions. The benchmark reuses T138's population with sales
+spaced 108 seconds apart for distinct nonempty daily cash closes and reports.
+T138 evidence remains in evidence/search-performance.md.
+The next task is T140 (critical cross-browser workflows); continue one task at a time.
 T133 still requires physical printer acceptance. The user authorized completing
-this continuation and pushing to main.
+this continuation and pushing to main at https://github.com/alaangc/warehouse_manager.git.
 
 Do not include unrelated untracked Neon skills, skills-lock.json, output/, tmp/,
 var/*.json, the unused print-job.ts or document-integration-fixtures.ts in this

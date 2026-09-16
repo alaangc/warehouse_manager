@@ -18,7 +18,9 @@ export const performancePassword = 'development-password-change-me';
 
 // Every invocation owns a fresh database, in a container by default or on the
 // explicitly configured local PostgreSQL 18 test server. DATABASE_URL is ignored.
-export async function startPerformanceFixture() {
+export async function startPerformanceFixture(options: { salesIntervalSeconds?: number } = {}) {
+  const salesIntervalSeconds = options.salesIntervalSeconds ?? 1;
+  assert(Number.isSafeInteger(salesIntervalSeconds) && salesIntervalSeconds > 0);
   const { container, connectionString } = await startPostgres();
   const database = createDatabase(connectionString);
   const storage = await mkdtemp(join(tmpdir(), 'warehouse-performance-'));
@@ -79,15 +81,15 @@ export async function startPerformanceFixture() {
         insert into idempotency_request(id,actor_id,operation_type,idempotency_key,request_hash,state,resource_type,resource_id,http_status,completed_at)
         select pg_temp.perf_id(11,n),'00000000-0000-4000-8000-000000000011','SALE_CONFIRM',
           'warehouse-t138-v1-' || n, encode(digest('warehouse-t138-v1-' || n,'sha256'),'hex'),'COMPLETED','SALE',pg_temp.perf_id(12,n),201,
-          '2030-01-01'::timestamptz + n * interval '1 second' from generate_series(1,100000) n;
+          '2030-01-01'::timestamptz + n * interval '${salesIntervalSeconds} seconds' from generate_series(1,100000) n;
         insert into inventory_operation(id,operation_type,actor_id,related_entity_type,related_entity_id,occurred_at)
         select pg_temp.perf_id(13,n),'SALE','00000000-0000-4000-8000-000000000011','SALE',pg_temp.perf_id(12,n),
-          '2030-01-01'::timestamptz + n * interval '1 second' from generate_series(1,100000) n;
+          '2030-01-01'::timestamptz + n * interval '${salesIntervalSeconds} seconds' from generate_series(1,100000) n;
         insert into sale(id,sale_number,client_operation_id,customer_id,driver_id,route_id,origin_location_id,payment_method,
           currency_code,subtotal,total,rounding_mode,completed_at,inventory_operation_id,idempotency_request_id)
         select pg_temp.perf_id(12,n),'PERF-S-' || n,pg_temp.perf_id(14,n),pg_temp.perf_id(5,1+(n-1)%10000),
           '00000000-0000-4000-8000-000000000011',pg_temp.perf_id(7,1),'00000000-0000-4000-8000-000000000020',
-          'CASH','MXN',10,10,'HALF_AWAY_FROM_ZERO','2030-01-01'::timestamptz + n * interval '1 second',
+          'CASH','MXN',10,10,'HALF_AWAY_FROM_ZERO','2030-01-01'::timestamptz + n * interval '${salesIntervalSeconds} seconds',
           pg_temp.perf_id(13,n),pg_temp.perf_id(11,n) from generate_series(1,100000) n;
         insert into sale_line(sale_id,sequence,product_id,product_name,category_name,reporting_group,unit_code,quantity,unit_price,line_amount,applied_price_source)
         select pg_temp.perf_id(12,n),1,p.id,p.name,'Performance goods','OTHER','PCS',1,10,10,'STANDARD'
@@ -96,7 +98,7 @@ export async function startPerformanceFixture() {
           actor_id,related_entity_type,related_entity_id,occurred_at)
         select pg_temp.perf_id(13,n),pg_temp.perf_id(4,1+(n-1)%10000),pg_temp.perf_id(8,1),1,49-(n-1)/10000,
           '00000000-0000-4000-8000-000000000011','SALE',pg_temp.perf_id(12,n),
-          '2030-01-01'::timestamptz + n * interval '1 second' from generate_series(1,100000) n;
+          '2030-01-01'::timestamptz + n * interval '${salesIntervalSeconds} seconds' from generate_series(1,100000) n;
         insert into inventory_balance(stock_location_id,product_id,quantity,updated_at)
         select s.id,p.id,50,'2030-01-03' from product p cross join stock_location s
           where s.branch_id='00000000-0000-4000-8000-000000000020';

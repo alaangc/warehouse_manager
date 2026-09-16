@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests/e2e',
-  testMatch: 'performance-search.spec.ts',
+  testMatch: ['performance-search.spec.ts', 'performance-success-criteria.spec.ts'],
   workers: 1,
   retries: 0,
   timeout: 600_000,
