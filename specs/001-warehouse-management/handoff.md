@@ -1,4 +1,23 @@
-# Project continuation — T141 preparation, participants pending
+# Project continuation — T142/T143 complete; T144 next
+
+## Current continuation (2026-09-17)
+
+T142 is implemented: allowlisted operational failure logs, request correlation,
+transaction retries/exhaustion, authentication, cash-close conflicts, history cursor
+rejection, committed document failures, and failed/uncertain printer attempts.
+See evidence/failure-signals.md for verification and event-count interpretation.
+T141 additionally fixes the sale quantity input's decimal hint and invalid-field
+focus; 16 component tests pass. Human sessions and the remaining wider accessibility
+audit are still pending, so T141 remains unchecked. No participant data was invented.
+
+T143 adds CI dependency audit, installed-license inventory, paid MUI rejection,
+and browser bundle secret/canary scanning. qs was pinned to 6.16.0 to resolve two
+moderate advisories; the final registry audit reports zero vulnerabilities.
+See evidence/security-scanning.md. Next task: T144 clean-environment quickstart
+verification; do not mark its physical/human acceptance steps passed without evidence.
+T133 still requires real printer acceptance. The dedicated local PostgreSQL test
+cluster was restarted on port 5432 (warehouse_test role); use fresh disposable
+databases via TEST_POSTGRES_ADMIN_URL and --no-file-parallelism.
 
 ## Current continuation (2026-09-16)
 

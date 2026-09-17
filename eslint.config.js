@@ -36,6 +36,7 @@ export default tseslint.config(
       'tests/**/*.{ts,tsx}',
       'database/**/*.ts',
       'packages/*/scripts/**/*.ts',
+      'scripts/**/*.ts',
       '*.config.{ts,js}',
       'vitest.workspace.ts',
     ],
