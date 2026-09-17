@@ -1,5 +1,6 @@
 import type { ErrorRequestHandler, RequestHandler } from 'express';
 import { ZodError } from 'zod';
+import { recordOperationFailure } from '../observability/operations.js';
 
 export type ProblemExtension =
   string | number | boolean | null | string[] | Record<string, string[]>;
@@ -77,6 +78,7 @@ export const problemHandler: ErrorRequestHandler = (error: unknown, request, res
       'The server could not complete the request.',
     );
   }
+  recordOperationFailure(problem.code, { status: problem.status });
   response
     .status(problem.status)
     .type('application/problem+json')

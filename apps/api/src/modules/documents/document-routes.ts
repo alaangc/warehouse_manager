@@ -21,6 +21,7 @@ import { DocumentService } from './document-service.js';
 import { documentContentVersion } from './pdf-renderers.js';
 import { IdempotencyRepository } from '../../shared/idempotency/idempotency-repository.js';
 import { canonicalRequestHash } from '../../shared/idempotency/idempotency-service.js';
+import { recordOperationFailure } from '../../observability/operations.js';
 
 function output<T>(schema: z.ZodType<T>, value: unknown): T {
   const result = schema.safeParse(value);
@@ -244,6 +245,10 @@ export function createDocumentRouter(database: AppDatabase, environment: Environ
       });
       return resource;
     });
+    if (['PRINT', 'REPRINT', 'TEST_PRINT'].includes(row.mode)) {
+      if (row.state === 'FAILED') recordOperationFailure('PRINTER_ATTEMPT_FAILED');
+      if (row.state === 'UNKNOWN') recordOperationFailure('PRINTER_ATTEMPT_UNKNOWN');
+    }
     response.status(201).json({ data: row });
   });
   return router;

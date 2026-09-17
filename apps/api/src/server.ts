@@ -1,4 +1,5 @@
 import express, { type Express } from 'express';
+import type { DestinationStream } from 'pino';
 import type { Environment } from './config/env.js';
 import { createDatabase, type AppDatabase } from './db/database.js';
 import { AuthService, type AuthenticationGateway } from './auth/auth-service.js';
@@ -22,14 +23,19 @@ import { createReportRouter } from './modules/reports/report-routes.js';
 import { createAdministrationRouter } from './modules/users/administration-routes.js';
 import { createOverviewRouter } from './modules/overview/overview-routes.js';
 import { createDocumentRouter } from './modules/documents/document-routes.js';
+import { operationContext } from './observability/operations.js';
 
-export type ServerOptions = { database?: AppDatabase; auth?: AuthenticationGateway };
+export type ServerOptions = {
+  database?: AppDatabase;
+  auth?: AuthenticationGateway;
+  logDestination?: DestinationStream;
+};
 
 export function createServer(environment: Environment, options: ServerOptions = {}): Express {
   const database = options.database ?? createDatabase(environment.DATABASE_URL);
   const auth = options.auth ?? new AuthService(database);
   const app = express();
-  app.use(requestContext, createHttpLogger(environment));
+  app.use(requestContext, createHttpLogger(environment, options.logDestination), operationContext);
   configureSecurity(app, environment);
   app.use(express.json({ limit: '1mb' }));
   app.use('/api/v1', createHealthRouter(database));

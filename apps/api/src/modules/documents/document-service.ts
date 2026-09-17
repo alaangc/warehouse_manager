@@ -4,6 +4,7 @@ import path from 'node:path';
 import { z } from 'zod';
 import type { AppDatabase } from '../../db/database.js';
 import { HttpProblem } from '../../http/problem-handler.js';
+import { recordOperationFailure } from '../../observability/operations.js';
 import { ScopedCursor, type HistoryPrincipal } from '../../shared/pagination/scoped-cursor.js';
 import {
   DocumentRepository,
@@ -106,7 +107,7 @@ export class DocumentService {
   ): Promise<DocumentRow> {
     // A database lock coordinates processes as well as requests. PENDING is committed
     // before this transaction, so a crashed worker can be recovered by the next request.
-    return this.database.transaction().execute(async (transaction) => {
+    const generated = await this.database.transaction().execute(async (transaction) => {
       const document = await transaction
         .selectFrom('document_output')
         .selectAll()
@@ -165,6 +166,9 @@ export class DocumentService {
       });
       return updated;
     });
+    if (generated.state === 'FAILED' && generated.last_error_code)
+      recordOperationFailure(generated.last_error_code);
+    return generated;
   }
 
   private key(id: string, hash: string): string {
