@@ -128,3 +128,18 @@ Remaining audit scope before final T141 acceptance: complete sale keyboard-only
 walkthrough and focus/error review, application-wide navigation, zoom/contrast,
 screen-reader review, and human responsive-layout observations. Existing T140
 cross-browser results provide functional coverage but are not a WCAG certificate.
+
+## Sale input follow-up, 2026-09-17
+
+The multiline sale regression now checks the actual quantity input's decimal
+keyboard hint and rejects a negative quantity without sending a quote request.
+It also verifies that validation moves focus to that input. The test first failed
+because `inputMode` was attached to the MUI wrapper. The fix passes `inputMode`
+through `slotProps.htmlInput` and React Hook Form's reference through `inputRef`.
+The existing valid multiline confirmation continues to pass after correction.
+
+Validation: the same three component suites above passed, 16 tests total, using
+`--testTimeout=15000`. These DOM tests do not replace the remaining browser,
+screen-reader, visual, or participant audit. T141 remains unchecked; no new human
+observations or acceptance scores were recorded. Work continued to independent
+parallel task T142 while those observations remain pending.

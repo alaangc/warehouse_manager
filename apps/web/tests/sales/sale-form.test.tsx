@@ -183,6 +183,11 @@ describe('sale form', () => {
 
     fireEvent.mouseDown(await screen.findByLabelText('Product'));
     fireEvent.click(await screen.findByRole('option', { name: 'Cola 600 ml' }));
+    expect(screen.getByLabelText('Quantity')).toHaveAttribute('inputmode', 'decimal');
+    fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '-1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Review authoritative quote' }));
+    await waitFor(() => expect(screen.getByLabelText('Quantity')).toHaveFocus());
+    expect(requestBodies).toHaveLength(0);
     fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '1.5' } });
     fireEvent.click(screen.getByRole('button', { name: 'Add another product' }));
 

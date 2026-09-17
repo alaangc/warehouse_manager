@@ -248,6 +248,15 @@ export function SaleForm() {
               const selectedProduct = routeProducts.find(
                 (balance) => balance.productId === productId,
               );
+              const { ref: quantityRef, ...quantityRegistration } = form.register(
+                `lines.${index}.quantity`,
+                {
+                  required: true,
+                  pattern: quantityPattern,
+                  validate: (value) => quantityPattern.test(value) && scaledQuantity(value) > 0n,
+                  onChange: clearQuote,
+                },
+              );
               return (
                 <Paper key={field.id} variant="outlined" sx={{ p: 2 }}>
                   <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
@@ -278,7 +287,8 @@ export function SaleForm() {
                     </TextField>
                     <TextField
                       label={t('common.quantity')}
-                      inputMode="decimal"
+                      slotProps={{ htmlInput: { inputMode: 'decimal' } }}
+                      inputRef={quantityRef}
                       error={Boolean(form.formState.errors.lines?.[index]?.quantity)}
                       helperText={
                         selectedProduct
@@ -287,13 +297,7 @@ export function SaleForm() {
                             })
                           : t('inventory.quantityHelp')
                       }
-                      {...form.register(`lines.${index}.quantity`, {
-                        required: true,
-                        pattern: quantityPattern,
-                        validate: (value) =>
-                          quantityPattern.test(value) && scaledQuantity(value) > 0n,
-                        onChange: clearQuote,
-                      })}
+                      {...quantityRegistration}
                     />
                     <Button
                       disabled={lines.fields.length === 1}
