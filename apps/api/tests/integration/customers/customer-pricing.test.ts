@@ -12,8 +12,15 @@ import { CustomerPriceRepository } from '../../../src/modules/customers/customer
 import { CustomerPriceService } from '../../../src/modules/customers/customer-price-service.js';
 import { CustomerService } from '../../../src/modules/customers/customer-service.js';
 import { PricingService } from '../../../src/modules/sales/pricing-service.js';
+import { SaleService } from '../../../src/modules/sales/sale-service.js';
 import { createServer } from '../../../src/server.js';
-import { createSaleScenario } from '../../support/sales-factories.js';
+import { createSaleScenario, saleCommand } from '../../support/sales-factories.js';
+import {
+  auditForRequest,
+  rejectAudit,
+  snapshotTables,
+  transactionId,
+} from '../../support/audit-verification.js';
 import { startPostgres, type TestDatabase } from '../../support/postgres-container.js';
 import { resetDatabase } from '../../support/reset-database.js';
 
@@ -117,6 +124,105 @@ describe('customer and special-price lifecycle', () => {
     }
     await container?.container.stop();
   });
+
+  it.each(['edit', 'archive', 'reactivate'] as const)(
+    'T150 audits and rolls back customer %s without altering purchase history',
+    async (action) => {
+      const fixture = await createSaleScenario(database);
+      await new SaleService(database).confirm(
+        saleCommand({
+          customerId: fixture.customer.id,
+          routeId: fixture.route.id,
+          productId: fixture.product.id,
+        }),
+        {
+          actorId: fixture.driver.id,
+          idempotencyKey: crypto.randomUUID(),
+          requestId: crypto.randomUUID(),
+        },
+      );
+      const service = new CustomerService(database);
+      let customer = fixture.customer;
+      if (action === 'reactivate') {
+        customer = await service.update(
+          customer.id,
+          {
+            displayName: customer.display_name,
+            city: customer.city,
+            expectedVersion: customer.version,
+            active: false,
+            reason: 'Fixture archive',
+          },
+          adminId,
+          crypto.randomUUID(),
+        );
+      }
+      const input = {
+        displayName: `${customer.display_name} changed`,
+        city: 'Caborca',
+        contactName: 'Contact changed',
+        phone: '6620000000',
+        email: 'audit@example.test',
+        address: 'Test address',
+        notes: 'Delivery instructions changed',
+        expectedVersion: customer.version,
+        active: action !== 'archive',
+        reason: `T150 ${action}`,
+      };
+      const requestId = crypto.randomUUID();
+      const command = () => service.update(customer.id, input, adminId, requestId);
+      const historyTables = ['sale', 'sale_line', 'sale_ticket', 'inventory_movement'] as const;
+      const tables = ['customer', 'audit_event', ...historyTables] as const;
+      const before = await snapshotTables(database, tables);
+      await rejectAudit(database, command);
+      expect(await snapshotTables(database, tables)).toEqual(before);
+      const history = await snapshotTables(database, historyTables);
+      const updated = await command();
+      expect(updated).toMatchObject({
+        display_name: input.displayName,
+        city: input.city,
+        active: input.active,
+        version: customer.version + 1,
+      });
+      expect(updated.archived_at === null).toBe(input.active);
+      expect(await snapshotTables(database, historyTables)).toEqual(history);
+      const event = await auditForRequest(database, requestId);
+      expect(event).toMatchObject({
+        actor_id: adminId,
+        action: 'CATALOG_CHANGED',
+        entity_type: 'CUSTOMER',
+        entity_id: customer.id,
+        reason: input.reason,
+        before_values: {
+          displayName: customer.display_name,
+          city: customer.city,
+          contactName: customer.contact_name,
+          phone: customer.phone,
+          email: customer.email,
+          address: customer.address,
+          notes: customer.notes,
+          archivedAt: customer.archived_at?.toISOString() ?? null,
+          active: customer.active,
+          version: customer.version,
+        },
+        after_values: {
+          displayName: input.displayName,
+          city: input.city,
+          contactName: input.contactName,
+          phone: input.phone,
+          email: input.email,
+          address: input.address,
+          notes: input.notes,
+          archivedAt: updated.archived_at?.toISOString() ?? null,
+          active: input.active,
+          version: updated.version,
+        },
+      });
+      expect(await transactionId(database, 'audit_event', event.id)).toBe(
+        await transactionId(database, 'customer', customer.id),
+      );
+    },
+  );
 
   it('creates, deactivates, and replaces an exact price with standard fallback', async () => {
     const fixture = await createSaleScenario(database, { standardUnitPrice: '20.0000' });

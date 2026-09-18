@@ -1,4 +1,24 @@
-# Project continuation — T145 review recorded; release on hold
+# Project continuation — T150 audit gaps closed; T151 next
+
+## Latest continuation (2026-09-18, T150)
+
+T150 is complete; A1–A4 are closed in `evidence/constitution-compliance.md`.
+See `evidence/t150-audit-coverage.md` for the 20 catalog lifecycle cases, six
+inventory operation/reversal cases, three customer lifecycle cases, and strengthened
+cash-close creation-audit assertion. Each new rollback case reaches a real rejected
+audit insert and proves unchanged records; successful commands assert PostgreSQL
+transaction identity. Customer cases also preserve an existing purchase.
+
+The first run exposed three failures: customer audit after-values omitted changed
+name/city. CustomerService now uses one explicit editable-field snapshot for creation
+and both sides of updates, without rewriting old events. After the fix, 45 focused
+integration tests and six customer HTTP contracts passed; lint/typecheck passed.
+This is focused validation, not a fresh T144 full-suite/clean-clone run.
+
+Next software task: **T151**, complete bilingual browser acceptance. Then T152
+resolves startup schema readiness. T133/T141 real acceptance and the T144/T145 release
+gates remain open. Continue one task at a time. Preserve unrelated untracked Neon
+skills, scratch files, unused document/printer helpers and local `var/` logs.
 
 ## Latest continuation (2026-09-18, T145)
 

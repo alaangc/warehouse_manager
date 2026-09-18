@@ -1,4 +1,6 @@
+import type { Selectable } from 'kysely';
 import type { AppDatabase } from '../../db/database.js';
+import type { CustomerTable } from '../../db/types.js';
 import { AuditWriter } from '../../shared/audit/audit-service.js';
 
 export interface CustomerInput {
@@ -9,6 +11,22 @@ export interface CustomerInput {
   address?: string | null | undefined;
   city: string;
   notes?: string | null | undefined;
+}
+
+function customerAuditSnapshot(customer: Selectable<CustomerTable>) {
+  return {
+    customerNumber: customer.customer_number,
+    displayName: customer.display_name,
+    contactName: customer.contact_name,
+    phone: customer.phone,
+    email: customer.email,
+    address: customer.address,
+    city: customer.city,
+    notes: customer.notes,
+    active: customer.active,
+    archivedAt: customer.archived_at?.toISOString() ?? null,
+    version: customer.version,
+  };
 }
 
 export class CustomerService {
@@ -35,7 +53,7 @@ export class CustomerService {
         action: 'CATALOG_CHANGED',
         entityType: 'CUSTOMER',
         entityId: customer.id,
-        after: { customerNumber: customer.customer_number, displayName: customer.display_name },
+        after: customerAuditSnapshot(customer),
         requestId,
       });
       return customer;
@@ -93,13 +111,8 @@ export class CustomerService {
         entityType: 'CUSTOMER',
         entityId: id,
         ...(input.reason ? { reason: input.reason } : {}),
-        before: {
-          displayName: before.display_name,
-          city: before.city,
-          active: before.active,
-          version: before.version,
-        },
-        after: { active: customer.active, version: customer.version },
+        before: customerAuditSnapshot(before),
+        after: customerAuditSnapshot(customer),
         requestId,
       });
       return customer;
