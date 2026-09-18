@@ -120,7 +120,7 @@ export async function createPerformanceFixture(
     const web = express();
     web.use(express.static(build));
     web.get('/{*path}', (_request, response) => {
-      response.sendFile(join(build, 'index.html'));
+      response.sendFile('index.html', { root: build });
     });
     server.on('request', (request, response) => {
       // Test-only loopback ingress models 25 distinct proxy client IPs. Preserve

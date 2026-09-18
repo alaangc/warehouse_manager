@@ -1,4 +1,33 @@
-# Project continuation — T142/T143 complete; T144 next
+# Project continuation — T144 verification recorded; acceptance gates remain
+
+## Latest continuation (2026-09-17, T144)
+
+Closed automated verification on 2026-09-18: search passed with 432/450 actions
+within two seconds; documents passed with 400/400 downloads within ten seconds
+(p95 5389.9 ms). The document run's initial sandbox/container-access failure and
+successful Docker-enabled retry are retained. T133/T141 acceptance remains pending.
+
+The clean-environment quickstart run and its initial failures are recorded in
+`evidence/quickstart-results.md` and the companion JSON. The verification uses the
+isolated clone at `.tools/t144-clean-20260917`, based on `0caa740` plus the T144 fixes.
+The quickstart now supplies the test database URL, API environment setup, shared
+contract build, actual seed scope, isolated E2E variables, and both performance commands.
+`.gitattributes` fixes LF checkout reproducibility on Windows. Administration
+integration tests recreate HTTP state per case so shared login counters cannot leak
+between cases; production limits are unchanged. The long customer E2E workflow has
+a 60-second whole-test budget with its existing per-action assertions intact.
+The performance fixture resolves its SPA entry relative to the build root, allowing
+clean clones under a hidden ancestor such as `.tools` without permitting dotfiles.
+
+T144 remains unchecked because the complete quickstart includes T133 physical
+printer acceptance and T141 real participant sessions. Do not mark these passed
+from software tests or simulated BLE. T145 traceability/reviewer release sign-off
+is the next separate task; release approval still requires these acceptance gates.
+Use Docker/Testcontainers for new automated runs: the earlier local PostgreSQL
+server on port 5432 was stopped during this continuation.
+
+Only task-related files belong in this commit. Preserve the unrelated untracked
+Neon skills, scratch outputs, unused printer/document helpers, and `var/` logs.
 
 ## Current continuation (2026-09-17)
 

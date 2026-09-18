@@ -156,6 +156,9 @@ test('customer pricing falls back safely while history and role boundaries remai
   administratorPage,
   driverPage,
 }, testInfo) => {
+  // Two authenticated browsers perform setup, pricing, sales, archival, and closure.
+  // Keep per-action assertions strict while allowing the complete workflow to finish.
+  test.setTimeout(60_000);
   test.skip(!process.env.E2E_BASE_URL, 'Set E2E_BASE_URL to run against the isolated full stack.');
 
   const suffix = `${testInfo.project.name}-${testInfo.workerIndex}-${Date.now()}`

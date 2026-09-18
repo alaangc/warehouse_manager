@@ -45,20 +45,22 @@ export async function administrationHarness(options: { documentStoragePath?: str
     if (ownedStorage) await rm(ownedStorage, { recursive: true, force: true });
     throw error;
   }
-  const app = createServer(
-    {
-      NODE_ENV: 'test',
-      DATABASE_URL: postgres.connectionString,
-      SESSION_SECRET: 'x'.repeat(32),
-      APP_ORIGIN: origin,
-      BUSINESS_TIMEZONE: 'America/Hermosillo',
-      BUSINESS_CURRENCY: 'MXN',
-      PORT: 3000,
-      LOG_LEVEL: 'fatal',
-      DOCUMENT_STORAGE_PATH: options.documentStoragePath ?? ownedStorage!,
-    },
-    { database },
-  );
+  const createApp = () =>
+    createServer(
+      {
+        NODE_ENV: 'test',
+        DATABASE_URL: postgres.connectionString,
+        SESSION_SECRET: 'x'.repeat(32),
+        APP_ORIGIN: origin,
+        BUSINESS_TIMEZONE: 'America/Hermosillo',
+        BUSINESS_CURRENCY: 'MXN',
+        PORT: 3000,
+        LOG_LEVEL: 'fatal',
+        DOCUMENT_STORAGE_PATH: options.documentStoragePath ?? ownedStorage!,
+      },
+      { database },
+    );
+  let app = createApp();
   async function login(
     username: string,
     password = 'development-password-change-me',
@@ -90,7 +92,13 @@ export async function administrationHarness(options: { documentStoragePath?: str
   }
   return {
     database,
-    app,
+    get app() {
+      return app;
+    },
+    // Keep database fixtures and sessions, but isolate in-memory HTTP limits per test.
+    resetHttp() {
+      app = createApp();
+    },
     login,
     send,
     close: async () => {

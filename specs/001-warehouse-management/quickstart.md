@@ -2,8 +2,10 @@
 
 **Purpose**: Runnable guide for proving the implemented feature against the
 [specification](./spec.md), [data model](./data-model.md), and
-[HTTP contract](./contracts/openapi.yaml). Commands below are the required workspace
-interface to create during implementation; this planning phase does not scaffold code.
+[HTTP contract](./contracts/openapi.yaml). Run commands from a fresh clone with no
+copied `node_modules`, build output, populated environment files, or application data.
+Git must honor the committed `.gitattributes` so generated hashes and format checks
+use LF consistently on Windows and Linux.
 
 ## Prerequisites
 
@@ -45,11 +47,24 @@ the test harness.
 
 ## Bootstrap the Development Environment
 
-From the repository root after implementation scaffolding exists:
+From the repository root, start the isolated development test service and build the
+shared contract package before starting the API:
 
 ```bash
 pnpm install --frozen-lockfile
 pnpm db:test:up
+pnpm --filter @warehouse/contracts build
+```
+
+Create `apps/api/.env` from `apps/api/.env.example`. For this disposable Compose
+service, set `DATABASE_URL=postgresql://warehouse_test:test-only@127.0.0.1:55432/warehouse_manager_test`.
+Replace `SESSION_SECRET` with a freshly generated value of at least 32 characters;
+retain `APP_ORIGIN=http://localhost:5173` and the remaining development settings.
+The API package loads this file for migration, seed, and dev commands. Alternatively,
+export those settings in the current shell, as done in the recorded clean run.
+Wait for `docker compose ps postgres-test` to report healthy, then run:
+
+```bash
 pnpm db:migrate
 pnpm db:seed
 pnpm dev
@@ -57,12 +72,14 @@ pnpm dev
 
 Expected result:
 
-- `apps/api` starts only after configuration and database compatibility pass.
+- Run migrations successfully before starting `apps/api`; startup validates configuration.
 - `apps/web` serves the React application and sends `/api/v1` requests to the Express
   API on the same logical origin.
-- The seed creates Administrator/Driver test identities, Magdalena and Caborca,
-  representative units/categories/products/customers/prices, one vehicle, and an
-  approved test PrinterProfile. Seed passwords are development-only.
+- The foundation seed creates Administrator/Driver test identities, business settings,
+  Magdalena and Caborca, and their stock locations. Catalog, customer, route, sale,
+  vehicle, and printer fixtures are created by the individual acceptance suites;
+  the foundation seed does not approve physical hardware. Seed passwords are
+  development-only; see `database/seeds/001_foundation.ts`.
 - `GET /api/v1/health` returns `200 {"status":"ok"}` without disclosing configuration.
 
 ## Static and Contract Gates
@@ -94,8 +111,27 @@ pnpm test:unit
 pnpm test:api
 pnpm test:integration
 pnpm test:contract
+pnpm exec playwright install chromium firefox webkit
+```
+
+Stop `pnpm dev` before the browser suite. Run it with its isolated stack so it
+creates its own database and browser-specific reporting fixtures:
+
+```bash
+E2E_ISOLATED_STACK=1 E2E_BASE_URL=http://127.0.0.1:5173 pnpm test:e2e
+```
+
+PowerShell equivalent:
+
+```powershell
+$env:E2E_ISOLATED_STACK = '1'
+$env:E2E_BASE_URL = 'http://127.0.0.1:5173'
 pnpm test:e2e
 ```
+
+On Windows, invoke `pnpm.cmd` when PowerShell blocks the `.ps1` shim. The recorded
+component run used `pnpm test:unit --maxWorkers=2 --testTimeout=15000`; the database
+suites used `--no-file-parallelism`. These local options do not alter CI defaults.
 
 The suites MUST prove:
 
@@ -369,7 +405,14 @@ Read `evidence/search-performance.md` for the environment, limitations, and meas
 SC-006 result. Raw per-action evidence is emitted under `test-results/performance/`.
 Use `RECORD_PERFORMANCE_EVIDENCE=1 pnpm test:performance:search` only when intentionally
 refreshing `evidence/search-performance.json`, then reconcile the Markdown summary.
-The separate PDF profile remains T139; a search pass does not satisfy SC-007.
+Run the separate T139 PDF profile for SC-007:
+
+```bash
+pnpm test:performance:documents
+```
+
+A search pass does not satisfy SC-007. Run the two performance profiles sequentially
+without other test workloads competing for resources, and retain their raw reports.
 
 Create a deterministic acceptance fixture containing exactly 10,000 products, 10,000
 customers, and 100,000 completed sales. After an unmeasured warm-up, run two separate

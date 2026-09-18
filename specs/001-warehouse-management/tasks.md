@@ -364,6 +364,7 @@ the evidence required by the constitution.
 - [X] T142 [P] Add observable failure-state metrics/log checks for transactions, serialization exhaustion, authentication, cash-close duplicate/stale/concurrent-pointer conflicts, document generation, history-cursor rejection, and printer attempts in `apps/api/src/observability/operations.ts` and `apps/api/tests/integration/observability/failure-signals.test.ts`
 - [X] T143 [P] Add dependency/license/security scanning and ensure no licensed MUI X tier or browser secret enters the build in `.github/workflows/security.yml` and `scripts/check-browser-bundle-secrets.ts`
 - [ ] T144 Execute every bootstrap, static, contract, test, migration, recovery, acceptance, and performance step from quickstart in a clean environment and record results in `specs/001-warehouse-management/evidence/quickstart-results.md`
+  - Automated execution and fixes are recorded in `evidence/quickstart-results.md`; the checkbox remains open until the physical-printer and human-usability acceptance steps have real evidence.
 - [ ] T145 Complete reviewer traceability from FR-001–FR-050 and SC-001–SC-012 to code/tests, verify every data-model audit-matrix mutation has same-transaction presence and failure-rollback evidence, record constitution compliance or time-bounded exceptions, and sign the release gate in `specs/001-warehouse-management/evidence/constitution-compliance.md`
 
 **Checkpoint**: All applicable tests, migrations, recovery drills, contract checks,
