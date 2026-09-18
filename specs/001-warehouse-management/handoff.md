@@ -1,4 +1,25 @@
-# Project continuation — T144 verification recorded; acceptance gates remain
+# Project continuation — T145 review recorded; release on hold
+
+## Latest continuation (2026-09-18, T145)
+
+The reviewer traceability and constitution record is now
+`evidence/constitution-compliance.md`, reviewed against `5f62c81`. It maps all
+53 current FRs and 13 SCs (including the bilingual additions beyond T145's original
+range), expands all five audit-matrix classes, and records a HOLD decision without
+inventing human approval or approving exceptions. T145 remains unchecked.
+
+Next software task: **T150**, closing audit evidence gaps for catalog lifecycle,
+customer updates/lifecycle, every inventory operation/reversal, and the successful
+cash-close creation event. Then T151 covers complete bilingual browser acceptance;
+T152 resolves the plan's promised schema-readiness check (current startup validates
+environment only, and health runs `select 1`). Each task has concrete closure
+criteria in tasks.md and the review record. Continue one task at a time.
+
+T133 physical printer acceptance and T141 real participants/remaining accessibility
+remain pending; T144 cannot be fully accepted until these gates pass. Review and
+release approval must be refreshed after remediation. This continuation changes
+documentation only and relies on the retained T144 execution baseline, not a fresh
+application-suite run. Preserve unrelated untracked files; commit/push only this review.
 
 ## Latest continuation (2026-09-17, T144)
 
