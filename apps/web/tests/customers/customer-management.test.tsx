@@ -322,7 +322,7 @@ describe('customer management', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'Save customer' }));
 
-    expect(await screen.findByText(/changed elsewhere/i)).toBeVisible();
+    expect(await screen.findByText('This record changed. Refresh it and try again.')).toBeVisible();
     expect(screen.getByLabelText('Customer name')).toHaveValue('Locally edited customer');
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(JSON.parse(String(init.body))).toMatchObject({

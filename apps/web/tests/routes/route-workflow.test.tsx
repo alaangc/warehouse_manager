@@ -342,7 +342,7 @@ describe('route workflow UI', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Save full load' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'The route changed. Review it and try again.',
+      'This record changed. Refresh it and try again.',
     );
     expect(screen.getByDisplayValue(productId)).toBeVisible();
     expect(screen.getByDisplayValue('5.000')).toBeVisible();

@@ -20,6 +20,7 @@ import { useState } from 'react';
 import { useSession } from './session.js';
 import { apiRequest, setCsrfToken } from '../lib/api/client.js';
 import { ApiProblem } from '../lib/api/problem.js';
+import { LanguageSettingsButton } from '../features/settings/language-settings.js';
 
 const adminLinks: ReadonlyArray<readonly [string, string]> = [
   ['/', 'nav.overview'],
@@ -84,6 +85,7 @@ export function AppLayout() {
           <Typography variant="h6" sx={{ flexGrow: 1, whiteSpace: 'nowrap' }}>
             {t('app.name')}
           </Typography>
+          <LanguageSettingsButton />
           <Box sx={{ display: { xs: 'none', xl: 'flex' }, alignItems: 'center', ml: 2 }}>
             {links.map(([to, label]) => (
               <Button key={to} color="inherit" component={NavLink} to={to}>
@@ -126,6 +128,7 @@ export function AppLayout() {
             </IconButton>
           </Stack>
           <Divider />
+          <LanguageSettingsButton />
           {links.map(([to, label]) => (
             <Button
               key={to}

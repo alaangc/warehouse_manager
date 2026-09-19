@@ -8,6 +8,7 @@ import {
 import { FilePlus2, RefreshCw } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { formatDateTime } from '../../i18n/format.js';
 import { useSession } from '../../app/session.js';
 import { ApiProblem } from '../../lib/api/problem.js';
 import { documentError, readDocument, requestDocument } from './document-api.js';
@@ -127,7 +128,7 @@ function Output({
             {t('documents.createdBy')}: {document.createdBy}
           </Typography>
           <Typography variant="body2">
-            {t('documents.createdAt')}: {document.createdAt}
+            {t('documents.createdAt')}: {formatDateTime(document.createdAt)}
           </Typography>
           {document.state === 'PENDING' && <Alert severity="info">{t('documents.pending')}</Alert>}
           {document.state === 'FAILED' && <Alert severity="error">{t('documents.failed')}</Alert>}

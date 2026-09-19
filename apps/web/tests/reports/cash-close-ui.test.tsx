@@ -107,7 +107,9 @@ describe('cash-close UI', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Create cash close' }));
     const dialog = await screen.findByRole('dialog');
     fireEvent.click(within(dialog).getByRole('button', { name: 'Confirm cash close' }));
-    expect(await within(dialog).findByRole('alert')).toHaveTextContent('Please retry.');
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent(
+      'The request could not be completed. Please try again.',
+    );
     fireEvent.click(within(dialog).getByRole('button', { name: 'Confirm cash close' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     const requests = fetchMock.mock.calls.filter(([, init]) => init?.method === 'POST');
@@ -132,7 +134,7 @@ describe('cash-close UI', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'Create cash close' }));
     const dialog = await screen.findByRole('dialog', { name: 'Confirm cash close' });
-    expect(dialog).toHaveTextContent('2026-09-04');
+    expect(dialog).toHaveTextContent('9/4/2026');
     fireEvent.click(within(dialog).getByRole('button', { name: 'Confirm cash close' }));
 
     await waitFor(() =>
@@ -246,6 +248,8 @@ describe('cash-close UI', () => {
     expect(await screen.findByText('No cash closes have been created.')).toBeVisible();
     fail = true;
     fireEvent.click(screen.getByRole('button', { name: 'Refresh cash closes' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent(/unavailable/i);
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'The request could not be completed. Please try again.',
+    );
   });
 });

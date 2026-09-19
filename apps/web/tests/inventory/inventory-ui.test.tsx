@@ -315,7 +315,7 @@ describe('inventory and catalog UI', () => {
     expect(headers.get('Idempotency-Key')).toMatch(/^[0-9a-f-]{36}$/i);
   });
 
-  it('shows the API conflict detail without treating it as a successful operation', async () => {
+  it('shows the localized API conflict without treating it as a successful operation', async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       jsonResponse(
         {
@@ -335,7 +335,7 @@ describe('inventory and catalog UI', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Confirm operation' }));
 
     const alert = await screen.findByRole('alert');
-    expect(alert).toHaveTextContent('The requested quantity is no longer available.');
+    expect(alert).toHaveTextContent('There is not enough inventory for this operation.');
     expect(screen.getByDisplayValue('2.500')).toBeInTheDocument();
   });
 

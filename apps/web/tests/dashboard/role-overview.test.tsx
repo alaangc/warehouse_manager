@@ -53,7 +53,7 @@ it.each(['ADMINISTRATOR', 'DRIVER'] as const)(
       expect(screen.getByText('New sale').closest('a')).toHaveAttribute('aria-disabled', 'true');
     } else {
       expect(screen.getByRole('link', { name: 'Users' })).toBeInTheDocument();
-      expect(screen.getByText('9007199254740993.21')).toBeInTheDocument();
+      expect(screen.getByText('9,007,199,254,740,993.21')).toBeInTheDocument();
     }
   },
 );

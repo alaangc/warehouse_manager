@@ -134,7 +134,7 @@ export function SimpleCatalogForm({
   const submit = (active: boolean) =>
     form.handleSubmit((values) => {
       if (record?.active && !active && !values.archiveReason.trim()) {
-        form.setError('archiveReason', { message: t('catalog.archiveReasonRequired') });
+        form.setError('archiveReason', { message: 'catalog.archiveReasonRequired' });
         return;
       }
       mutation.mutate({ values, active });
@@ -152,12 +152,12 @@ export function SimpleCatalogForm({
         {kind !== 'categories' && (
           <TextField
             label={t('catalog.code')}
-            {...form.register('code', { required: t('catalog.requiredField') })}
+            {...form.register('code', { required: 'catalog.requiredField' })}
           />
         )}
         <TextField
           label={t('common.name')}
-          {...form.register('name', { required: t('catalog.requiredField') })}
+          {...form.register('name', { required: 'catalog.requiredField' })}
         />
         {kind === 'categories' && (
           <Controller
@@ -179,12 +179,16 @@ export function SimpleCatalogForm({
             label={t('catalog.quantityDecimals')}
             type="number"
             error={Boolean(form.formState.errors.quantityScale)}
-            helperText={form.formState.errors.quantityScale?.message}
+            helperText={
+              form.formState.errors.quantityScale?.message
+                ? t(form.formState.errors.quantityScale.message)
+                : undefined
+            }
             slotProps={{ htmlInput: { min: 0, max: 3 } }}
             {...form.register('quantityScale', {
               valueAsNumber: true,
-              min: { value: 0, message: t('catalog.quantityScaleRange') },
-              max: { value: 3, message: t('catalog.quantityScaleRange') },
+              min: { value: 0, message: 'catalog.quantityScaleRange' },
+              max: { value: 3, message: 'catalog.quantityScaleRange' },
             })}
           />
         )}
@@ -196,7 +200,11 @@ export function SimpleCatalogForm({
         <TextField
           label={t('catalog.archiveReason')}
           error={Boolean(form.formState.errors.archiveReason)}
-          helperText={form.formState.errors.archiveReason?.message}
+          helperText={
+            form.formState.errors.archiveReason?.message
+              ? t(form.formState.errors.archiveReason.message)
+              : undefined
+          }
           {...form.register('archiveReason')}
         />
       )}
@@ -298,7 +306,7 @@ export function ProductForm({
   const submit = (active: boolean) =>
     form.handleSubmit((values) => {
       if (product?.active && !active && !values.archiveReason.trim()) {
-        form.setError('archiveReason', { message: t('catalog.archiveReasonRequired') });
+        form.setError('archiveReason', { message: 'catalog.archiveReasonRequired' });
         return;
       }
       mutation.mutate({ values, active });
@@ -314,17 +322,17 @@ export function ProductForm({
       {mutation.error && <Alert severity="error">{localizedErrorMessage(mutation.error, t)}</Alert>}
       <TextField
         label={t('catalog.sku')}
-        {...form.register('sku', { required: t('catalog.requiredField') })}
+        {...form.register('sku', { required: 'catalog.requiredField' })}
       />
       <TextField
         label={t('common.name')}
-        {...form.register('name', { required: t('catalog.requiredField') })}
+        {...form.register('name', { required: 'catalog.requiredField' })}
       />
       {categories ? (
         <Controller
           control={form.control}
           name="categoryId"
-          rules={{ required: t('catalog.requiredField') }}
+          rules={{ required: 'catalog.requiredField' }}
           render={({ field }) => (
             <TextField select label={t('catalog.category')} {...field}>
               {categories
@@ -340,14 +348,14 @@ export function ProductForm({
       ) : (
         <TextField
           label={t('catalog.categoryId')}
-          {...form.register('categoryId', { required: t('catalog.requiredField') })}
+          {...form.register('categoryId', { required: 'catalog.requiredField' })}
         />
       )}
       {units ? (
         <Controller
           control={form.control}
           name="unitId"
-          rules={{ required: t('catalog.requiredField') }}
+          rules={{ required: 'catalog.requiredField' }}
           render={({ field }) => (
             <TextField select label={t('catalog.unit')} {...field}>
               {units
@@ -363,25 +371,33 @@ export function ProductForm({
       ) : (
         <TextField
           label={t('catalog.unitId')}
-          {...form.register('unitId', { required: t('catalog.requiredField') })}
+          {...form.register('unitId', { required: 'catalog.requiredField' })}
         />
       )}
       <TextField
         label={t('catalog.standardUnitPrice')}
         error={Boolean(form.formState.errors.standardUnitPrice)}
-        helperText={form.formState.errors.standardUnitPrice?.message}
+        helperText={
+          form.formState.errors.standardUnitPrice?.message
+            ? t(form.formState.errors.standardUnitPrice.message)
+            : undefined
+        }
         {...form.register('standardUnitPrice', {
-          required: t('catalog.requiredField'),
-          pattern: { value: /^\d+(?:\.\d{1,4})?$/, message: t('catalog.unitPriceFormat') },
+          required: 'catalog.requiredField',
+          pattern: { value: /^\d+(?:\.\d{1,4})?$/, message: 'catalog.unitPriceFormat' },
         })}
       />
       <TextField
         label={t('catalog.lowStockThreshold')}
         error={Boolean(form.formState.errors.lowStockThreshold)}
-        helperText={form.formState.errors.lowStockThreshold?.message}
+        helperText={
+          form.formState.errors.lowStockThreshold?.message
+            ? t(form.formState.errors.lowStockThreshold.message)
+            : undefined
+        }
         {...form.register('lowStockThreshold', {
-          required: t('catalog.requiredField'),
-          pattern: { value: /^\d+(?:\.\d{1,3})?$/, message: t('catalog.quantityFormat') },
+          required: 'catalog.requiredField',
+          pattern: { value: /^\d+(?:\.\d{1,3})?$/, message: 'catalog.quantityFormat' },
         })}
       />
       <TextField label={t('common.description')} multiline {...form.register('description')} />
@@ -389,7 +405,11 @@ export function ProductForm({
         <TextField
           label={t('catalog.archiveReason')}
           error={Boolean(form.formState.errors.archiveReason)}
-          helperText={form.formState.errors.archiveReason?.message}
+          helperText={
+            form.formState.errors.archiveReason?.message
+              ? t(form.formState.errors.archiveReason.message)
+              : undefined
+          }
           {...form.register('archiveReason')}
         />
       )}

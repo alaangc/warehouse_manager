@@ -7,6 +7,7 @@ export const en = {
   reports: reportsEn,
   app: { name: 'Warehouse Manager' },
   common: {
+    close: 'Close',
     add: 'Add',
     active: 'Active',
     archived: 'Archived',
@@ -73,6 +74,7 @@ export const en = {
     signOutFailed: 'Sign-out failed. Please try again.',
   },
   settings: {
+    languageSettings: 'Language settings',
     title: 'Settings',
     language: 'Language',
     languageHelp: 'Changes are applied immediately and saved on this browser.',

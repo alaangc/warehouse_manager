@@ -1,3 +1,4 @@
+import { LanguageSettingsButton } from '../settings/language-settings.js';
 import {
   Alert,
   Box,
@@ -351,6 +352,7 @@ function History({
             )}
           </DialogContent>
           <DialogActions>
+            <LanguageSettingsButton />
             <Button onClick={() => setSelected(null)}>{t('documents.close')}</Button>
           </DialogActions>
         </Dialog>

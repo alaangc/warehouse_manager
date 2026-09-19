@@ -237,7 +237,7 @@ function Editor({
               >
                 {choices.map((choice) => (
                   <MenuItem key={choice} value={choice}>
-                    {choice}
+                    {field === 'writeMode' ? t(`printers.${choice}`) : choice}
                   </MenuItem>
                 ))}
               </TextField>

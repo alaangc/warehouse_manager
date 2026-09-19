@@ -5,9 +5,15 @@ Initial baseline: `5f62c81` on `main`. Constitution: **3.0.0**.
 
 T150 update (2026-09-18): findings **A1–A4 are closed** by the added audit tests
 and customer snapshot correction in this commit, based on `62d6ea4`. See
-[T150 execution evidence](t150-audit-coverage.md). B1/C1 and physical/human acceptance
-remain open. The traceability/audit matrix below reflects this update; the original
+[T150 execution evidence](t150-audit-coverage.md). At that review, B1/C1 and physical/human acceptance
+remained open. The traceability/audit matrix below reflects subsequent updates; the original
 review is retained in Git history.
+
+T151 update (2026-09-19): **B1 is closed** within the versioned BILINGUAL-1
+reviewed-page inventory. All 56 Chromium cases have passing results across the
+initial run and focused verification. See [per-page bilingual acceptance](bilingual-acceptance.md)
+for both-role coverage, complementary Firefox/WebKit checks, initial failures,
+corrections and exact evidence boundaries. C1 and physical/human acceptance remain open.
 
 **Release disposition: HOLD — approval withheld.** This is a completed review record,
 not a claim that T145 or the feature is complete. Physical acceptance T133, human
@@ -105,9 +111,9 @@ range. Omitting them would understate the release scope:
 
 | Requirement | Implementation | Verification and review result |
 | --- | --- | --- |
-| FR-051 Reactive language choice without losing edits | [i18n][i18n], [language settings UI][language-ui] | [Language component tests][language-tests], [administration UI tests][admin-ui-tests], [printer preference tests][printer-preference-tests]: representative forms covered; page inventory acceptance partial (B1). |
-| FR-052 Persist preference, Spanish default | [i18n][i18n] | [Language tests][language-tests] assert storage write; initialization reads validated `en`/`es` with Spanish fallback. Explicit fresh-browser/invalid-storage/reload acceptance is missing (B1). |
-| FR-053 Localized interface and unchanged business data | [i18n][i18n], feature translations/presentation | Representative form preservation covered by [language tests][language-tests]; complete reviewed-page text/format/error/data acceptance is missing (B1). |
+| FR-051 Reactive language choice without losing edits | [i18n][i18n], [language settings UI][language-ui] | T151 [per-page acceptance](bilingual-acceptance.md): immediate en-es-en switch, same URL/time origin, preserved forms in both roles, including dialogs and mobile navigation. |
+| FR-052 Persist preference, Spanish default | [i18n][i18n] | T151 [browser acceptance](bilingual-acceptance.md): fresh Spanish default, invalid preference fallback, actual Spanish/English reloads and direct Settings selection by both roles. |
+| FR-053 Localized interface and unchanged business data | [i18n][i18n], feature translations/presentation | T151 [page inventory and results](bilingual-acceptance.md): visible labels/statuses/errors, timestamp/decimal/currency assertions, exact decimal unit tests, unchanged forms/business rows and no mutation requests while switching. |
 
 ## Success criteria
 
@@ -125,7 +131,7 @@ range. Omitting them would understate the release scope:
 | SC-010 Tested out-of-role attempts denied without mutation | [Authorization][authorization], scoped services → [route authorization][route-auth], [document authorization][document-auth], [customer tests][customer-tests], [admin tests][admin-tests] | Covered tested roles/source IDs/history filters. |
 | SC-011 Invalid route transitions/closed edits rejected | [Route domain][route-domain] → [route domain tests][route-domain-tests], [route lifecycle][route-tests] | Covered tested transition matrix and unchanged history. |
 | SC-012 Cancellation preserves original/restores once | [Cancellation][cancellation] → [cancellation tests][cancel-tests] | Covered allowed/denied states, duplicate request and rollback. |
-| SC-013 Immediate bilingual pages, preserved inputs, refresh persistence | [i18n][i18n] → [language tests][language-tests], [administration UI tests][admin-ui-tests] | **Partial B1**: representative component assertions do not prove the complete browser acceptance criterion. |
+| SC-013 Immediate bilingual pages, preserved inputs, refresh persistence | [i18n][i18n] → [BILINGUAL-1 acceptance](bilingual-acceptance.md), [language tests][language-tests] | **Covered in reviewed inventory**: all 56 Chromium cases have passing evidence; report distinguishes full inventory from focused corrections and complementary browser coverage. |
 
 ## Mutation-to-audit evidence
 
@@ -184,7 +190,7 @@ records. `OutputAttempt` records output outcomes; it does not replace source aud
 | IV. Exact financial arithmetic | [Money][money], [pricing][pricing], [finance][finance], numeric schema, immutable source snapshots, rounding/period tests. | Covered inspected authoritative arithmetic and tested examples. |
 | V. Auditability/history | Audit matrix above, source snapshots, FK/archive rules, immutable movements and linked corrections. | A1–A4 closed by T150; historical events remain immutable. |
 | VI. Contracts/compatibility/output isolation | [Contract gates](t136-contract-gates.md), [contract package][contract-package], [document output tests][document-output], explicit UI error paths. | Software gates covered; physical output acceptance still T133. |
-| VII. Testing/review gates | T144 layered execution, this traceability review, [cross-browser evidence](cross-browser-e2e.md). | **HOLD**: B1/C1 plus T133/T141; no final release approval. |
+| VII. Testing/review gates | T144 layered execution, this traceability review, [cross-browser evidence](cross-browser-e2e.md), [T151 acceptance](bilingual-acceptance.md). | **HOLD**: C1 plus T133/T141; no final release approval. |
 | VIII. Database evolution/reliability | [Migration/recovery evidence](t134-migrations-recovery.md), T144 clean replay, [failure signals](failure-signals.md), validated environment. | Local tooling verified; startup schema-readiness discrepancy C1 and production recovery conditions remain. |
 
 The plan's design-stage PASS tables are design intent. They do not supersede these
@@ -201,12 +207,13 @@ scope, owner, rationale, risk controls, expiry, and actual approval under
 | A2 (closed T150) | Customer create has audit-failure coverage; customer update/archive/reactivation does not. | T150: add update/lifecycle success and injected-audit-failure cases, retaining historical purchases and version/active/archive state. |
 | A3 (closed T150) | Inventory ENTRY audit failure is tested; exit/transfer/signed adjustments/reversal do not each have corresponding failure evidence. | T150: seed valid preconditions, prove each path reaches audit insertion, inject failure, compare both endpoint balances, operations, movements, reversals, keys and audit counts; include same-transaction success evidence. |
 | A4 (closed T150) | Cash-close creation rollback is explicit, but the reviewed success tests do not explicitly assert the creation audit's actor/action/entity/snapshot payload. | T150: assert the committed `CASH_CLOSE_CREATED` event and transaction linkage; retain existing correction and failure coverage. |
-| B1 | FR-051–FR-053/SC-013 exist in the current spec, beyond T145's original range. Representative component tests are not a full bilingual browser acceptance report. | T151: version a reviewed-page inventory for both roles, verify immediate switch, form preservation, dates/numbers/currency/errors, fresh Spanish default, invalid preference fallback and real refresh persistence. Retain page-level results and fix failures. |
+| B1 (closed T151) | FR-051–FR-053/SC-013 exist in the current spec, beyond T145's original range. Representative component tests were not a full bilingual browser acceptance report. | T151: [BILINGUAL-1 inventory and per-page results](bilingual-acceptance.md) verify both roles, immediate switch, forms/business rows, date/number/currency/error presentation, fresh Spanish default, invalid preference fallback and actual reload persistence. Initial failures and corrections are retained. |
 | C1 | The plan promises startup schema validation. [main.ts][main] loads environment and starts listening; [health router][health] checks `select 1`, which also succeeds on an unmigrated/incompatible database. T144 corrected the quickstart to require migration first. | T152: implement a non-mutating schema compatibility gate before accepting traffic/readiness, with missing/stale/incompatible/current schema tests, or obtain a reviewed plan amendment with an enforced deployment compatibility gate. Environment validation alone does not prove schema readiness. |
 
 T150 is complete; A1–A4 in the findings table above describe the original gaps and
-are now closed by [T150 evidence](t150-audit-coverage.md). **T151 is the next software
-task**, followed by T152. B1/C1 must be reconciled with this review before T145 can pass. These findings are evidence or implementation
+are now closed by [T150 evidence](t150-audit-coverage.md). T151 closes B1 through
+[bilingual acceptance](bilingual-acceptance.md). **T152 is the next software task**;
+C1 must be reconciled with this review before T145 can pass. These findings are evidence or implementation
 gaps, not assertions that every uncovered path is defective. Re-run affected suites
 after remediation and refresh clean-environment evidence for the release candidate.
 

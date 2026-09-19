@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { OverviewResourceSchema } from '@warehouse/contracts';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import { formatDecimal } from '../../i18n/format.js';
 import { useSession } from '../../app/session.js';
 import { apiRequest } from '../../lib/api/client.js';
 import { localizedErrorMessage } from '../../lib/api/localized-error.js';
@@ -58,7 +59,7 @@ export function RoleOverviewPanel() {
         {administrator && 'grossTotal' in data && (
           <Box>
             <Typography>
-              {t('printers.grossAllTime')}: <b>{data.grossTotal}</b>
+              {t('printers.grossAllTime')}: <b>{formatDecimal(data.grossTotal)}</b>
             </Typography>
             <Typography>
               {t('printers.lowStockTotal')}: <b>{data.lowStockCount}</b>

@@ -1,4 +1,6 @@
 export const printersEn = {
+  WITH_RESPONSE: 'With response',
+  WITHOUT_RESPONSE: 'Without response',
   documentTitle: 'Print document',
   print: 'Print',
   reprint: 'Reprint',
@@ -67,6 +69,8 @@ export const printersEn = {
   missing: 'The profile is no longer available.',
 };
 export const printersEs = {
+  WITH_RESPONSE: 'Con respuesta',
+  WITHOUT_RESPONSE: 'Sin respuesta',
   documentTitle: 'Imprimir documento',
   print: 'Imprimir',
   reprint: 'Reimprimir',

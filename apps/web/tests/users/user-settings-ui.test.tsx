@@ -132,7 +132,11 @@ describe('administration UI', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Edit Test Driver' }));
     fireEvent.change(screen.getByLabelText('Display name'), { target: { value: 'Edited Driver' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save user' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent(failure.detail);
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      failure.code === 'OPTIMISTIC_CONFLICT'
+        ? 'This record changed. Refresh it and try again.'
+        : failure.detail,
+    );
     expect(screen.getByLabelText('Display name')).toHaveValue('Edited Driver');
   });
   it('submits business settings with the displayed version', async () => {
@@ -241,7 +245,9 @@ describe('administration UI', () => {
     });
     fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'New schedule' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save business settings' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Reload the record');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'This record changed. Refresh it and try again.',
+    );
     expect(screen.getByLabelText('Business timezone')).toHaveValue('America/Tijuana');
     fetcher.mockImplementation(() =>
       respond({ version: 3, currencyCode: 'USD', businessTimezone: 'America/Phoenix' }),

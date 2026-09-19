@@ -11,6 +11,7 @@ export const es: DeepTranslation<typeof en> = {
   reports: reportsEs,
   app: { name: 'Administrador de Almacén' },
   common: {
+    close: 'Cerrar',
     add: 'Agregar',
     active: 'Activo',
     archived: 'Archivado',
@@ -79,6 +80,7 @@ export const es: DeepTranslation<typeof en> = {
     signOutFailed: 'No se pudo cerrar sesión. Inténtalo de nuevo.',
   },
   settings: {
+    languageSettings: 'Configuración de idioma',
     title: 'Configuración',
     language: 'Idioma',
     languageHelp: 'Los cambios se aplican de inmediato y se guardan en este navegador.',

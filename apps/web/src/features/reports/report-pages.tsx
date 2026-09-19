@@ -18,6 +18,7 @@ import { useMutation } from '@tanstack/react-query';
 import type { ReportResource } from '@warehouse/contracts';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { formatDecimal } from '../../i18n/format.js';
 import { useSession } from '../../app/session.js';
 import { apiRequest } from '../../lib/api/client.js';
 import { DocumentCenter } from '../documents/document-center.js';
@@ -179,7 +180,7 @@ export function ReportPages() {
                   <Stack key={key}>
                     <Typography>{t(`reports.${label}`)}</Typography>
                     <Typography variant="h6">
-                      {currency} {String(result.totals![key])}
+                      {currency} {formatDecimal(String(result.totals![key]))}
                     </Typography>
                   </Stack>
                 ))}
@@ -205,8 +206,10 @@ export function ReportPages() {
                           {key === 'reportingGroup'
                             ? t(`reports.${String(row[key])}`)
                             : key === 'total'
-                              ? `${currency} ${scalar(row[key])}`
-                              : scalar(row[key])}
+                              ? `${currency} ${formatDecimal(scalar(row[key]))}`
+                              : ['quantity', 'saleCount'].includes(key)
+                                ? formatDecimal(scalar(row[key]))
+                                : scalar(row[key])}
                         </TableCell>
                       ))}
                     </TableRow>

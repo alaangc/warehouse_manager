@@ -348,7 +348,9 @@ describe('sale form', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(/try again/i);
     fireEvent.click(screen.getByRole('button', { name: 'Confirm sale' }));
     await waitFor(() => expect(saleAttempts).toHaveLength(2));
-    expect(screen.getByRole('alert')).toHaveTextContent('Internal Server Error');
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'The request could not be completed. Please try again.',
+    );
     fireEvent.click(screen.getByRole('button', { name: 'Confirm sale' }));
 
     expect(await screen.findByText(/T-RETRY/)).toBeVisible();

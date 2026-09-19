@@ -1,5 +1,5 @@
 import { Alert, Button, Stack, Typography } from '@mui/material';
-import { createBrowserRouter, useRouteError } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppLayout } from './layout.js';
 import { UserSettingsPages } from '../features/administration/user-settings-pages.js';
@@ -22,13 +22,10 @@ import { DocumentPage } from '../features/documents/document-page.js';
 
 function RouteError() {
   const { t } = useTranslation();
-  const error = useRouteError();
   return (
     <Stack spacing={2} sx={{ p: 3 }}>
       <Typography variant="h4">{t('common.error')}</Typography>
-      <Alert severity="error">
-        {error instanceof Error ? error.message : t('errors.pageLoad')}
-      </Alert>
+      <Alert severity="error">{t('errors.pageLoad')}</Alert>
       <Button href="/">{t('common.returnHome')}</Button>
     </Stack>
   );

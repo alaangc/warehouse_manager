@@ -102,6 +102,8 @@ it('validates a new profile before sending it', async () => {
 it('creates a validated profile with numeric transport settings', async () => {
   const fetcher = open();
   fireEvent.click(screen.getByRole('button', { name: 'New printer' }));
+  fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Write mode' }));
+  fireEvent.click(await screen.findByRole('option', { name: 'Without response' }));
   for (const [label, value] of [
     ['Name', 'New BLE'],
     ['Model', 'Model A'],
@@ -119,6 +121,7 @@ it('creates a validated profile with numeric transport settings', async () => {
   );
   expect(body).toMatchObject({
     name: 'New BLE',
+    writeMode: 'WITHOUT_RESPONSE',
     paperWidthMm: 58,
     maxChunkBytes: 100,
     interChunkDelayMs: 20,

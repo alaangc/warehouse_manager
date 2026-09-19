@@ -1,3 +1,4 @@
+import { LanguageSettingsButton } from '../settings/language-settings.js';
 import {
   Alert,
   Button,
@@ -341,6 +342,7 @@ function PrintPanel({
         </Stack>
       </DialogContent>
       <DialogActions>
+        <LanguageSettingsButton />
         <Button disabled={busy} onClick={onClose}>
           {t('documents.close')}
         </Button>
