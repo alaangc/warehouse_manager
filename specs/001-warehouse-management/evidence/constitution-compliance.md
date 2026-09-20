@@ -21,6 +21,11 @@ acceptance/accessibility T141, the complete acceptance portion of T144, and the
 findings below remain open. No human reviewer signature or exception approval is
 implied by this record or by committing it.
 
+T152 update (2026-09-20): **C1 is closed** by the non-mutating startup and
+health compatibility check. See [T152 evidence](t152-database-readiness.md) for
+the five integration cases, contract regression and migration-version boundary.
+Physical/human acceptance and final release approval remain open.
+
 ## Method and evidence boundary
 
 Compared the [specification](../spec.md), [plan](../plan.md),
@@ -190,8 +195,8 @@ records. `OutputAttempt` records output outcomes; it does not replace source aud
 | IV. Exact financial arithmetic | [Money][money], [pricing][pricing], [finance][finance], numeric schema, immutable source snapshots, rounding/period tests. | Covered inspected authoritative arithmetic and tested examples. |
 | V. Auditability/history | Audit matrix above, source snapshots, FK/archive rules, immutable movements and linked corrections. | A1–A4 closed by T150; historical events remain immutable. |
 | VI. Contracts/compatibility/output isolation | [Contract gates](t136-contract-gates.md), [contract package][contract-package], [document output tests][document-output], explicit UI error paths. | Software gates covered; physical output acceptance still T133. |
-| VII. Testing/review gates | T144 layered execution, this traceability review, [cross-browser evidence](cross-browser-e2e.md), [T151 acceptance](bilingual-acceptance.md). | **HOLD**: C1 plus T133/T141; no final release approval. |
-| VIII. Database evolution/reliability | [Migration/recovery evidence](t134-migrations-recovery.md), T144 clean replay, [failure signals](failure-signals.md), validated environment. | Local tooling verified; startup schema-readiness discrepancy C1 and production recovery conditions remain. |
+| VII. Testing/review gates | T144 layered execution, this traceability review, [cross-browser evidence](cross-browser-e2e.md), [T151 acceptance](bilingual-acceptance.md). | **HOLD**: T133/T141; no final release approval. |
+| VIII. Database evolution/reliability | [Migration/recovery evidence](t134-migrations-recovery.md), T144 clean replay, [failure signals](failure-signals.md), validated environment. | Local tooling and T152 startup/readiness compatibility verified; production recovery conditions remain. |
 
 The plan's design-stage PASS tables are design intent. They do not supersede these
 implementation findings. No exception is proposed or approved. In particular,
@@ -208,12 +213,12 @@ scope, owner, rationale, risk controls, expiry, and actual approval under
 | A3 (closed T150) | Inventory ENTRY audit failure is tested; exit/transfer/signed adjustments/reversal do not each have corresponding failure evidence. | T150: seed valid preconditions, prove each path reaches audit insertion, inject failure, compare both endpoint balances, operations, movements, reversals, keys and audit counts; include same-transaction success evidence. |
 | A4 (closed T150) | Cash-close creation rollback is explicit, but the reviewed success tests do not explicitly assert the creation audit's actor/action/entity/snapshot payload. | T150: assert the committed `CASH_CLOSE_CREATED` event and transaction linkage; retain existing correction and failure coverage. |
 | B1 (closed T151) | FR-051–FR-053/SC-013 exist in the current spec, beyond T145's original range. Representative component tests were not a full bilingual browser acceptance report. | T151: [BILINGUAL-1 inventory and per-page results](bilingual-acceptance.md) verify both roles, immediate switch, forms/business rows, date/number/currency/error presentation, fresh Spanish default, invalid preference fallback and actual reload persistence. Initial failures and corrections are retained. |
-| C1 | The plan promises startup schema validation. [main.ts][main] loads environment and starts listening; [health router][health] checks `select 1`, which also succeeds on an unmigrated/incompatible database. T144 corrected the quickstart to require migration first. | T152: implement a non-mutating schema compatibility gate before accepting traffic/readiness, with missing/stale/incompatible/current schema tests, or obtain a reviewed plan amendment with an enforced deployment compatibility gate. Environment validation alone does not prove schema readiness. |
+| C1 (closed T152) | Startup previously accepted traffic after environment validation; health only checked connectivity. | T152 compares the complete migration history against the reviewed manifest before listening and on every health request. Missing, stale and unknown histories are rejected without mutations. See [execution evidence](t152-database-readiness.md) and its explicit compatibility boundary. |
 
 T150 is complete; A1–A4 in the findings table above describe the original gaps and
 are now closed by [T150 evidence](t150-audit-coverage.md). T151 closes B1 through
-[bilingual acceptance](bilingual-acceptance.md). **T152 is the next software task**;
-C1 must be reconciled with this review before T145 can pass. These findings are evidence or implementation
+[bilingual acceptance](bilingual-acceptance.md). **T152 closes C1** through
+[startup/readiness verification](t152-database-readiness.md). These findings are evidence or implementation
 gaps, not assertions that every uncovered path is defective. Re-run affected suites
 after remediation and refresh clean-environment evidence for the release candidate.
 

@@ -186,4 +186,16 @@ business logic.
 
 ## Complexity Tracking
 
+### Startup schema compatibility (T152)
+
+Before listening, the API compares the complete applied migration-name set in
+`public.kysely_migration` with `database/migrations/checksums.json`. Missing, stale,
+unknown or incomplete histories fail startup; `/api/v1/health` repeats the same
+non-mutating check and returns the existing safe 503 problem on failure. Deployment
+must ship that manifest at its repository-relative path and grant the runtime role
+SELECT on the migration table. Migrations remain an explicit deployment step.
+This verifies migration-version compatibility, not arbitrary manual DDL drift or
+database-stored checksums (Kysely records names/timestamps only). The existing
+migration verification gate checks reviewed file checksums separately.
+
 No constitutional violations require justification.

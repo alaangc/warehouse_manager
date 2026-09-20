@@ -28,7 +28,7 @@ Omit this variable to retain the default Testcontainers workflow.
 
 ## Required Environment
 
-The API startup schema must validate, at minimum:
+The API environment configuration schema must validate, at minimum:
 
 ```text
 NODE_ENV=test|development|production
@@ -72,7 +72,10 @@ pnpm dev
 
 Expected result:
 
-- Run migrations successfully before starting `apps/api`; startup validates configuration.
+- Run migrations successfully before starting `apps/api`; startup validates configuration
+  and checks the complete applied migration-name set against the reviewed manifest
+  before opening the HTTP listener. Missing, stale, or unknown migration histories
+  prevent startup with a safe diagnostic and exit code 1. Runtime never auto-migrates.
 - `apps/web` serves the React application and sends `/api/v1` requests to the Express
   API on the same logical origin.
 - The foundation seed creates Administrator/Driver test identities, business settings,
@@ -81,6 +84,19 @@ Expected result:
   the foundation seed does not approve physical hardware. Seed passwords are
   development-only; see `database/seeds/001_foundation.ts`.
 - `GET /api/v1/health` returns `200 {"status":"ok"}` without disclosing configuration.
+  It repeats schema compatibility checks and returns the existing 503 `NOT_READY`
+  problem if connectivity, the migration history, or the manifest is unavailable
+  or incompatible. Ship `database/migrations/checksums.json` at its repository-relative
+  path alongside source or compiled API output. The runtime database account needs
+  SELECT on `public.kysely_migration`; grant it during deployment with the migration
+  owner account. This is version compatibility, not detection of arbitrary manual
+  schema edits; continue to run migration checksum and recovery gates.
+
+Focused startup/readiness verification (disposable PostgreSQL 18):
+
+```bash
+pnpm exec vitest run --config vitest.workspace.ts --project api-integration apps/api/tests/integration/database-readiness.test.ts --no-file-parallelism
+```
 
 ## Static and Contract Gates
 

@@ -1,4 +1,5 @@
 import express, { type Express } from 'express';
+import { once } from 'node:events';
 import type { DestinationStream } from 'pino';
 import type { Environment } from './config/env.js';
 import { createDatabase, type AppDatabase } from './db/database.js';
@@ -24,12 +25,30 @@ import { createAdministrationRouter } from './modules/users/administration-route
 import { createOverviewRouter } from './modules/overview/overview-routes.js';
 import { createDocumentRouter } from './modules/documents/document-routes.js';
 import { operationContext } from './observability/operations.js';
+import { assertDatabaseReady } from './db/readiness.js';
 
 export type ServerOptions = {
   database?: AppDatabase;
   auth?: AuthenticationGateway;
   logDestination?: DestinationStream;
 };
+
+export async function startServer(environment: Environment) {
+  const database = createDatabase(environment.DATABASE_URL);
+  try {
+    await assertDatabaseReady(database);
+    const app = createServer(environment, { database });
+    const server = app.listen(environment.PORT);
+    server.on('close', () => {
+      void database.destroy();
+    });
+    await once(server, 'listening');
+    return server;
+  } catch (error) {
+    await database.destroy();
+    throw error;
+  }
+}
 
 export function createServer(environment: Environment, options: ServerOptions = {}): Express {
   const database = options.database ?? createDatabase(environment.DATABASE_URL);
