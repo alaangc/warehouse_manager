@@ -1,4 +1,17 @@
-# Project continuation — T150 audit gaps closed; T151 next
+# Project continuation — application redesign next
+
+## Latest continuation (2026-09-30)
+
+The owner requested saving/pushing current progress and creating
+`design/intuitive-sales-redesign` before starting a complete application redesign.
+The reported problem is an unintuitive interface with buttons that sellers cannot
+easily understand. No redesign implementation has started yet.
+
+T151 and T152 are complete. Physical printer progress is retained in the printer
+acceptance evidence. T141 participant preparation is recorded in
+`evidence/usability-sessions-v2.md`; no introduction timestamps or measured human
+results were supplied. T133/T141 and release gates remain pending. Preserve
+unrelated untracked files and local scratch environments.
 
 ## Latest continuation (2026-09-18, T150)
 
