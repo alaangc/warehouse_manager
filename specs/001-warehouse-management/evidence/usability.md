@@ -1,3 +1,7 @@
+## Current cohort amendment — U-SCRIPT-2 / U-FIXTURE-2
+
+Owner instruction: use two Drivers (D01–D02) and two Administrators (A01–A02). This amendment supersedes the five-per-role cohort below, which is retained as historical protocol. Keep the task cards, introduction, fixture conditions and timing unchanged. Both Drivers must finish in under 120000 ms; retaining the 90% first-attempt minimum requires all four participants to pass. Observed sessions: 0/4. T141 remains pending. Use only these four participant rows for the new cohort; do not combine cohorts.
+
 # T141 accessibility and human usability
 
 Status: preparation complete; human acceptance NOT RUN. The owner confirmed on
