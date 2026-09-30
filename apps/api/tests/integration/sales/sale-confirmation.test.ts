@@ -122,6 +122,13 @@ describe('atomic sale confirmation in PostgreSQL 18', () => {
     const replay = await service.confirm(command, { ...shared, requestId: crypto.randomUUID() });
 
     expect(replay).toEqual(first);
+    const persisted = await database
+      .selectFrom('sale')
+      .select('completed_at')
+      .where('id', '=', first.id)
+      .executeTakeFirstOrThrow();
+    expect(first.completedAt).toBe(persisted.completed_at.toISOString());
+    expect(replay.completedAt).toBe(persisted.completed_at.toISOString());
     await expect(
       service.confirm(
         { ...command, lines: [{ productId: scenario.product.id, quantity: '2.000' }] },

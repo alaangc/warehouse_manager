@@ -613,8 +613,10 @@
     "partialPrint": true,
     "unknownWarningScreenshot": true,
     "noAutomaticOutputOnPowerOn": true,
-    "explicitReprintComplete": true,
+    "explicitReprintComplete": false,
     "lineCount": 40,
     "total": "40.00 MXN"
-  }
+  },
+  "operatorClarification": "The operator later clarified that the printer was powered off at product 26 to save paper. This supersedes the earlier complete-copy confirmation. Full 40-line recovery remains unverified; the REPRINT UNKNOWN is consistent with another interruption.",
+  "timestampFinding": "Creation response used a fresh application timestamp instead of persisted completed_at; reproduced and corrected in SaleService. All other compared source fields matched; one sale exists."
 }

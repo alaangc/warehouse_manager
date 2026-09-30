@@ -105,7 +105,7 @@ export class SaleService {
           relatedEntityId: saleId,
         });
       }
-      await transaction
+      const persistedSale = await transaction
         .insertInto('sale')
         .values({
           id: saleId,
@@ -127,7 +127,8 @@ export class SaleService {
           cancelled_by: null,
           cancellation_reason: null,
         })
-        .execute();
+        .returning('completed_at')
+        .executeTakeFirstOrThrow();
       await transaction
         .insertInto('sale_line')
         .values(
@@ -213,7 +214,7 @@ export class SaleService {
           lineAmount: line.lineAmount,
         })),
         ticketNumber,
-        completedAt: new Date().toISOString(),
+        completedAt: persistedSale.completed_at.toISOString(),
         cancelledAt: null,
         cancelledBy: null,
         cancellationReason: null,
