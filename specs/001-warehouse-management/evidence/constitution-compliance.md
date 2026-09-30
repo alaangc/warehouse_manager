@@ -26,6 +26,10 @@ health compatibility check. See [T152 evidence](t152-database-readiness.md) for
 the five integration cases, contract regression and migration-version boundary.
 Physical/human acceptance and final release approval remain open.
 
+## 2026-09-29 follow-up
+
+The operator confirmed NETUM NT-1809 setup output and sale-ticket accents, wrapping, quantities and total. See [physical observations](netum-nt1809-2026-09-29.md) and [current regression and remaining acceptance](release-followup-2026-09-29.md). T133 is partial; no complete hardware matrix or participant cohort has been observed. Release remains on HOLD.
+
 ## Method and evidence boundary
 
 Compared the [specification](../spec.md), [plan](../plan.md),

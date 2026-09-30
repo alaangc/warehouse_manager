@@ -2,9 +2,8 @@
 
 Prepared 2026-09-14 (America/Hermosillo).
 
-**Status: NOT EXECUTED — hardware and client identification required.**
-T133 remains unchecked. No physical printer has been connected, no paper has been
-inspected, and no printer/browser/OS combination is approved by this document.
+**Status: PARTIAL — NETUM NT-1809 basic output and sale ticket confirmed by operator.**
+T133 remains unchecked. See the [2026-09-29 physical test record](netum-nt1809-2026-09-29.md). The operator confirmed accents, the full long product name, quantities and total. The full acceptance matrix and remaining setup metadata are still outstanding.
 
 The [T132 software evidence](t132-print-dialog.md) records passing simulated BLE and
 portable-browser tests. Those results are supporting evidence only, not a substitute
@@ -13,7 +12,7 @@ for this physical acceptance gate. The procedure below follows the
 
 ## Identify the test setup
 
-Before execution, record the actual values for each area. None have been supplied
+Before completing acceptance, record the actual values for each area. Partial values are in the linked NETUM record; remaining values have not been supplied
 for this run yet; do not copy the simulated printer profile into a hardware profile.
 
 | Area | Required recorded values |
@@ -52,7 +51,7 @@ compatibility or changing the architecture during this test.
 
 ## Execution matrix
 
-Every row below is **NOT RUN**. For each executed row record its timestamp, setup
+The rows below retain their full acceptance status; the partial operator-confirmed setup and sale-ticket checks are recorded in the linked NETUM test record. For each executed row record its timestamp, setup
 identifier, source/document IDs, actor role, API status, output-attempt IDs/states,
 observed physical result, evidence link and PASS/FAIL result. Do not mark a row passed
 solely because the app reports SUCCEEDED: that indicates transfer, not paper output.
@@ -94,5 +93,5 @@ screenshots, logs or evidence. Redact unrelated personal data from paper photos.
 - A reviewer records the approved combinations and evidence. Only then mark T133
   complete and create its completion commit.
 
-**Current blocker:** the exact printer model/firmware and client device/OS/browser
+**Remaining evidence:** printer firmware, exact client device/OS/browser versions
 have not been provided, and physical paper observations require a local operator.

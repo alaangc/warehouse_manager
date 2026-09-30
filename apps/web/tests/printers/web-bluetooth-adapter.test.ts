@@ -89,10 +89,13 @@ describe('T117 Bluetooth boundary', () => {
     });
     expect(s.requestDevice).not.toHaveBeenCalled();
   });
-  it('uses approved UUID filters and writes the test in ordered chunks', async () => {
+  it('discovers printers without advertised services and scopes access to the approved UUID', async () => {
     const s = setup();
     const connecting = s.adapter.connect(profile);
-    expect(s.requestDevice).toHaveBeenCalledWith({ filters: [{ services: [0xffe0] }] });
+    expect(s.requestDevice).toHaveBeenCalledWith({
+      acceptAllDevices: true,
+      optionalServices: [0xffe0],
+    });
     await connecting;
     expect(s.getPrimaryService).toHaveBeenCalledWith(0xffe0);
     expect(s.getCharacteristic).toHaveBeenCalledWith(0xffe1);
@@ -104,6 +107,19 @@ describe('T117 Bluetooth boundary', () => {
     expect(s.gatt.disconnect).toHaveBeenCalled();
     expect(s.adapter.getSnapshot().state).toBe('DISCONNECTED');
   });
+  it.each(['service', 'characteristic'])(
+    'rejects a device missing the approved %s without writing',
+    async (missing) => {
+      const s = setup();
+      const lookup = missing === 'service' ? s.getPrimaryService : s.getCharacteristic;
+      lookup.mockRejectedValue(new DOMException('Missing', 'NotFoundError'));
+      await expect(s.adapter.connect(profile)).rejects.toBeInstanceOf(Error);
+      expect(s.adapter.getSnapshot().state).toBe('DISCONNECTED');
+      expect(s.gatt.disconnect).toHaveBeenCalled();
+      expect(await s.adapter.test()).toMatchObject({ state: 'FAILED' });
+      expect(s.write).not.toHaveBeenCalled();
+    },
+  );
   it.each(['insecure', 'unsupported', 'gesture', 'inactive'])(
     'rejects %s before device access',
     async (kind) => {

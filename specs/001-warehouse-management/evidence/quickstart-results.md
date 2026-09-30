@@ -163,3 +163,7 @@ release sign-off is the next separate task. This record is not release approval.
 
 See [printer acceptance](printer-acceptance.md), [usability protocol](usability.md),
 and the [quickstart](../quickstart.md).
+
+## 2026-09-29 follow-up
+
+The operator has now confirmed basic NETUM NT-1809 output and a sale ticket with correct Spanish text, wrapping and totals. This supersedes the earlier absence of any paper observation, but does not complete the full printer matrix or human cohort. See [physical evidence](netum-nt1809-2026-09-29.md) and [current regression results](release-followup-2026-09-29.md). The current rerun uses the working tree, not a new clean clone; T144 remains unchecked.

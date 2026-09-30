@@ -30,7 +30,10 @@ type Device = {
   removeEventListener(type: string, listener: () => void): void;
 };
 type Bluetooth = {
-  requestDevice(options: { filters: Array<{ services: Array<string | number> }> }): Promise<Device>;
+  requestDevice(options: {
+    acceptAllDevices: true;
+    optionalServices: Array<string | number>;
+  }): Promise<Device>;
 };
 function bluetooth() {
   return (navigator as Navigator & { bluetooth?: Bluetooth }).bluetooth;
@@ -104,7 +107,13 @@ export class WebBluetoothPrinterAdapter implements PrinterAdapter {
     this.publish('CONNECTING');
     try {
       // No await before requestDevice: preserve the click's transient user activation.
-      const device = await bluetooth()!.requestDevice({ filters: [{ services: [serviceUuid] }] });
+      // Some printers expose the service only after connecting, not in advertising.
+      // Let the operator select the device, granting access only to the profile's
+      // service. The service and characteristic are still required below.
+      const device = await bluetooth()!.requestDevice({
+        acceptAllDevices: true,
+        optionalServices: [serviceUuid],
+      });
       if (generation !== this.generation) {
         device.gatt?.disconnect();
         throw new PrinterError('CANCELLED');
