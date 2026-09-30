@@ -73,5 +73,22 @@ confirming produced exactly one copy marked REIMPRESION. These are operator repo
 in the conversation, not independent paper inspection or packet-level evidence.
 
 The test followed an ordinary disconnect/reconnect. It does not establish recovery
-from a power interruption during an in-flight write (UNKNOWN), paper exhaustion,
+from a power interruption during an in-flight write (UNKNOWN)
 or absence of duplicate business records; those checks remain pending.
+
+## Paper exhaustion — operator observation
+
+With the printer powered on but without paper, the operator sent one explicitly
+confirmed reprint. The application showed no paper-out warning and allowed the
+send. After replenishing the roll, the ticket printed automatically without any
+further click on Reprint. This is consistent with the printer retaining the queued
+data; device buffering was inferred, not independently instrumented.
+
+The exact application terminal attempt state was not supplied. Physical output
+was confirmed only after paper was restored. Do not resend merely because paper
+is missing: the pending ticket can emerge on replenishment. The current transport
+writes data but does not read a paper sensor/status characteristic.
+
+H12 has a recorded physical observation, not full acceptance: output-attempt/source
+comparisons and proof of no application retry remain outstanding. No photograph
+was supplied. T133 stays unchecked.

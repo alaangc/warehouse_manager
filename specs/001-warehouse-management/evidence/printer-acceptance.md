@@ -69,7 +69,7 @@ solely because the app reports SUCCEEDED: that indicates transfer, not paper out
 | H09 | Disconnect or power off during a long print | Partial/uncertain output is visible as UNKNOWN; no automatic retry; source unchanged | NOT RUN |
 | H10 | Reconnect after H09, then explicitly confirm reprint | Reconnect alone sends nothing; a new output attempt sends a copy marked REIMPRESION; original source/document retained | NOT RUN |
 | H11 | Reopen the document after an unresolved attempt | Prior history requires explicit reprint confirmation, not an unnoticed fresh print | NOT RUN |
-| H12 | Run out of paper, then replenish using manufacturer-safe procedure | Record actual device behavior; transfer success is not claimed as paper success; no source resubmission or silent app retry | NOT RUN |
+| H12 | Run out of paper, then replenish using manufacturer-safe procedure | Record actual device behavior; transfer success is not claimed as paper success; no source resubmission or silent app retry | PARTIAL: operator confirmed no paper-out alert and automatic output on replenishment without another reprint click; source/attempt comparison pending. See NETUM record. |
 | H13 | Interrupt API result saving after the physical write | Result-saving error is visible; retry saving uses the same idempotency key and does not print again | NOT RUN |
 | H14 | Open unsupported browser or deny Bluetooth policy | No device write; visible unsupported/blocked message; authorized PDF download still works | NOT RUN |
 | H15 | Administrator attempts REPORT PRINT and REPRINT | No print UI/device chooser/write; direct API returns 422; no accepted PRINT/REPRINT attempt; report snapshot/document unchanged | NOT RUN |
