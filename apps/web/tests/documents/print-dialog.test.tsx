@@ -13,6 +13,7 @@ import {
   printData,
 } from './document-ui-harness.js';
 import { changeAppLanguage } from '../../src/i18n/index.js';
+import { PrinterError } from '../../src/features/printers/printer-adapter.js';
 
 afterEach(() => {
   cleanup();
@@ -131,6 +132,26 @@ it.each(['SUCCEEDED', 'FAILED', 'UNKNOWN'])(
     }
     expect(adapter.test).toHaveBeenCalledTimes(1);
     expect(adapter.print).not.toHaveBeenCalled();
+  },
+);
+it.each(['CANCELLED', 'CONNECTION_FAILED', 'PERMISSION_DENIED'])(
+  'allows an explicit connection retry after %s without printing',
+  async (code) => {
+    const s = printNetwork();
+    const adapter = printer();
+    adapter.getSnapshot().state = 'DISCONNECTED';
+    adapter.connect.mockRejectedValueOnce(new PrinterError(code));
+    await mount('PrintDialog', { open: true, document, source, adapter, onClose: vi.fn() });
+    fireEvent.click(await startButton(/connect printer/i));
+    expect(await screen.findByRole('alert')).toBeVisible();
+    expect(adapter.connect).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: /^print$/i })).toBeDisabled();
+    fireEvent.click(await startButton(/connect printer/i));
+    await waitFor(() => expect(adapter.connect).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
+    expect(adapter.print).not.toHaveBeenCalled();
+    expect(adapter.test).not.toHaveBeenCalled();
+    expect(s.calls.filter((call) => call.method === 'POST')).toHaveLength(0);
   },
 );
 it.each([403, 409, 422])('blocks connection when source preflight returns %s', async (status) => {

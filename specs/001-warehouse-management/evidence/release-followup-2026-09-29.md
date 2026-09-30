@@ -24,9 +24,9 @@ Logs: `var/release-*-20260929.log` (local, ignored by Git). The build retains th
 Separate disposable PostgreSQL database, local UI http://127.0.0.1:5176.
 
 - ROUTE_LOAD document `84144cd2-0cab-4a95-96b7-7fcc90419709`:
-  confirmed load, 10.000 PZA of the long Spanish product name. Paper pending.
+  confirmed load, 10.000 PZA of the long Spanish product name. Operator confirmed correct physical output in the conversation; no photograph supplied.
 - CASH_CLOSE document `ed562328-de96-4763-a462-146f3167c6cd`:
-  gross MXN 25.00, partner MXN 12.50, remaining MXN 12.50. Paper pending.
+  gross MXN 25.00, partner MXN 12.50, remaining MXN 12.50. Operator confirmed correct physical output in the conversation; no photograph supplied.
 - REPORT document `2d0ae10f-8883-4717-9390-3d5a1f0bd63c`:
   PRINT and REPRINT returned 422 DOCUMENT_NOT_PRINTABLE; output-attempt history
   unchanged. Actual Chrome UI displayed PDF download/share and no print button.
@@ -38,7 +38,7 @@ The previously confirmed NETUM sale ticket remains recorded in
 
 ## Open acceptance work
 
-T133: remaining physical templates, failure scenarios, permissions/roles,
+T133: failure scenarios, permissions/roles,
 reprints, source comparisons, setup metadata, and paper evidence.
 T141: finish the accessibility audit and observe the frozen ten-person protocol.
 A positive availability response is not a completed participant session.
@@ -52,3 +52,26 @@ No outstanding release task is marked complete by this record.
 Chrome executable version: 154.0.8037.58. Windows registry build: 26300.9550 (DisplayVersion 26H2). Registry product label reports Windows 10 Home; no marketing-version inference is made from that label. Printer firmware remains unknown.
 
 Document browser regression covers PDF downloads, ownership reuse, three printable types, report rejection, uncertain writes and explicit reprint. Total observed automated cases in this follow-up: 745 (353 unit/component + 144 API + 246 integration + 2 browser).
+
+## Connection retry correction
+
+The operator screenshot showed DISCONNECTED and disabled REPRINT, together with
+CANCELLED and a disabled CONNECT button. This supports the visible disconnected
+state but does not independently establish whether power-off caused the transition.
+The dialog incorrectly used its transient connection error to block a new connect.
+It now allows an explicit retry after cancellation, connection failure or denied
+permission while retaining successful server preflight and pending-result guards.
+Printing remains disabled while disconnected; reconnecting sends no bytes.
+
+Validation: 34 focused dialog/adapter tests passed, including three new retry cases.
+
+## Operator-confirmed reconnect and reprint
+
+The operator confirmed that reconnecting showed CONNECTED and did not automatically
+print. The subsequent explicit REPRINT action requested confirmation without printing;
+confirming produced exactly one copy marked REIMPRESION. These are operator reports
+in the conversation, not independent paper inspection or packet-level evidence.
+
+The test followed an ordinary disconnect/reconnect. It does not establish recovery
+from a power interruption during an in-flight write (UNKNOWN), paper exhaustion,
+or absence of duplicate business records; those checks remain pending.

@@ -171,7 +171,7 @@ function PrintPanel({
     adapter.disconnect();
   }, [adapter, profile?.id, profile?.version]);
   const failure = error ?? data.error ?? profiles.error ?? preference.error ?? history.error;
-  const ready = Boolean(
+  const preflightReady = Boolean(
     data.data &&
     profile &&
     !data.isFetching &&
@@ -179,8 +179,17 @@ function PrintPanel({
     history.isSuccess &&
     preference.isSuccess &&
     profiles.isSuccess &&
-    !failure,
+    !data.error &&
+    !profiles.error &&
+    !preference.error &&
+    !history.error,
   );
+  const ready = preflightReady && !error;
+  const canReconnect =
+    preflightReady &&
+    (!error ||
+      (error instanceof PrinterError &&
+        ['CANCELLED', 'CONNECTION_FAILED', 'PERMISSION_DENIED'].includes(error.code)));
   const reprint = attempted || history.data === true;
   async function accepted(body: Record<string, unknown>, key: string) {
     const response = await apiRequest<{ data: unknown }>('/output-attempts', {
@@ -301,7 +310,7 @@ function PrintPanel({
           <Typography role="status">{t(`printers.${connection.state}`)}</Typography>
           <Button
             disabled={
-              !ready ||
+              !canReconnect ||
               busy ||
               Boolean(pending) ||
               capability !== 'AVAILABLE' ||
