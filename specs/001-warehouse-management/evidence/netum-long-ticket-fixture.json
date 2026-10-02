@@ -1,0 +1,25 @@
+﻿{
+    "documentId":  "40bc4c22-d79e-4029-a417-2f141e7adf79",
+    "saleId":  "c0f410ac-ab76-436f-bf57-b09b40f6c785",
+    "lineCount":  40,
+    "total":  "40.00",
+    "currency":  "MXN",
+    "profile":  {
+                    "name":  "NETUM NT-1809 - prueba física",
+                    "model":  "NETUM NT-1809",
+                    "serviceUuid":  "0000ff00-0000-1000-8000-00805f9b34fb",
+                    "writeCharacteristicUuid":  "0000ff02-0000-1000-8000-00805f9b34fb",
+                    "writeMode":  "WITH_RESPONSE",
+                    "commandDialect":  "ESC_POS",
+                    "paperWidthMm":  58,
+                    "encoding":  "CP850",
+                    "maxChunkBytes":  20,
+                    "interChunkDelayMs":  20,
+                    "id":  "8d5120d1-7366-42cb-b948-3c531f7075ad",
+                    "transport":  "WEB_BLUETOOTH_BLE",
+                    "active":  true,
+                    "version":  1
+                },
+    "physicalResult":  "PENDING",
+    "url":  "http://127.0.0.1:5177/documents?documentId=40bc4c22-d79e-4029-a417-2f141e7adf79"
+}

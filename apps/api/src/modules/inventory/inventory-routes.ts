@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { sql } from 'kysely';
+import { z } from 'zod';
 import type { AppDatabase } from '../../db/database.js';
 import type { InventoryOperationType } from '../../db/types.js';
 import { requireAuthenticated, requireRole } from '../../auth/authorization.js';
@@ -92,6 +93,56 @@ function mapDomainError(error: unknown): never {
 export function createInventoryRouter(database: AppDatabase): Router {
   const router = Router();
   const service = new InventoryService(database);
+  async function operationResource(
+    result: Awaited<ReturnType<InventoryService['createBranchOperation']>>,
+  ) {
+    const ids = [
+      ...new Set(
+        result.movements
+          .flatMap((row) => [row.source_stock_location_id, row.destination_stock_location_id])
+          .filter((id): id is string => id !== null),
+      ),
+    ];
+    const stocks = ids.length
+      ? await database.selectFrom('stock_location').selectAll().where('id', 'in', ids).execute()
+      : [];
+    const stockById = new Map(
+      stocks.map((stock) => [
+        stock.id,
+        {
+          id: stock.id,
+          kind: stock.kind,
+          branchId: stock.branch_id,
+          routeId: stock.route_id,
+          label: stock.kind === 'BRANCH' ? 'Branch' : 'Route',
+        },
+      ]),
+    );
+    return {
+      ...result,
+      movements: result.movements.map((row) => ({
+        id: row.id,
+        operationId: row.operation_id,
+        operationType: result.operationType,
+        productId: row.product_id,
+        source: row.source_stock_location_id
+          ? (stockById.get(row.source_stock_location_id) ?? null)
+          : null,
+        destination: row.destination_stock_location_id
+          ? (stockById.get(row.destination_stock_location_id) ?? null)
+          : null,
+        quantity: row.quantity,
+        sourceBalanceAfter: row.source_balance_after,
+        destinationBalanceAfter: row.destination_balance_after,
+        actorId: row.actor_id,
+        reason: row.reason,
+        occurredAt: new Date(row.occurred_at).toISOString(),
+        relatedEntityType: row.related_entity_type,
+        relatedEntityId: row.related_entity_id,
+        reversesMovementId: row.reverses_movement_id,
+      })),
+    };
+  }
   router.get('/inventory/balances', requireAuthenticated, async (request, response, next) => {
     try {
       let query = database
@@ -120,6 +171,25 @@ export function createInventoryRouter(database: AppDatabase): Router {
       const productId = queryString(request.query.productId);
       const branchFilter = queryString(request.query.branchId);
       const routeFilter = queryString(request.query.routeId);
+      const locationKind = z.enum(['BRANCH', 'ROUTE']).optional().parse(request.query.locationKind);
+      if (locationKind) query = query.where('stock.kind', '=', locationKind);
+      if (locationKind === 'BRANCH') query = query.where('branch.active', '=', true);
+      if (!routeFilter)
+        query = query.where((eb) =>
+          eb.or([eb('stock.kind', '=', 'BRANCH'), eb('stock_route.state', '!=', 'CLOSED')]),
+        );
+      const search = z.string().trim().max(120).optional().parse(request.query.search);
+      if (search) {
+        const pattern = `%${search.replace(/[\\%_]/g, '\\$&')}%`;
+        query = query.where((eb) =>
+          eb.or([
+            eb('product.name', 'ilike', pattern),
+            eb(sql<string>`product.id::text`, 'ilike', pattern),
+            eb('branch.name', 'ilike', pattern),
+            eb('stock_route.route_number', 'ilike', pattern),
+          ]),
+        );
+      }
       if (productId) query = query.where('balance.product_id', '=', productId);
       if (branchFilter) query = query.where('stock.branch_id', '=', branchFilter);
       if (routeFilter) query = query.where('stock.route_id', '=', routeFilter);
@@ -290,7 +360,7 @@ export function createInventoryRouter(database: AppDatabase): Router {
           idempotencyKey: key(request),
           requestId: request.id as string,
         });
-        response.status(201).json({ data: result });
+        response.status(201).json({ data: await operationResource(result) });
       } catch (error) {
         try {
           mapDomainError(error);
@@ -311,7 +381,7 @@ export function createInventoryRouter(database: AppDatabase): Router {
           idempotencyKey: key(request),
           requestId: request.id as string,
         });
-        response.status(201).json({ data: result });
+        response.status(201).json({ data: await operationResource(result) });
       } catch (error) {
         try {
           mapDomainError(error);
@@ -335,7 +405,7 @@ export function createInventoryRouter(database: AppDatabase): Router {
           idempotencyKey: key(request),
           requestId: request.id as string,
         });
-        response.status(201).json({ data: result });
+        response.status(201).json({ data: await operationResource(result) });
       } catch (error) {
         try {
           mapDomainError(error);

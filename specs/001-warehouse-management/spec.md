@@ -482,10 +482,11 @@ remains selected.
   access or expose unauthorized metadata.
 - **FR-032**: Users MUST be able to save or share each generated portable document.
 - **FR-033**: Authorized users MUST be able to print sale tickets, confirmed route
-  loads, and cash closes on a configured Bluetooth thermal printer. Administrators MUST
-  be able to print all three types. Drivers MUST be limited to sale tickets for their
+  loads, cash closes, and saved reports on a configured Bluetooth thermal printer. Administrators MUST
+  be able to print all four types. Drivers MUST be limited to sale tickets for their
   own sales and confirmed route loads for routes assigned to them. Draft route loads
-  and reports MUST NOT be eligible for Bluetooth thermal printing.
+  MUST NOT be eligible for Bluetooth thermal printing. Report printing requires a ready
+  document generated from an immutable report snapshot (owner revision, 2026-09-30).
 - **FR-034**: Output failure MUST be shown to the user and MUST NOT reverse, duplicate,
   or alter a committed business record.
 - **FR-035**: Users MUST be able to retry failed document generation or printing without
@@ -597,7 +598,7 @@ remains selected.
   operations are explainable by movement history and reproduce the current balance.
 - **SC-002**: No accepted concurrent or retried operation creates negative inventory or
   more than one business transaction for the same confirmation.
-- **SC-003**: After the standardized 15-minute introduction, each of the five Driver
+- **SC-003**: After the standardized 15-minute introduction, each of the two Driver
   participants MUST complete one typical sale of exactly 10 line items and obtain its
   sale ticket in under 2 minutes without assistance.
 - **SC-004**: Every Closed route accounts for 100 percent of initial loaded quantities
@@ -616,8 +617,7 @@ remains selected.
   seconds.
 - **SC-008**: Output failure tests produce zero lost or duplicated business records and
   allow a successful retry after the output dependency is restored.
-- **SC-009**: After the standardized 15-minute introduction, at least 9 of the 10
-  participants—five Administrators and five Drivers—MUST complete their assigned
+- **SC-009**: After the standardized 15-minute introduction, all four participants—two Administrators and two Drivers—MUST complete their assigned
   workflow on the first attempt without assistance. Each Driver's assigned workflow
   is the exactly 10-line sale and sale-ticket workflow defined in SC-003. Each
   Administrator's assigned workflow is to reconcile and close a Returned route that
@@ -665,3 +665,7 @@ remains selected.
   acceptance testing.
 - Basic user training and production setup are delivery activities rather than
   additional product functionality.
+
+## Owner adjustment: participant cohort
+
+The owner requested two Drivers and two Administrators for usability acceptance. This supersedes the original five-per-role clarification. Retaining the original 90% minimum requires 4/4 first-attempt successes with this four-person cohort; the two-minute Driver limit and all other protocol rules remain unchanged. No sessions have yet been scored.

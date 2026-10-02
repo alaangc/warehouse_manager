@@ -13,6 +13,7 @@ import { createServer } from '../../../src/server.js';
 import { createSaleScenario, saleCommand } from '../../support/sales-factories.js';
 import { startPostgres, type TestDatabase } from '../../support/postgres-container.js';
 import { resetDatabase } from '../../support/reset-database.js';
+import { auditForRequest, transactionId } from '../../support/audit-verification.js';
 
 interface Principal {
   cookie: string;
@@ -211,6 +212,19 @@ describe('cash-close snapshots and transaction rollback', () => {
       { reportingGroup: 'TOSTADAS', total: '0.00' },
       { reportingGroup: 'OTHER', total: '10.01' },
     ]);
+
+    const event = await auditForRequest(database, String(createdResponse.headers['x-request-id']));
+    expect(event).toMatchObject({
+      actor_id: admin.id,
+      action: 'CASH_CLOSE_CREATED',
+      entity_type: 'CASH_CLOSE',
+      entity_id: created.id,
+      before_values: null,
+      after_values: { ...created, currentCashCloseId: created.id },
+    });
+    expect(await transactionId(database, 'audit_event', event.id)).toBe(
+      await transactionId(database, 'cash_close', created.id),
+    );
 
     await database
       .updateTable('product')

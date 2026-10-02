@@ -181,17 +181,23 @@ describe('sale form', () => {
     fireEvent.click(await screen.findByRole('option', { name: 'C-100 — Corner Store' }));
     fireEvent.click(screen.getByRole('button', { name: 'Next: products' }));
 
-    fireEvent.mouseDown(await screen.findByLabelText('Product'));
-    fireEvent.click(await screen.findByRole('option', { name: 'Cola 600 ml' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Add Cola 600 ml' }));
+    expect(screen.getByRole('button', { name: 'Add Cola 600 ml' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Increase Cola 600 ml' }));
+    expect(screen.getByLabelText('Quantity')).toHaveValue('2.000');
+    fireEvent.click(screen.getByRole('button', { name: 'Decrease Cola 600 ml' }));
+    expect(screen.getByLabelText('Quantity')).toHaveValue('1.000');
+    expect(screen.getByLabelText('Quantity')).toHaveAttribute('inputmode', 'decimal');
+    fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '-1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Review sale' }));
+    await waitFor(() => expect(screen.getByLabelText('Quantity')).toHaveFocus());
+    expect(requestBodies).toHaveLength(0);
     fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '1.5' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Add another product' }));
-
-    const productInputs = screen.getAllByLabelText('Product');
-    fireEvent.mouseDown(productInputs[1]!);
-    fireEvent.click(await screen.findByRole('option', { name: 'Charcoal 3 kg' }));
+    fireEvent.change(screen.getByLabelText('Search route products'), { target: { value: 'Charcoal' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Add Charcoal 3 kg' }));
     const quantityInputs = screen.getAllByLabelText('Quantity');
     fireEvent.change(quantityInputs[1]!, { target: { value: '2' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Review authoritative quote' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Review sale' }));
 
     expect(await screen.findByRole('heading', { name: 'Review and confirm' })).toBeVisible();
     expect(screen.getByText('MXN 100.00')).toBeVisible();
@@ -328,13 +334,13 @@ describe('sale form', () => {
     fireEvent.mouseDown(await screen.findByLabelText('Product'));
     fireEvent.click(await screen.findByRole('option', { name: 'Cola 600 ml' }));
     fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '1' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Review authoritative quote' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Review sale' }));
     expect((await screen.findAllByText('MXN 16.00')).length).toBeGreaterThan(0);
 
     fireEvent.click(screen.getByRole('button', { name: 'Back to products' }));
     fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '2' } });
     expect(screen.queryAllByText('MXN 16.00')).toHaveLength(0);
-    fireEvent.click(screen.getByRole('button', { name: 'Review authoritative quote' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Review sale' }));
     expect((await screen.findAllByText('MXN 32.00')).length).toBeGreaterThan(0);
     expect(quoteBodies).toHaveLength(2);
     expect(quoteBodies[1]?.lines).toEqual([{ productId: firstProductId, quantity: '2' }]);
@@ -343,7 +349,9 @@ describe('sale form', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(/try again/i);
     fireEvent.click(screen.getByRole('button', { name: 'Confirm sale' }));
     await waitFor(() => expect(saleAttempts).toHaveLength(2));
-    expect(screen.getByRole('alert')).toHaveTextContent('Internal Server Error');
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'The request could not be completed. Please try again.',
+    );
     fireEvent.click(screen.getByRole('button', { name: 'Confirm sale' }));
 
     expect(await screen.findByText(/T-RETRY/)).toBeVisible();

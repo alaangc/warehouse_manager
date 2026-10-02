@@ -1,0 +1,911 @@
+{
+  "task": "T140",
+  "recordedAt": "2026-09-16T19:44:07.384Z",
+  "baseCommit": "4b4dba0ea9d22af9af7867a2bd374d1aa26a9115",
+  "finalCodeChange": "Only US1 global test timeout: 30000 -> 60000 ms; assertions and application code unchanged.",
+  "environment": {
+    "os": "win32 10.0.26200",
+    "cpu": "AMD Ryzen 7 7445HS w/ Radeon 740M Graphics",
+    "logicalCpus": 12,
+    "memoryBytes": 16396115968,
+    "node": "v24.18.0",
+    "packageManager": "pnpm@10.28.1",
+    "playwright": "1.62.1",
+    "browserVersions": {
+      "chromium": "151.0.7922.34",
+      "firefox": "153.0",
+      "webkit": "26.5"
+    },
+    "postgres": "PostgreSQL 18.6, local disposable UUID-named databases",
+    "frontend": "Vite development server",
+    "workers": 1,
+    "configuredRetries": 0
+  },
+  "finalSourceHashes": {
+    "playwright.config.ts": "7b157e373b1287583dc0016c16a8b4edd3d6d6ff2dc5641ecc1b5cf4f706ee51",
+    "tests/e2e/us1-inventory.spec.ts": "3406e1419bb55a2d5f8b414813d4ef39fef7b82ce34d9b5df082050d28c30642",
+    "tests/e2e/support/test-fixtures.ts": "eb03a721458e57fe89cc31db8f2e4a476ed13fdc55678a7b14ef69fee75380b8",
+    "tests/e2e/support/start-isolated-stack.ts": "fc1e2ed15aa04355b58cee560b5285462f44e963f51284dae1db0199bbedd488",
+    "tests/e2e/support/document-fixtures.ts": "74907b9f39dfb75501627877794345d70c34ee02440d55c63e30e794b4027d66"
+  },
+  "summary": {
+    "chromium": {
+      "passed": 14,
+      "skipped": 0,
+      "failed": 0,
+      "flaky": 0
+    },
+    "firefox": {
+      "passed": 13,
+      "skipped": 1,
+      "failed": 0,
+      "flaky": 0
+    },
+    "webkit": {
+      "passed": 13,
+      "skipped": 1,
+      "failed": 0,
+      "flaky": 0
+    }
+  },
+  "automaticRetries": 0,
+  "manualVerificationExecutions": 3,
+  "summaryPolicy": "Latest result per project/file/title: 39 initial passing cases, 2 expected skips, and inventory verification in all 3 engines; initial failure remains recorded in runs.",
+  "runs": [
+    {
+      "name": "initial-full-suite",
+      "sourceReport": "var/t140-initial.json",
+      "sourceReportSha256": "0780aebb47d4ff57d143f4e073747dac491d001f0c5089f2d155cf4a389f706f",
+      "stats": {
+        "startTime": "2026-09-16T19:34:47.791Z",
+        "duration": 415179.712,
+        "expected": 39,
+        "skipped": 2,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "runnerErrors": [],
+      "tests": [
+        {
+          "file": "documents/document-center-ui.spec.ts",
+          "title": "document history and PDF download at 1440px with HTTP fixtures",
+          "project": "chromium",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 30000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 2125,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:34:54.781Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "documents/document-center-ui.spec.ts",
+          "title": "document history and PDF download at 390px with HTTP fixtures",
+          "project": "chromium",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 30000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 1835,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:34:57.039Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "documents/document-center-ui.spec.ts",
+          "title": "document history and PDF download at 1440px with HTTP fixtures",
+          "project": "firefox",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 30000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 3312,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:36:46.519Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "documents/document-center-ui.spec.ts",
+          "title": "document history and PDF download at 390px with HTTP fixtures",
+          "project": "firefox",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 30000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 2160,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:36:50.386Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "documents/document-center-ui.spec.ts",
+          "title": "document history and PDF download at 1440px with HTTP fixtures",
+          "project": "webkit",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 30000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 4834,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:38:45.705Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "documents/document-center-ui.spec.ts",
+          "title": "document history and PDF download at 390px with HTTP fixtures",
+          "project": "webkit",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 30000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 3688,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:38:50.653Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "t115-administration.spec.ts",
+          "title": "T115 manages users and business settings on desktop and mobile",
+          "project": "chromium",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 90000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 9685,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:34:58.907Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "t115-administration.spec.ts",
+          "title": "T115 manages users and business settings on desktop and mobile",
+          "project": "firefox",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 90000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 11465,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:36:52.567Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "t115-administration.spec.ts",
+          "title": "T115 manages users and business settings on desktop and mobile",
+          "project": "webkit",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 90000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 16319,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:38:54.371Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us1-inventory.spec.ts",
+          "title": "administrator inventory workflow is atomic and Driver mutations are denied",
+          "project": "chromium",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 30000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 14840,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:35:08.631Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us1-inventory.spec.ts",
+          "title": "administrator inventory workflow is atomic and Driver mutations are denied",
+          "project": "firefox",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 30000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 17971,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:37:04.062Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us1-inventory.spec.ts",
+          "title": "administrator inventory workflow is atomic and Driver mutations are denied",
+          "project": "webkit",
+          "outcome": "unexpected",
+          "expectedStatus": "passed",
+          "timeoutMs": 30000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "timedOut",
+              "durationMs": 30983,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:39:10.731Z",
+              "errors": [
+                "Test timeout of 30000ms exceeded.",
+                "Error: locator.click: Target page, context or browser has been closed\nCall log:\n  - waiting for getByRole('option', { name: 'Entry', exact: true })\n    - locator resolved to <li tabindex=\"0\" role=\"option\" data-value=\"ENTRY\" aria-selected=\"false\" class=\"MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters css-1ky86sz-MuiButtonBase-root-MuiMenuItem-root\">…</li>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable\n\n\n  42 | async function selectOperation(page: Page, name: string) {\n  43 |   await page.getByRole('combobox', { name: 'Operation' }).click();\n> 44 |   await page.getByRole('option', { name, exact: true }).click();\n     |                                                         ^\n  45 | }\n  46 |\n  47 | async function submitBranchOperation(\n    at selectOperation (C:\\stock_control\\tests\\e2e\\us1-inventory.spec.ts:44:57)\n    at submitBranchOperation (C:\\stock_control\\tests\\e2e\\us1-inventory.spec.ts:58:3)\n    at C:\\stock_control\\tests\\e2e\\us1-inventory.spec.ts:217:3"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "us2-sales.spec.ts",
+          "title": "sale ticket retry, cancellation, and Driver history remain scoped",
+          "project": "chromium",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 30000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 6806,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:35:23.512Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us2-sales.spec.ts",
+          "title": "sale ticket retry, cancellation, and Driver history remain scoped",
+          "project": "firefox",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 30000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 7387,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:37:22.058Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us2-sales.spec.ts",
+          "title": "sale ticket retry, cancellation, and Driver history remain scoped",
+          "project": "webkit",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 30000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 13252,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:39:42.579Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us3-routes.spec.ts",
+          "title": "route lifecycle remains retry-safe, reconciled, scoped, and immutable",
+          "project": "chromium",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 30000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 8412,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:35:30.352Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us3-routes.spec.ts",
+          "title": "route lifecycle remains retry-safe, reconciled, scoped, and immutable",
+          "project": "firefox",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 30000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 11173,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:37:29.485Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us3-routes.spec.ts",
+          "title": "route lifecycle remains retry-safe, reconciled, scoped, and immutable",
+          "project": "webkit",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 30000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 19893,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:39:55.923Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us4-customers.spec.ts",
+          "title": "customer pricing falls back safely while history and role boundaries remain intact",
+          "project": "chromium",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 30000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 11060,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:35:38.805Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us4-customers.spec.ts",
+          "title": "customer pricing falls back safely while history and role boundaries remain intact",
+          "project": "firefox",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 30000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 13176,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:37:40.681Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us4-customers.spec.ts",
+          "title": "customer pricing falls back safely while history and role boundaries remain intact",
+          "project": "webkit",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 30000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 23168,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:40:15.845Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us5-reporting.spec.ts",
+          "title": "calendar reports and immutable cash-close currentness remain reproducible",
+          "project": "chromium",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 30000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 2818,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:35:49.895Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us5-reporting.spec.ts",
+          "title": "calendar reports and immutable cash-close currentness remain reproducible",
+          "project": "firefox",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 30000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 3051,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:37:53.878Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us5-reporting.spec.ts",
+          "title": "calendar reports and immutable cash-close currentness remain reproducible",
+          "project": "webkit",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 30000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 3947,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:40:39.047Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us6-document-history.spec.ts",
+          "title": "history traverses pages, filters and opens Administrator-created own-source attempts",
+          "project": "chromium",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 120000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 9661,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:36:06.601Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us6-document-history.spec.ts",
+          "title": "Driver cannot use forbidden sources, content URLs, attempts, filters or TEST_PRINT history",
+          "project": "chromium",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 120000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 9622,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:36:17.990Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us6-document-history.spec.ts",
+          "title": "history traverses pages, filters and opens Administrator-created own-source attempts",
+          "project": "firefox",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 120000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 11134,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:38:11.456Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us6-document-history.spec.ts",
+          "title": "Driver cannot use forbidden sources, content URLs, attempts, filters or TEST_PRINT history",
+          "project": "firefox",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 120000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 10622,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:38:24.988Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us6-document-history.spec.ts",
+          "title": "history traverses pages, filters and opens Administrator-created own-source attempts",
+          "project": "webkit",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 120000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 14305,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:41:01.215Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us6-document-history.spec.ts",
+          "title": "Driver cannot use forbidden sources, content URLs, attempts, filters or TEST_PRINT history",
+          "project": "webkit",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 120000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 13900,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:41:17.242Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us6-documents-printing.spec.ts",
+          "title": "Administrator downloads all four PDFs; Driver reuses own Ticket and assigned confirmed load",
+          "project": "chromium",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 120000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 7790,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:36:27.647Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us6-documents-printing.spec.ts",
+          "title": "Chromium prints three supported types, rejects REPORT, and requires explicit UNKNOWN reprint",
+          "project": "chromium",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 120000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 9496,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:36:35.452Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us6-documents-printing.spec.ts",
+          "title": "Administrator downloads all four PDFs; Driver reuses own Ticket and assigned confirmed load",
+          "project": "firefox",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 120000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 8712,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:38:35.640Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us6-documents-printing.spec.ts",
+          "title": "Chromium prints three supported types, rejects REPORT, and requires explicit UNKNOWN reprint",
+          "project": "firefox",
+          "outcome": "skipped",
+          "expectedStatus": "skipped",
+          "timeoutMs": 30000,
+          "annotations": [
+            {
+              "type": "skip",
+              "description": "Approved Web Bluetooth path is Chromium-only; PDFs run in every browser."
+            }
+          ],
+          "attempts": [
+            {
+              "status": "skipped",
+              "durationMs": 287,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:38:44.364Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us6-documents-printing.spec.ts",
+          "title": "Administrator downloads all four PDFs; Driver reuses own Ticket and assigned confirmed load",
+          "project": "webkit",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 120000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 10988,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:41:31.181Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us6-documents-printing.spec.ts",
+          "title": "Chromium prints three supported types, rejects REPORT, and requires explicit UNKNOWN reprint",
+          "project": "webkit",
+          "outcome": "skipped",
+          "expectedStatus": "skipped",
+          "timeoutMs": 30000,
+          "annotations": [
+            {
+              "type": "skip",
+              "description": "Approved Web Bluetooth path is Chromium-only; PDFs run in every browser."
+            }
+          ],
+          "attempts": [
+            {
+              "status": "skipped",
+              "durationMs": 284,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:41:42.183Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us7-user-settings.spec.ts",
+          "title": "creates a Driver, denies administrator access, revokes access, and retains actor history",
+          "project": "chromium",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 120000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 4701,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:35:53.997Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us7-user-settings.spec.ts",
+          "title": "Driver connects and tests only an approved printer without gaining configuration access",
+          "project": "chromium",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 30000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 3571,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:35:59.682Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us7-user-settings.spec.ts",
+          "title": "creates a Driver, denies administrator access, revokes access, and retains actor history",
+          "project": "firefox",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 120000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 5034,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:37:58.462Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us7-user-settings.spec.ts",
+          "title": "Driver connects and tests only an approved printer without gaining configuration access",
+          "project": "firefox",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 30000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 3979,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:38:04.556Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us7-user-settings.spec.ts",
+          "title": "creates a Driver, denies administrator access, revokes access, and retains actor history",
+          "project": "webkit",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 120000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 7702,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:40:44.528Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us7-user-settings.spec.ts",
+          "title": "Driver connects and tests only an approved printer without gaining configuration access",
+          "project": "webkit",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 30000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 5715,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:40:53.221Z",
+              "errors": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "inventory-verification",
+      "sourceReport": "var/t140-inventory-verification.json",
+      "sourceReportSha256": "58cea2b0efc9fca28c2c88f42dbdd6145c9988708933bc1a22b48208a687e0ab",
+      "stats": {
+        "startTime": "2026-09-16T19:42:04.232Z",
+        "duration": 77087.80399999999,
+        "expected": 3,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "runnerErrors": [],
+      "tests": [
+        {
+          "file": "us1-inventory.spec.ts",
+          "title": "administrator inventory workflow is atomic and Driver mutations are denied",
+          "project": "chromium",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 60000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 16122,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:42:08.826Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us1-inventory.spec.ts",
+          "title": "administrator inventory workflow is atomic and Driver mutations are denied",
+          "project": "firefox",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 60000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 19665,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:42:26.188Z",
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us1-inventory.spec.ts",
+          "title": "administrator inventory workflow is atomic and Driver mutations are denied",
+          "project": "webkit",
+          "outcome": "expected",
+          "expectedStatus": "passed",
+          "timeoutMs": 60000,
+          "annotations": [],
+          "attempts": [
+            {
+              "status": "passed",
+              "durationMs": 33567,
+              "retry": 0,
+              "startedAt": "2026-09-16T19:42:47.314Z",
+              "errors": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -24,6 +24,7 @@ export default defineConfig({
           root: 'apps/api',
           include: ['tests/contract/**/*.test.ts'],
           environment: 'node',
+          setupFiles: ['tests/support/openapi-contract-setup.ts'],
           sequence: { concurrent: false },
         },
       },

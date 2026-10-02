@@ -77,7 +77,7 @@ load; Administrators may access all document types, while Drivers may generate,
 download, share, print, or reprint only Sale Tickets for their own sales and confirmed
 route loads for assigned routes; Driver cash-close/report and unrelated-document access
 is denied; the same source predicates govern document lists and OutputAttempt history;
-reports may be generated, downloaded, and shared but never thermally printed;
+Administrators may generate, download, share, and thermally print saved reports;
 reporting periods use configured-timezone local midnight, Monday-based weeks, calendar
 months, and `[start,end)` boundaries; only one CashClose is current per exact period,
 with idempotent reuse, conflicting independent duplicates, and immutable linked
@@ -185,5 +185,17 @@ package contains transport contracts and tooling configuration only, never trust
 business logic.
 
 ## Complexity Tracking
+
+### Startup schema compatibility (T152)
+
+Before listening, the API compares the complete applied migration-name set in
+`public.kysely_migration` with `database/migrations/checksums.json`. Missing, stale,
+unknown or incomplete histories fail startup; `/api/v1/health` repeats the same
+non-mutating check and returns the existing safe 503 problem on failure. Deployment
+must ship that manifest at its repository-relative path and grant the runtime role
+SELECT on the migration table. Migrations remain an explicit deployment step.
+This verifies migration-version compatibility, not arbitrary manual DDL drift or
+database-stored checksums (Kysely records names/timestamps only). The existing
+migration verification gate checks reviewed file checksums separately.
 
 No constitutional violations require justification.

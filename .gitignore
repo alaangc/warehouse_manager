@@ -9,6 +9,7 @@ test-results/
 !.env.example
 !**/.env.example
 var/documents/*
+var/backups/
 !var/documents/.gitkeep
 .DS_Store
 Thumbs.db

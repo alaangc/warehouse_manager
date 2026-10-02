@@ -58,7 +58,14 @@ export interface InventoryMovementFilters {
 }
 
 export function useInventoryBalances(
-  filters: { productId?: string; branchId?: string; routeId?: string; alertsOnly?: boolean } = {},
+  filters: {
+    productId?: string;
+    branchId?: string;
+    routeId?: string;
+    locationKind?: 'BRANCH' | 'ROUTE';
+    alertsOnly?: boolean;
+    search?: string;
+  } = {},
 ) {
   const query = new URLSearchParams();
   for (const [key, value] of Object.entries(filters))
@@ -67,9 +74,7 @@ export function useInventoryBalances(
   return useQuery({
     queryKey: ['inventory-balances', filters],
     queryFn: () =>
-      apiRequest<{ data: InventoryBalance[] }>(
-        `/inventory/balances${search ? `?${search}` : ''}`,
-      ),
+      apiRequest<{ data: InventoryBalance[] }>(`/inventory/balances${search ? `?${search}` : ''}`),
   });
 }
 

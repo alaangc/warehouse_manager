@@ -1,0 +1,6 @@
+extends:
+  - recommended-strict
+rules:
+  # This private application has no public API license. All correctness and
+  # operation documentation rules remain at recommended-strict severity.
+  info-license: off

@@ -2,6 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests/e2e',
+  testIgnore: 'performance-*.spec.ts',
   fullyParallel: false,
   // E2E projects share seeded users and one database, so route workflows must not overlap.
   workers: 1,

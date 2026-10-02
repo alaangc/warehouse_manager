@@ -1,3 +1,4 @@
+import { CatalogPicker } from '../catalog/catalog-picker.js';
 import {
   Alert,
   Button,
@@ -9,7 +10,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { apiRequest } from '../../lib/api/client.js';
 import { localizedErrorMessage } from '../../lib/api/localized-error.js';
@@ -71,9 +72,19 @@ export function CustomerPrices({ customerId }: { customerId: string }) {
         spacing={1}
         onSubmit={(event) => void form.handleSubmit((values) => create.mutate(values))(event)}
       >
-        <TextField
-          label={t('common.productId')}
-          {...form.register('productId', { required: true })}
+        <Controller
+          name="productId"
+          control={form.control}
+          rules={{ required: true }}
+          render={({ field }) => (
+            <CatalogPicker
+              kind="products"
+              label={t('common.product')}
+              value={field.value}
+              onChange={field.onChange}
+              required
+            />
+          )}
         />
         <TextField
           label={t('customers.exactUnitPrice')}

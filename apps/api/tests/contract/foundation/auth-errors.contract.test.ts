@@ -88,7 +88,11 @@ describe('foundation HTTP contract', () => {
   });
 
   it('uses a secure host-prefixed session cookie outside the test environment', async () => {
-    const productionEnvironment: Environment = { ...env, NODE_ENV: 'production' };
+    const productionEnvironment: Environment = {
+      ...env,
+      NODE_ENV: 'production',
+      TRUST_PROXY: '127.0.0.1/32,::1/128',
+    };
     const app = createServer(productionEnvironment, {
       auth: new FakeAuth(),
       database: fakeDatabase,
@@ -96,6 +100,7 @@ describe('foundation HTTP contract', () => {
     const login = await request(app)
       .post('/api/v1/auth/login')
       .set('Origin', productionEnvironment.APP_ORIGIN)
+      .set('X-Forwarded-Proto', 'https')
       .send({ username: 'admin', password: 'correct-password' });
 
     expect(login.status).toBe(200);

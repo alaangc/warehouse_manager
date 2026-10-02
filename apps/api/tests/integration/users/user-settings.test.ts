@@ -1,6 +1,6 @@
 import argon2 from 'argon2';
 import { sql } from 'kysely';
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
   administrationHarness,
   testPrinterProfile,
@@ -34,6 +34,10 @@ describe('user and settings transactions in PostgreSQL 18', () => {
     harness = await administrationHarness();
     admin = await harness.login('admin');
     seededPasswordHash = (await userRow(admin.id)).password_hash;
+  });
+
+  beforeEach(() => {
+    harness.resetHttp();
   });
 
   afterEach(async () => {

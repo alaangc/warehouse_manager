@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
   "dependencies": {
     "argon2": "0.45.1",
     "kysely": "0.29.5"

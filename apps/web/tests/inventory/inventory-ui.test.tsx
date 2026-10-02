@@ -40,6 +40,24 @@ function jsonResponse(body: unknown, status = 200) {
 }
 
 function renderWithQuery(ui: ReactElement, initialEntry = '/') {
+  const originalFetch = globalThis.fetch;
+  vi.stubGlobal('fetch', (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    if ((!init?.method || init.method === 'GET') && url === '/api/v1/products')
+      return Promise.resolve(
+        jsonResponse({ data: [{ id: productId, name: 'Widget', sku: 'WIDGET-01', active: true }] }),
+      );
+    if ((!init?.method || init.method === 'GET') && url === '/api/v1/locations')
+      return Promise.resolve(
+        jsonResponse({
+          data: [
+            { id: magdalenaBranchId, name: 'Magdalena', code: 'MAG', active: true },
+            { id: caborcaBranchId, name: 'Caborca', code: 'CAB', active: true },
+          ],
+        }),
+      );
+    return originalFetch(input, init);
+  });
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
@@ -56,13 +74,15 @@ function renderWithQuery(ui: ReactElement, initialEntry = '/') {
   };
 }
 
-function fillInventoryEntry() {
-  fireEvent.change(screen.getByLabelText('Branch ID'), {
-    target: { value: magdalenaBranchId },
-  });
-  fireEvent.change(screen.getByLabelText('Product ID'), { target: { value: productId } });
-  fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '2.500' } });
-  fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'Initial receiving' } });
+async function choose(label: string, option: string) {
+  fireEvent.mouseDown(screen.getByRole('combobox', { name: new RegExp(label) }));
+  fireEvent.click(await screen.findByRole('option', { name: option }));
+}
+async function fillInventoryEntry() {
+  await choose('^Branch', 'Magdalena (MAG)');
+  await choose('^Product', 'Widget (WIDGET-01)');
+  fireEvent.change(screen.getByLabelText(/Quantity/), { target: { value: '2.500' } });
+  fireEvent.change(screen.getByLabelText(/^Reason/), { target: { value: 'Initial receiving' } });
 }
 
 afterEach(() => {
@@ -74,6 +94,84 @@ afterEach(() => {
 });
 
 describe('inventory and catalog UI', () => {
+  it('shows only branches in the location summary, including branches with no balances', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve(
+          jsonResponse({
+            data: [
+              {
+                id: 'branch-balance',
+                productId,
+                productName: 'Widget',
+                quantity: '10.000',
+                lowStockAlert: false,
+                version: 1,
+                updatedAt: '2026-10-01T12:00:00Z',
+                stockLocation: {
+                  id: 'stock-branch',
+                  kind: 'BRANCH',
+                  branchId: magdalenaBranchId,
+                  routeId: null,
+                  label: 'Magdalena',
+                },
+              },
+              {
+                id: 'route-balance',
+                productId,
+                productName: 'Widget',
+                quantity: '0.000',
+                lowStockAlert: true,
+                version: 1,
+                updatedAt: '2026-10-01T12:00:00Z',
+                stockLocation: {
+                  id: 'stock-route',
+                  kind: 'ROUTE',
+                  branchId: null,
+                  routeId: crypto.randomUUID(),
+                  label: 'R001',
+                },
+              },
+            ],
+          }),
+        ),
+      ),
+    );
+    renderWithQuery(<InventoryPage />);
+    const emptyBranch = await screen.findByRole('button', { name: /Caborca.*Branch inventory/ });
+    expect(within(emptyBranch).getByText('0.000')).toBeVisible();
+    expect(
+      await screen.findByRole('button', { name: /Magdalena.*Branch inventory/ }),
+    ).toBeVisible();
+    expect(screen.queryByText('R001')).toBeNull();
+    expect(screen.queryByText('Temporary route inventory')).toBeNull();
+  });
+  it('requests inventory search from the API and exposes pending/result readiness', async () => {
+    let complete!: (response: Response) => void;
+    const fetchMock = vi.fn((input: RequestInfo | URL) =>
+      String(input).includes('search=remote')
+        ? new Promise<Response>((resolve) => {
+            complete = resolve;
+          })
+        : Promise.resolve(jsonResponse({ data: [] })),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    renderWithQuery(<InventoryPage />);
+    const table = screen.getByRole('table', { name: 'Inventory balances' });
+    await waitFor(() => expect(table).toHaveAttribute('aria-busy', 'false'));
+    fireEvent.change(screen.getByLabelText('Search product or location'), {
+      target: { value: 'remote' },
+    });
+    await waitFor(() => expect(table).toHaveAttribute('aria-busy', 'true'));
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/inventory/balances?alertsOnly=false&search=remote&locationKind=BRANCH',
+      expect.anything(),
+    );
+    complete(jsonResponse({ data: [] }));
+    await waitFor(() => expect(table).toHaveAttribute('aria-busy', 'false'));
+    expect(within(table).getByText('No inventory balances match these filters.')).toBeVisible();
+  });
   it('converts positive and negative fixed-scale quantities exactly', () => {
     expect(scaledQuantity('9007199254740993.125')).toBe(9007199254740993125n);
     expect(scaledQuantity('-0.500')).toBe(-500n);
@@ -152,7 +250,7 @@ describe('inventory and catalog UI', () => {
     fireEvent.click(screen.getByRole('switch', { name: 'Show low-stock alerts only' }));
     await waitFor(() =>
       expect(fetchMock).toHaveBeenCalledWith(
-        '/api/v1/inventory/balances?alertsOnly=true',
+        '/api/v1/inventory/balances?alertsOnly=true&locationKind=BRANCH',
         expect.objectContaining({ credentials: 'include' }),
       ),
     );
@@ -261,7 +359,7 @@ describe('inventory and catalog UI', () => {
     vi.stubGlobal('fetch', fetchMock);
     renderWithQuery(<InventoryOperationForm />);
 
-    fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '1.2345' } });
+    fireEvent.change(screen.getByLabelText(/Quantity/), { target: { value: '1.2345' } });
     fireEvent.click(screen.getByRole('button', { name: 'Confirm operation' }));
 
     expect(await screen.findByText(/up to 3 decimals/i)).toBeInTheDocument();
@@ -272,7 +370,7 @@ describe('inventory and catalog UI', () => {
     const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ data: { id: 'operation-1' } }, 201));
     vi.stubGlobal('fetch', fetchMock);
     renderWithQuery(<InventoryOperationForm />);
-    fillInventoryEntry();
+    await fillInventoryEntry();
 
     fireEvent.click(screen.getByRole('button', { name: 'Confirm operation' }));
 
@@ -290,7 +388,7 @@ describe('inventory and catalog UI', () => {
     expect(headers.get('Idempotency-Key')).toMatch(/^[0-9a-f-]{36}$/i);
   });
 
-  it('shows the API conflict detail without treating it as a successful operation', async () => {
+  it('shows the localized API conflict without treating it as a successful operation', async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       jsonResponse(
         {
@@ -305,12 +403,13 @@ describe('inventory and catalog UI', () => {
     );
     vi.stubGlobal('fetch', fetchMock);
     renderWithQuery(<InventoryOperationForm />);
-    fillInventoryEntry();
+    await fillInventoryEntry();
 
     fireEvent.click(screen.getByRole('button', { name: 'Confirm operation' }));
 
-    const alert = await screen.findByRole('alert');
-    expect(alert).toHaveTextContent('The requested quantity is no longer available.');
+    expect(
+      await screen.findByText('There is not enough inventory for this operation.'),
+    ).toBeVisible();
     expect(screen.getByDisplayValue('2.500')).toBeInTheDocument();
   });
 
@@ -373,15 +472,11 @@ describe('inventory and catalog UI', () => {
 
     fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Operation' }));
     fireEvent.click(await screen.findByRole('option', { name: 'Transfer' }));
-    fireEvent.change(screen.getByLabelText('Source branch ID'), {
-      target: { value: magdalenaBranchId },
-    });
-    fireEvent.change(screen.getByLabelText('Destination branch ID'), {
-      target: { value: caborcaBranchId },
-    });
-    fireEvent.change(screen.getByLabelText('Product ID'), { target: { value: productId } });
-    fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '1.000' } });
-    fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'Branch rebalance' } });
+    await choose('^Branch', 'Magdalena (MAG)');
+    await choose('^Destination branch', 'Caborca (CAB)');
+    await choose('^Product', 'Widget (WIDGET-01)');
+    fireEvent.change(screen.getByLabelText(/Quantity/), { target: { value: '1.000' } });
+    fireEvent.change(screen.getByLabelText(/^Reason/), { target: { value: 'Branch rebalance' } });
     fireEvent.click(screen.getByRole('button', { name: 'Confirm operation' }));
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));

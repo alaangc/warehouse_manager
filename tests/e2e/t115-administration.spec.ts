@@ -13,9 +13,12 @@ test('T115 manages users and business settings on desktop and mobile', async ({
   await page.locator('input[name="password"]').fill('development-password-change-me');
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(page).not.toHaveURL(/login/);
-  await page.goto('/users');
+  await page
+    .getByRole('region', { name: 'Operational totals' })
+    .getByRole('link', { name: 'Users', exact: true })
+    .click();
   await page.getByRole('button', { name: 'New user', exact: true }).click();
-  const name = `T115-${crypto.randomUUID().slice(0, 8)}`;
+  const name = `T115-${crypto.randomUUID().slice(0, 8)}-${'x'.repeat(64)}`;
   await page.getByLabel('Username', { exact: true }).fill(name);
   await page.getByLabel('Display name').fill(name);
   await page.getByLabel('Password', { exact: true }).fill('new-driver-password-123');
@@ -66,31 +69,43 @@ test('T115 manages users and business settings on desktop and mobile', async ({
     true,
   );
   await page.goto('/settings');
-  const concurrent = await page.context().newPage();
-  await concurrent.goto('/settings');
-  await concurrent.getByLabel('Business timezone').fill('America/Phoenix');
-  await concurrent.getByLabel('Reason', { exact: true }).fill('Concurrent administrator change');
-  await concurrent.getByRole('button', { name: 'Save business settings', exact: true }).click();
-  await expect(concurrent.getByRole('alert')).toHaveText('Changes saved.');
-  await concurrent.close();
-  await page.getByLabel('Business timezone').fill('America/Tijuana');
-  await page.getByLabel('Reason', { exact: true }).fill('T115 test operating timezone');
-  await page.getByRole('button', { name: 'Save business settings', exact: true }).click();
-  await expect(
-    page.getByRole('button', { name: 'Discard edits and reload current record' }),
-  ).toBeVisible();
-  await expect(page.getByLabel('Business timezone')).toHaveValue('America/Tijuana');
-  await page.getByRole('button', { name: 'Discard edits and reload current record' }).click();
-  await expect(page.getByLabel('Business timezone')).toHaveValue('America/Phoenix');
-  await page.getByLabel('Business timezone').fill('America/Tijuana');
-  await page.getByLabel('Reason', { exact: true }).fill('T115 test operating timezone');
-  await page.getByRole('button', { name: 'Save business settings', exact: true }).click();
-  await expect(page.getByRole('alert')).toHaveText('Changes saved.');
-  await page.reload();
-  await expect(page.getByLabel('Business timezone')).toHaveValue('America/Tijuana');
-  await page.screenshot({ path: testInfo.outputPath('settings-mobile.png'), fullPage: true });
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
-    true,
-  );
-  expect(errors).toEqual([]);
+  await expect(page.getByLabel('Business timezone')).not.toHaveValue('');
+  const originalTimezone = await page.getByLabel('Business timezone').inputValue();
+  try {
+    const concurrent = await page.context().newPage();
+    await concurrent.goto('/settings');
+    await concurrent.getByLabel('Business timezone').fill('America/Phoenix');
+    await concurrent.getByLabel('Reason', { exact: true }).fill('Concurrent administrator change');
+    await concurrent.getByRole('button', { name: 'Save business settings', exact: true }).click();
+    await expect(concurrent.getByRole('alert')).toHaveText('Changes saved.');
+    await concurrent.close();
+    await page.getByLabel('Business timezone').fill('America/Tijuana');
+    await page.getByLabel('Reason', { exact: true }).fill('T115 test operating timezone');
+    await page.getByRole('button', { name: 'Save business settings', exact: true }).click();
+    await expect(
+      page.getByRole('button', { name: 'Discard edits and reload current record' }),
+    ).toBeVisible();
+    await expect(page.getByLabel('Business timezone')).toHaveValue('America/Tijuana');
+    await page.getByRole('button', { name: 'Discard edits and reload current record' }).click();
+    await expect(page.getByLabel('Business timezone')).toHaveValue('America/Phoenix');
+    await page.getByLabel('Business timezone').fill('America/Tijuana');
+    await page.getByLabel('Reason', { exact: true }).fill('T115 test operating timezone');
+    await page.getByRole('button', { name: 'Save business settings', exact: true }).click();
+    await expect(page.getByRole('alert')).toHaveText('Changes saved.');
+    await page.reload();
+    await expect(page.getByLabel('Business timezone')).toHaveValue('America/Tijuana');
+    await page.screenshot({ path: testInfo.outputPath('settings-mobile.png'), fullPage: true });
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+    ).toBe(true);
+    expect(errors).toEqual([]);
+  } finally {
+    // This suite shares a disposable stack with reporting tests. Restore the
+    // setting even when an assertion fails so a retry cannot poison later tests.
+    await page.goto('/settings');
+    await page.getByLabel('Business timezone').fill(originalTimezone);
+    await page.getByLabel('Reason', { exact: true }).fill('Restore E2E business timezone');
+    await page.getByRole('button', { name: 'Save business settings', exact: true }).click();
+    await expect(page.getByRole('alert')).toHaveText('Changes saved.');
+  }
 });

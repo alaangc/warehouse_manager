@@ -13,11 +13,20 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "contract:generate": "node --experimental-strip-types scripts/generate-openapi.ts",
+    "contract:generate": "tsx scripts/generate-openapi.ts",
     "contract:lint": "redocly lint openapi.yaml",
-    "contract:check": "node --experimental-strip-types scripts/check-contract.ts"
+    "contract:check": "tsx scripts/check-contract.ts",
+    "contract:runtime": "tsx scripts/validate-runtime-contract.ts",
+    "contract:compatibility": "tsx scripts/check-compatibility.ts",
+    "contract:test": "tsx --test scripts/tests/*.test.ts"
   },
   "dependencies": {
     "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "openapi-typescript": "7.13.0",
+    "yaml": "2.9.1"
   }
 }

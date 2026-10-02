@@ -1,4 +1,4 @@
-import {
+﻿import {
   Alert,
   Box,
   Button,
@@ -8,7 +8,16 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import { useMemo } from 'react';
+import {
+  ArrowRight,
+  Truck,
+  ShoppingCart,
+  ReceiptText,
+  Package,
+  TriangleAlert,
+  CircleCheck,
+} from 'lucide-react';
+import { type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useSession } from '../../app/session.js';
@@ -17,306 +26,286 @@ import { localizedErrorMessage } from '../../lib/api/localized-error.js';
 import { scaledQuantity } from '../inventory/inventory-quantity.js';
 import { useInventoryBalances } from '../inventory/inventory-queries.js';
 import { useRoutes } from '../routes/route-queries.js';
-import type { RouteResource, RouteState } from '../routes/route-types.js';
 import { useSales } from '../sales/sale-queries.js';
+import type { RouteState } from '../routes/route-types.js';
 
-const routePriority: Record<RouteState, number> = {
-  RETURNED: 0,
-  EN_ROUTE: 1,
-  PREPARING: 2,
-  CLOSED: 3,
-};
+const priority: Record<RouteState, number> = { RETURNED: 0, EN_ROUTE: 1, PREPARING: 2, CLOSED: 3 };
 
-function routeTone(state: RouteState): 'default' | 'info' | 'warning' | 'success' {
-  if (state === 'RETURNED') return 'warning';
-  if (state === 'EN_ROUTE') return 'info';
-  if (state === 'CLOSED') return 'success';
-  return 'default';
-}
-
-function MetricCard({ label, value, tone }: { label: string; value: number; tone: string }) {
-  return (
-    <Paper variant="outlined" sx={{ borderTop: `4px solid ${tone}`, p: { xs: 2, md: 2.5 } }}>
-      <Typography variant="h4" sx={{ color: tone, fontWeight: 750 }}>
-        {value}
-      </Typography>
-      <Typography color="text.secondary" variant="body2">
-        {label}
-      </Typography>
-    </Paper>
-  );
-}
-
-function RouteCard({ route, balanceCount }: { route: RouteResource; balanceCount: number }) {
+export function DashboardPage({ children }: { children?: ReactNode }) {
   const { t } = useTranslation();
-  return (
-    <Paper
-      component={Link}
-      to={`/routes?routeId=${encodeURIComponent(route.id)}`}
-      variant="outlined"
-      sx={{
-        color: 'text.primary',
-        display: 'block',
-        p: 2.5,
-        textDecoration: 'none',
-        transition: 'border-color 120ms ease, transform 120ms ease',
-        '&:hover': { borderColor: 'primary.main', transform: 'translateY(-1px)' },
-      }}
-    >
-      <Stack direction="row" spacing={2} sx={{ alignItems: 'flex-start' }}>
-        <Box
-          aria-hidden="true"
-          sx={{
-            alignItems: 'center',
-            bgcolor: 'rgba(23, 74, 114, 0.08)',
-            borderRadius: 2.5,
-            color: 'primary.main',
-            display: 'flex',
-            fontSize: 24,
-            height: 52,
-            justifyContent: 'center',
-            width: 52,
-          }}
-        >
-          ↗
-        </Box>
-        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-          <Stack
-            direction="row"
-            spacing={1}
-            sx={{ alignItems: 'center', justifyContent: 'space-between' }}
-          >
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              {route.routeNumber}
-            </Typography>
-            <Chip
-              color={routeTone(route.state)}
-              label={t(`status.${route.state}`, { defaultValue: route.state })}
-              size="small"
-            />
-          </Stack>
-          <Typography color="text.secondary" variant="body2">
-            {t('dashboard.businessDate', { date: formatDate(route.businessDate) })}
-          </Typography>
-          <Typography color="text.secondary" variant="body2">
-            {t('dashboard.routeBalances', { count: balanceCount })}
-          </Typography>
-        </Box>
-      </Stack>
-    </Paper>
-  );
-}
-
-export function DashboardPage() {
-  const { t } = useTranslation();
-  const session = useSession();
-  const administrator = session.user?.role === 'ADMINISTRATOR';
-  const routes = useRoutes();
+  const { user } = useSession();
+  const administrator = user?.role === 'ADMINISTRATOR';
+  const routes = useRoutes('active');
   const balances = useInventoryBalances();
   const sales = useSales({ enabled: !administrator });
-  const routeRows = useMemo(() => routes.data?.data ?? [], [routes.data?.data]);
-  const balanceRows = useMemo(() => balances.data?.data ?? [], [balances.data?.data]);
-  const saleRows = sales.data?.data ?? [];
+  const routeRows = routes.data?.data ?? [];
+  const balanceRows = balances.data?.data ?? [];
   const openRoutes = routeRows.filter((route) => route.state !== 'CLOSED');
-  const displayedRoutes = [...(administrator ? openRoutes : routeRows)]
+  const displayedRoutes = [...openRoutes]
     .sort(
-      (left, right) =>
-        routePriority[left.state] - routePriority[right.state] ||
-        right.businessDate.localeCompare(left.businessDate),
+      (a, b) =>
+        priority[a.state] - priority[b.state] || b.businessDate.localeCompare(a.businessDate),
     )
     .slice(0, 4);
-  const productsShown = new Set(balanceRows.map((balance) => balance.productId)).size;
-  const productsAvailable = new Set(
-    balanceRows
-      .filter((balance) => scaledQuantity(balance.quantity) > 0n)
-      .map((balance) => balance.productId),
-  ).size;
+  const active = routeRows.some((route) => route.state === 'EN_ROUTE');
   const metrics = administrator
     ? [
-        { label: t('dashboard.openRoutes'), value: openRoutes.length, tone: '#2b6cb0' },
+        { label: 'dashboard.openRoutes', value: openRoutes.length, icon: Truck, color: '#1762ef' },
         {
-          label: t('dashboard.returnedRoutes'),
+          label: 'dashboard.returnedRoutes',
           value: routeRows.filter((route) => route.state === 'RETURNED').length,
-          tone: '#805ad5',
+          icon: CircleCheck,
+          color: '#147d58',
         },
         {
-          label: t('dashboard.lowStockShown'),
+          label: 'dashboard.lowStockShown',
           value: balanceRows.filter((balance) => balance.lowStockAlert).length,
-          tone: '#d97706',
+          icon: TriangleAlert,
+          color: '#976000',
         },
-        { label: t('dashboard.productsShown'), value: productsShown, tone: '#2f855a' },
+        {
+          label: 'dashboard.productsShown',
+          value: new Set(balanceRows.map((balance) => balance.productId)).size,
+          icon: Package,
+          color: '#6020ee',
+        },
       ]
     : [
         {
-          label: t('dashboard.routesEnRoute'),
+          label: 'dashboard.routesEnRoute',
           value: routeRows.filter((route) => route.state === 'EN_ROUTE').length,
-          tone: '#2b6cb0',
+          icon: Truck,
+          color: '#1762ef',
         },
         {
-          label: t('dashboard.routesPreparing'),
+          label: 'dashboard.routesPreparing',
           value: routeRows.filter((route) => route.state === 'PREPARING').length,
-          tone: '#805ad5',
+          icon: Package,
+          color: '#6020ee',
         },
         {
-          label: t('dashboard.completedSalesShown'),
-          value: saleRows.filter((sale) => sale.status === 'COMPLETED').length,
-          tone: '#2f855a',
+          label: 'dashboard.completedSalesShown',
+          value: (sales.data?.data ?? []).filter((sale) => sale.status === 'COMPLETED').length,
+          icon: ReceiptText,
+          color: '#147d58',
         },
-        { label: t('dashboard.productsAvailable'), value: productsAvailable, tone: '#d97706' },
+        {
+          label: 'dashboard.productsAvailable',
+          value: new Set(
+            balanceRows
+              .filter((balance) => scaledQuantity(balance.quantity) > 0n)
+              .map((balance) => balance.productId),
+          ).size,
+          icon: Package,
+          color: '#976000',
+        },
       ];
   const error = routes.error ?? balances.error ?? sales.error;
-  const activeDriverRoute = routeRows.some((route) => route.state === 'EN_ROUTE');
-
   return (
-    <Stack spacing={3.5}>
-      <Paper
-        variant="outlined"
-        sx={{
-          background: 'linear-gradient(135deg, rgba(23, 74, 114, 0.08), rgba(77, 143, 202, 0.02))',
-          overflow: 'hidden',
-          p: { xs: 2.5, md: 4 },
-          position: 'relative',
-        }}
-      >
+    <Stack spacing={3}>
+      <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
         <Box
-          aria-hidden="true"
-          sx={{
-            bgcolor: 'rgba(77, 143, 202, 0.08)',
-            borderRadius: '50%',
-            height: 220,
-            position: 'absolute',
-            right: -70,
-            top: -110,
-            width: 220,
-          }}
+          component="img"
+          src="/stock-control-logo.png"
+          alt=""
+          sx={{ height: 58, width: 58, objectFit: 'contain' }}
         />
-        <Stack direction="row" spacing={2} sx={{ alignItems: 'center', position: 'relative' }}>
-          <Box
-            component="img"
-            src="/stock-control-logo.png"
-            alt=""
-            aria-hidden="true"
-            sx={{ height: { xs: 62, sm: 78 }, objectFit: 'contain', width: { xs: 62, sm: 78 } }}
-          />
-          <Box>
-            <Typography component="h1" variant="h4" sx={{ fontWeight: 750 }}>
-              {t('dashboard.greeting', { name: session.user?.displayName ?? '' })}
-            </Typography>
-            <Typography color="text.secondary">
-              {administrator ? t('dashboard.adminDescription') : t('dashboard.driverDescription')}
-            </Typography>
-          </Box>
-        </Stack>
-      </Paper>
-
+        <Box>
+          <Typography component="h1" variant="h4">
+            {t('dashboard.greeting', { name: user?.displayName ?? '' })}
+          </Typography>
+          <Typography color="text.secondary">
+            {t(administrator ? 'dashboard.adminDescription' : 'dashboard.driverDescription')}
+          </Typography>
+        </Box>
+      </Stack>
       {error && <Alert severity="error">{localizedErrorMessage(error, t)}</Alert>}
       {(routes.isLoading || balances.isLoading || sales.isLoading) && (
         <CircularProgress aria-label={t('dashboard.loading')} />
       )}
-
-      <Box
-        sx={{
-          display: 'grid',
-          gap: 2,
-          gridTemplateColumns: {
-            xs: 'repeat(2, minmax(0, 1fr))',
-            md: 'repeat(4, minmax(0, 1fr))',
-          },
-        }}
-      >
-        {metrics.map((metric) => (
-          <MetricCard key={metric.label} {...metric} />
-        ))}
-      </Box>
-
-      <Box
-        sx={{
-          display: 'grid',
-          gap: 3,
-          gridTemplateColumns: { xs: '1fr', lg: 'minmax(0, 1.7fr) minmax(260px, 0.7fr)' },
-        }}
-      >
-        <Stack spacing={1.5}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1.4fr 1fr' }, gap: 2 }}>
+        <Paper variant="outlined" sx={{ p: 3, bgcolor: '#f0eaff', borderColor: '#ded1ff' }}>
           <Stack
             direction="row"
-            spacing={1}
-            sx={{ alignItems: 'center', justifyContent: 'space-between' }}
+            spacing={1.5}
+            sx={{ alignItems: 'center', mb: 1, color: 'primary.main' }}
           >
-            <Box>
-              <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                {administrator ? t('dashboard.routesToReview') : t('dashboard.assignedRoutes')}
-              </Typography>
-              <Typography color="text.secondary" variant="body2">
-                {administrator
-                  ? t('dashboard.routesToReviewHelp')
-                  : t('dashboard.assignedRoutesHelp')}
-              </Typography>
-            </Box>
-            <Button component={Link} to="/routes">
-              {t('dashboard.viewRoutes')}
-            </Button>
+            {administrator ? <Truck size={27} /> : <ShoppingCart size={27} />}
+            <Typography variant="h5" color="text.primary">
+              {t(administrator ? 'dashboard.manageRoutes' : 'ui.startSale')}
+            </Typography>
           </Stack>
-          {displayedRoutes.map((route) => (
-            <RouteCard
-              key={route.id}
-              route={route}
-              balanceCount={
-                balanceRows.filter((balance) => balance.stockLocation.routeId === route.id).length
-              }
-            />
-          ))}
-          {!routes.isLoading && displayedRoutes.length === 0 && (
-            <Paper variant="outlined" sx={{ p: 3 }}>
-              <Typography color="text.secondary">
-                {administrator ? t('dashboard.noOpenRoutes') : t('dashboard.noAssignedRoutes')}
-              </Typography>
-            </Paper>
-          )}
-        </Stack>
-
-        <Paper variant="outlined" sx={{ alignSelf: 'start', p: 3 }}>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
-            {t('dashboard.quickActions')}
+          <Typography color="text.secondary" sx={{ mb: 2 }}>
+            {t(administrator ? 'ui.adminHelp' : 'ui.startSaleHelp')}
           </Typography>
-          <Stack spacing={1.25} sx={{ mt: 2 }}>
-            {administrator ? (
-              <>
-                <Button component={Link} to="/inventory/operations/new" variant="contained">
-                  {t('inventory.recordOperation')}
-                </Button>
-                <Button component={Link} to="/routes" variant="outlined">
-                  {t('dashboard.manageRoutes')}
-                </Button>
-                <Button component={Link} to="/catalog" variant="outlined">
-                  {t('inventory.openCatalog')}
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button
-                  component={Link}
-                  disabled={!activeDriverRoute}
-                  to="/sales/new"
-                  variant="contained"
-                >
-                  {t('sales.newSale')}
-                </Button>
-                {!activeDriverRoute && (
-                  <Typography color="text.secondary" variant="caption">
-                    {t('dashboard.saleRequiresActiveRoute')}
-                  </Typography>
-                )}
-                <Button component={Link} to="/routes" variant="outlined">
-                  {t('nav.myRoute')}
-                </Button>
-                <Button component={Link} to="/sales" variant="outlined">
-                  {t('nav.mySales')}
-                </Button>
-              </>
-            )}
+          <Button
+            component={Link}
+            to={administrator ? '/routes' : '/sales/new'}
+            disabled={!administrator && !active}
+            variant="contained"
+            size="large"
+            endIcon={<ArrowRight size={20} />}
+          >
+            {t(administrator ? 'dashboard.manageRoutes' : 'sales.newSale')}
+          </Button>
+          {!administrator && !active && (
+            <Typography variant="body2" sx={{ mt: 1 }}>
+              {t('dashboard.saleRequiresActiveRoute')}
+            </Typography>
+          )}
+        </Paper>
+        <Paper variant="outlined" sx={{ p: 3 }}>
+          <Stack
+            direction="row"
+            spacing={1.5}
+            sx={{ alignItems: 'center', mb: 1, color: 'secondary.main' }}
+          >
+            {administrator ? <Package size={27} /> : <ReceiptText size={27} />}
+            <Typography variant="h5" color="text.primary">
+              {t(administrator ? 'nav.inventory' : 'ui.tickets')}
+            </Typography>
           </Stack>
+          <Typography color="text.secondary" sx={{ mb: 2 }}>
+            {t(administrator ? 'inventory.overviewDescription' : 'ui.printHelp')}
+          </Typography>
+          <Button
+            component={Link}
+            to={administrator ? '/inventory' : '/sales'}
+            variant="outlined"
+            endIcon={<ArrowRight size={19} />}
+          >
+            {t(administrator ? 'nav.inventory' : 'nav.mySales')}
+          </Button>
         </Paper>
       </Box>
+      <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 } }}>
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          {t('ui.summary')}
+        </Typography>
+        <Box
+          sx={{
+            display: 'grid',
+            gap: 2,
+            gridTemplateColumns: {
+              xs: 'repeat(2, minmax(0, 1fr))',
+              md: 'repeat(4, minmax(0, 1fr))',
+            },
+          }}
+        >
+          {metrics.map(({ label, value, icon: Icon, color }) => (
+            <Box key={label} sx={{ textAlign: 'center', py: 1 }}>
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  color,
+                  bgcolor: `${color}12`,
+                  p: 1.25,
+                  borderRadius: 2,
+                  mb: 1,
+                }}
+              >
+                <Icon size={24} />
+              </Box>
+              <Typography variant="h5">{value}</Typography>
+              <Typography variant="body2" color="text.secondary">
+                {t(label)}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      </Paper>
+      <Stack spacing={1.5}>
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{ justifyContent: 'space-between', alignItems: 'center' }}
+        >
+          <Typography variant="h5">
+            {t(administrator ? 'dashboard.routesToReview' : 'dashboard.assignedRoutes')}
+          </Typography>
+          <Button component={Link} to="/routes" endIcon={<ArrowRight size={18} />}>
+            {t('dashboard.viewRoutes')}
+          </Button>
+        </Stack>
+        {displayedRoutes.map((route) => (
+          <Paper
+            key={route.id}
+            component={Link}
+            to={`/routes?routeId=${encodeURIComponent(route.id)}`}
+            variant="outlined"
+            sx={{
+              p: 2.5,
+              color: 'text.primary',
+              textDecoration: 'none',
+              '&:hover': { borderColor: 'primary.main' },
+            }}
+          >
+            <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  p: 1.5,
+                  bgcolor: '#edf3ff',
+                  color: 'secondary.main',
+                  borderRadius: '50%',
+                }}
+              >
+                <Truck size={25} />
+              </Box>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography variant="h6">{route.routeNumber}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {t('dashboard.businessDate', { date: formatDate(route.businessDate) })}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {t('dashboard.routeBalances', {
+                    count: balanceRows.filter(
+                      (balance) => balance.stockLocation.routeId === route.id,
+                    ).length,
+                  })}
+                </Typography>
+              </Box>
+              <Chip
+                size="small"
+                color={
+                  route.state === 'RETURNED'
+                    ? 'warning'
+                    : route.state === 'EN_ROUTE' || route.state === 'CLOSED'
+                      ? 'success'
+                      : 'default'
+                }
+                label={t(`status.${route.state}`)}
+              />
+              <ArrowRight size={18} />
+            </Stack>
+          </Paper>
+        ))}
+        {!routes.isLoading && displayedRoutes.length === 0 && (
+          <Paper variant="outlined" sx={{ p: 3 }}>
+            <Typography color="text.secondary">
+              {t(administrator ? 'dashboard.noOpenRoutes' : 'dashboard.noAssignedRoutes')}
+            </Typography>
+          </Paper>
+        )}
+      </Stack>
+      {administrator && (
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+          <Button component={Link} to="/inventory/operations/new" variant="outlined">
+            {t('inventory.recordOperation')}
+          </Button>
+          <Button component={Link} to="/catalog">
+            {t('inventory.openCatalog')}
+          </Button>
+        </Stack>
+      )}
+      {children && (
+        <Box component="details">
+          <Box component="summary" sx={{ cursor: 'pointer', py: 2, color: 'text.secondary' }}>
+            {t('printers.overview')}
+          </Box>
+          {children}
+        </Box>
+      )}
     </Stack>
   );
 }

@@ -2,6 +2,7 @@ import {
   Alert,
   Button,
   CircularProgress,
+  Paper,
   MenuItem,
   Stack,
   TextField,
@@ -11,12 +12,17 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { ShoppingCart } from 'lucide-react';
+import { ProductPicker } from '../sales/customer-product-picker.js';
 import { apiRequest } from '../../lib/api/client.js';
 import { localizedErrorMessage } from '../../lib/api/localized-error.js';
 import { completeIdempotentOperation, idempotencyKey } from '../../lib/api/idempotency.js';
 import { RouteHistory } from './route-history.js';
 import { RouteOverview } from './route-overview.js';
+import { DriverReturnForm } from './driver-return-form.js';
+import { ReturnReceipt } from './return-receipt.js';
+import { RouteScopeTabs } from './route-scope-tabs.js';
 import { useRouteDetail, useRoutes } from './route-queries.js';
 
 interface LoadValues {
@@ -35,9 +41,10 @@ function newCommandOperationIds(): Record<RouteCommand, string> {
 
 export function DriverRoutePages() {
   const { t } = useTranslation();
-  const routes = useRoutes();
   const client = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [history, setHistory] = useState(() => searchParams.get('view') === 'history');
+  const routes = useRoutes(history ? 'closed' : 'active');
   const [selected, setSelected] = useState<string | null>(() => searchParams.get('routeId'));
   const commandOperationIds = useRef(newCommandOperationIds());
   useEffect(() => {
@@ -47,17 +54,20 @@ export function DriverRoutePages() {
     };
   }, [selected]);
   useEffect(() => {
-    if (
-      routes.data?.data.length &&
-      (!selected || !routes.data.data.some((route) => route.id === selected))
-    ) {
+    if (routes.data?.data.length && !selected) {
       const active = routes.data.data.find((route) => route.state !== 'CLOSED');
       const routeId = (active ?? routes.data.data[0])!.id;
       setSelected(routeId);
-      setSearchParams({ routeId }, { replace: true });
+      setSearchParams({ ...(history ? { view: 'history' } : {}), routeId }, { replace: true });
     }
-  }, [routes.data, selected, setSearchParams]);
+  }, [routes.data, selected, history, setSearchParams]);
   const detail = useRouteDetail(selected);
+  useEffect(() => {
+    if (selected && detail.data?.data.route.state === 'CLOSED' && !history) {
+      setHistory(true);
+      setSearchParams({ view: 'history', routeId: selected }, { replace: true });
+    }
+  }, [selected, detail.data?.data.route.state, history, setSearchParams]);
   const form = useForm<LoadValues>({
     defaultValues: { lines: [{ productId: '', quantity: '1' }] },
   });
@@ -99,6 +109,19 @@ export function DriverRoutePages() {
   return (
     <Stack spacing={3}>
       <Typography variant="h4">{t('routes.myRoutes')}</Typography>
+      <RouteScopeTabs
+        history={history}
+        onChange={(value) => {
+          setHistory(value);
+          setSelected(null);
+          setSearchParams(value ? { view: 'history' } : {});
+        }}
+      />
+      {routes.data?.data.length === 0 && (
+        <Alert severity="info">
+          {t(history ? 'routes.noClosedRoutes' : 'routes.noActiveRoutes')}
+        </Alert>
+      )}
       {(routes.error || detail.error || draft.error || command.error) && (
         <Alert severity="error">
           {localizedErrorMessage(routes.error ?? detail.error ?? draft.error ?? command.error, t)}
@@ -107,18 +130,40 @@ export function DriverRoutePages() {
       <TextField
         select
         label={t('routes.assignedRoute')}
-        value={selected ?? ''}
+        value={routes.data?.data.some((route) => route.id === selected) ? selected : ''}
         onChange={(event) => {
           setSelected(event.target.value);
-          setSearchParams({ routeId: event.target.value }, { replace: true });
+          setSearchParams(
+            { ...(history ? { view: 'history' } : {}), routeId: event.target.value },
+            { replace: true },
+          );
         }}
       >
+        <MenuItem value="" disabled>
+          {t('routes.assignedRoute')}
+        </MenuItem>
         {routes.data?.data.map((route) => (
           <MenuItem key={route.id} value={route.id}>
             {route.routeNumber} · {t(`status.${route.state}`, { defaultValue: route.state })}
           </MenuItem>
         ))}
       </TextField>
+      {current?.route.state === 'EN_ROUTE' && (
+        <Paper variant="outlined" sx={{ p: 2.5, bgcolor: '#f0eaff' }}>
+          <Stack spacing={1.5}>
+            <Typography variant="h5">{t('ui.startSale')}</Typography>
+            <Button
+              component={Link}
+              to="/sales/new"
+              variant="contained"
+              size="large"
+              startIcon={<ShoppingCart size={21} />}
+            >
+              {t('sales.newSale')}
+            </Button>
+          </Stack>
+        </Paper>
+      )}
       {current && <RouteOverview detail={current} />}
       {current?.route.state === 'PREPARING' && (
         <Stack
@@ -130,9 +175,9 @@ export function DriverRoutePages() {
           <Stack spacing={1} sx={{ flexGrow: 1 }}>
             {loadLines.fields.map((field, index) => (
               <Stack key={field.id} direction={{ xs: 'column', md: 'row' }} spacing={1}>
-                <TextField
-                  label={t('common.productId')}
-                  {...form.register(`lines.${index}.productId`, { required: true })}
+                <ProductPicker
+                  value={form.watch(`lines.${index}.productId`)}
+                  onChange={(id) => form.setValue(`lines.${index}.productId`, id)}
                 />
                 <TextField
                   label={t('routes.loadQuantity')}
@@ -171,11 +216,14 @@ export function DriverRoutePages() {
           )}
         </Stack>
       )}
-      {current?.route.state === 'EN_ROUTE' && (
-        <Button variant="contained" onClick={() => command.mutate('return')}>
-          {t('routes.markReturned')}
-        </Button>
-      )}
+      {current &&
+        (current.route.state === 'EN_ROUTE' ||
+          (current.route.state === 'RETURNED' &&
+            !current.returnDeclaration &&
+            !current.reconciliation)) && (
+          <DriverReturnForm key={`${current.route.id}:${current.route.state}`} detail={current} />
+        )}
+      {current && <ReturnReceipt detail={current} />}
       {current && <RouteHistory detail={current} />}
     </Stack>
   );

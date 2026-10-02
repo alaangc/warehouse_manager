@@ -27,6 +27,15 @@ const printer = {
   model: 'BLE',
   active: true,
   version: 1,
+  serviceUuid: 'ffe0',
+  writeCharacteristicUuid: 'ffe1',
+  writeMode: 'WITH_RESPONSE',
+  commandDialect: 'ESC_POS',
+  paperWidthMm: 58,
+  encoding: 'CP850',
+  maxChunkBytes: 100,
+  interChunkDelayMs: 0,
+  transport: 'WEB_BLUETOOTH_BLE',
 };
 const businessSettings = {
   version: 1,
@@ -123,7 +132,11 @@ describe('administration UI', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Edit Test Driver' }));
     fireEvent.change(screen.getByLabelText('Display name'), { target: { value: 'Edited Driver' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save user' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent(failure.detail);
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      failure.code === 'OPTIMISTIC_CONFLICT'
+        ? 'This record changed. Refresh it and try again.'
+        : failure.detail,
+    );
     expect(screen.getByLabelText('Display name')).toHaveValue('Edited Driver');
   });
   it('submits business settings with the displayed version', async () => {
@@ -232,7 +245,9 @@ describe('administration UI', () => {
     });
     fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'New schedule' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save business settings' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Reload the record');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'This record changed. Refresh it and try again.',
+    );
     expect(screen.getByLabelText('Business timezone')).toHaveValue('America/Tijuana');
     fetcher.mockImplementation(() =>
       respond({ version: 3, currencyCode: 'USD', businessTimezone: 'America/Phoenix' }),
@@ -339,6 +354,7 @@ describe('administration UI', () => {
   });
   it('shows permission denial without recording a successful print', async () => {
     const fetcher = mockApi();
+    vi.stubGlobal('isSecureContext', true);
     vi.stubGlobal('navigator', {
       ...navigator,
       bluetooth: {
@@ -348,6 +364,9 @@ describe('administration UI', () => {
       },
     });
     await open('/settings', 'DRIVER');
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Connect printer' })).toBeEnabled(),
+    );
     fireEvent.click(await screen.findByRole('button', { name: 'Connect printer' }));
     expect(await screen.findByRole('alert')).toHaveTextContent(/permission|denied/i);
     expect(

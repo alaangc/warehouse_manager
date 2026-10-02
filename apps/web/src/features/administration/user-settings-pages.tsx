@@ -71,7 +71,7 @@ function UserDirectory({ actorId }: { actorId: string }) {
     setSuccess(false);
   };
   return (
-    <Stack spacing={3}>
+    <Stack spacing={3} sx={{ minWidth: 0 }}>
       <Stack
         direction="row"
         sx={{ justifyContent: 'space-between', alignItems: 'center' }}
@@ -135,12 +135,15 @@ function UserDirectory({ actorId }: { actorId: string }) {
         sx={{
           display: 'grid',
           gap: 3,
-          gridTemplateColumns: { xs: '1fr', lg: 'minmax(260px, 1fr) minmax(320px, 1fr)' },
+          gridTemplateColumns: {
+            xs: 'minmax(0, 1fr)',
+            lg: 'minmax(260px, 1fr) minmax(320px, 1fr)',
+          },
         }}
       >
-        <Stack spacing={1.5}>
+        <Stack spacing={1.5} sx={{ minWidth: 0 }}>
           {users.data?.data.map((row) => (
-            <Paper key={row.id} variant="outlined" sx={{ p: 2 }}>
+            <Paper key={row.id} variant="outlined" sx={{ p: 2, overflowWrap: 'anywhere' }}>
               <Typography variant="h6">{row.displayName}</Typography>
               <Typography color="text.secondary">
                 {row.username} · {t(`administration.${row.role}`)} ·{' '}
@@ -176,7 +179,7 @@ function UserDirectory({ actorId }: { actorId: string }) {
           </Stack>
         </Stack>
         {selected && (
-          <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 }, alignSelf: 'start' }}>
+          <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 }, alignSelf: 'start', minWidth: 0 }}>
             <UserEditor
               key={
                 selected === 'new' ? 'new' : `${selected.id}:${selected.version}:${editorRevision}`

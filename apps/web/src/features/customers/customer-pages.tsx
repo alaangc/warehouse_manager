@@ -4,6 +4,7 @@ import {
   Button,
   Chip,
   CircularProgress,
+  InputAdornment,
   MenuItem,
   Paper,
   Stack,
@@ -11,6 +12,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
+import { Plus, Search, Users } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSession } from '../../app/session.js';
@@ -101,10 +103,15 @@ function CustomerProfile({ customer }: { customer: Customer }) {
 
 function Metric({ label, value, tone }: { label: string; value: number; tone: string }) {
   return (
-    <Paper variant="outlined" sx={{ borderTop: `4px solid ${tone}`, p: 2 }}>
-      <Typography variant="h5" sx={{ color: tone, fontWeight: 750 }}>
-        {value}
-      </Typography>
+    <Paper variant="outlined" sx={{ p: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
+      <Box sx={{ display: 'flex', p: 1.25, bgcolor: `${tone}12`, borderRadius: 2, color: tone }}>
+        <Users size={23} />
+      </Box>
+      <Box>
+        <Typography variant="h5" sx={{ color: tone, fontWeight: 750 }}>
+          {value}
+        </Typography>
+      </Box>
       <Typography color="text.secondary" variant="body2">
         {label}
       </Typography>
@@ -148,6 +155,7 @@ export function CustomerPages() {
         </Box>
         {administrator && (
           <Button
+            startIcon={<Plus size={20} />}
             onClick={() => {
               setSelected(null);
               setCreating(true);
@@ -169,6 +177,15 @@ export function CustomerPages() {
           <TextField
             fullWidth
             label={t('customers.search')}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search size={20} />
+                  </InputAdornment>
+                ),
+              },
+            }}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
@@ -209,7 +226,12 @@ export function CustomerPages() {
           gridTemplateColumns: { xs: '1fr', lg: 'minmax(300px, 0.7fr) minmax(0, 1.3fr)' },
         }}
       >
-        <Stack spacing={1.5}>
+        <Stack
+          spacing={1.5}
+          role="region"
+          aria-label={t('customers.directory')}
+          aria-busy={customers.isFetching}
+        >
           <Typography variant="h5" sx={{ fontWeight: 700 }}>
             {t('customers.directory')}
           </Typography>

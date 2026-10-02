@@ -38,7 +38,7 @@ export async function decodeProblem(response: Response): Promise<ApiProblem> {
     status: body.status ?? response.status,
     code: body.code ?? 'HTTP_ERROR',
     ...(body.detail === undefined ? {} : { detail: body.detail }),
-    ...(body.instance === undefined ? {} : { instance: body.instance }),
+    instance: body.instance ?? response.url,
     ...(body.requestId === undefined ? {} : { requestId: body.requestId }),
     ...(body.errors === undefined ? {} : { errors: body.errors }),
   });

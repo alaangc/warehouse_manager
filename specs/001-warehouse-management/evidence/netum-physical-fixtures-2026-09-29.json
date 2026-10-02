@@ -1,0 +1,189 @@
+{
+  "sale": {
+    "id": "852ef18a-31f7-4f34-bc79-c78dbecfdc90",
+    "saleNumber": "S-1790732744408-852EF18A",
+    "clientOperationId": "8db96cbd-f2b7-4ebd-809c-7b3cd799cc17",
+    "status": "COMPLETED",
+    "customerId": "2fcc9da7-7dc5-4ac8-9761-681c08ae0351",
+    "driverId": "78430027-66fd-4deb-b21c-700b011cd1fb",
+    "routeId": "3959e64c-7df0-409c-968e-9e13781144dd",
+    "originLocationId": "00000000-0000-4000-8000-000000000020",
+    "paymentMethod": "CASH",
+    "currencyCode": "MXN",
+    "subtotal": "25.00",
+    "total": "25.00",
+    "roundingMode": "HALF_AWAY_FROM_ZERO",
+    "lines": [
+      {
+        "sequence": 1,
+        "productId": "9e33e5a4-e2c3-4550-9060-be00aa19c43e",
+        "productName": "Café, piñata y azúcar - paquete de prueba con nombre largo",
+        "categoryName": "Sale category 14de350c-daae-46b5-840c-cb493cc5cdbb",
+        "reportingGroup": "SODAS",
+        "unitCode": "PZA",
+        "quantity": "2.000",
+        "appliedPriceSource": "STANDARD",
+        "unitPrice": "12.5000",
+        "lineAmount": "25.00"
+      }
+    ],
+    "ticketNumber": "T-1790732744408-852EF18A",
+    "completedAt": "2026-09-30T01:45:44.437Z",
+    "cancelledAt": null,
+    "cancelledBy": null,
+    "cancellationReason": null
+  },
+  "load": {
+    "route": {
+      "id": "3959e64c-7df0-409c-968e-9e13781144dd",
+      "routeNumber": "R-79b99877-1c46-45b5-b9b8-873a91a47dc6",
+      "state": "PREPARING",
+      "originLocationId": "00000000-0000-4000-8000-000000000020",
+      "driverId": "78430027-66fd-4deb-b21c-700b011cd1fb",
+      "vehicleId": "fdce1506-f00d-424e-9dba-c5e5349469ca",
+      "businessDate": "2026-08-27",
+      "createdBy": "00000000-0000-4000-8000-000000000010",
+      "createdAt": "2026-09-30T01:45:44.021Z",
+      "startedAt": null,
+      "returnedAt": null,
+      "closedAt": null,
+      "closedBy": null,
+      "version": 1
+    },
+    "load": {
+      "id": "768710b1-5d73-4449-a9f0-1d4da5a49493",
+      "routeId": "3959e64c-7df0-409c-968e-9e13781144dd",
+      "state": "CONFIRMED",
+      "recordedBy": "78430027-66fd-4deb-b21c-700b011cd1fb",
+      "confirmedAt": "2026-09-30T01:45:44.304Z",
+      "lines": [
+        {
+          "productId": "9e33e5a4-e2c3-4550-9060-be00aa19c43e",
+          "quantity": "10.000"
+        }
+      ],
+      "version": 3
+    },
+    "balances": [
+      {
+        "id": "4e5bd095-d3b2-4f75-8cfd-27ab29d56efb",
+        "productId": "9e33e5a4-e2c3-4550-9060-be00aa19c43e",
+        "productName": "Café, piñata y azúcar - paquete de prueba con nombre largo",
+        "quantity": "110.000",
+        "version": 2,
+        "updatedAt": "2026-09-30T01:45:44.296Z",
+        "lowStockAlert": false,
+        "stockLocation": {
+          "id": "4311a0b7-5156-4d52-a8c8-9c9946de4f11",
+          "kind": "ROUTE",
+          "label": "Route R-79b99877-1c46-45b5-b9b8-873a91a47dc6",
+          "branchId": null,
+          "routeId": "3959e64c-7df0-409c-968e-9e13781144dd"
+        }
+      }
+    ],
+    "movements": [
+      {
+        "id": "203fc071-ce50-4eb9-8368-580da2617eca",
+        "operationId": "0b2d822d-061f-4570-87b1-2b511cc3872f",
+        "operationType": "ROUTE_LOAD",
+        "productId": "9e33e5a4-e2c3-4550-9060-be00aa19c43e",
+        "quantity": "10.000",
+        "sourceBalanceAfter": "90.000",
+        "destinationBalanceAfter": "110.000",
+        "actorId": "78430027-66fd-4deb-b21c-700b011cd1fb",
+        "reason": null,
+        "relatedEntityType": "ROUTE_LOAD",
+        "relatedEntityId": "768710b1-5d73-4449-a9f0-1d4da5a49493",
+        "reversesMovementId": null,
+        "source": {
+          "id": "5e574684-25c7-4149-9e59-328d1d4f9733",
+          "kind": "BRANCH",
+          "label": "Branch",
+          "branchId": "00000000-0000-4000-8000-000000000020",
+          "routeId": null
+        },
+        "destination": {
+          "id": "4311a0b7-5156-4d52-a8c8-9c9946de4f11",
+          "kind": "ROUTE",
+          "label": "Route",
+          "branchId": null,
+          "routeId": "3959e64c-7df0-409c-968e-9e13781144dd"
+        },
+        "occurredAt": "2026-09-30T01:45:44.264Z"
+      }
+    ],
+    "sales": [],
+    "reconciliation": null
+  },
+  "cashClose": {
+    "id": "2182214f-df90-4b92-862b-964f7c34320a",
+    "closeNumber": "CC-2182214F-DF90-4B92-862B-964F7C34320A",
+    "periodKind": "DAY",
+    "anchorDate": "2026-09-29",
+    "periodStart": "2026-09-29T07:00:00Z",
+    "periodEnd": "2026-09-30T07:00:00Z",
+    "businessTimezone": "America/Hermosillo",
+    "status": "CURRENT",
+    "supersedesCashCloseId": null,
+    "supersededByCashCloseId": null,
+    "correctionReason": null,
+    "currencyCode": "MXN",
+    "grossTotal": "25.00",
+    "partnerRate": "0.500000",
+    "partnerAmount": "12.50",
+    "remainingAmount": "12.50",
+    "roundingMode": "HALF_AWAY_FROM_ZERO",
+    "lines": [
+      {
+        "reportingGroup": "SODAS",
+        "total": "25.00"
+      },
+      {
+        "reportingGroup": "CHARCOAL",
+        "total": "0.00"
+      },
+      {
+        "reportingGroup": "TOSTADAS",
+        "total": "0.00"
+      },
+      {
+        "reportingGroup": "OTHER",
+        "total": "0.00"
+      }
+    ],
+    "contributingSaleIds": [
+      "852ef18a-31f7-4f34-bc79-c78dbecfdc90"
+    ],
+    "createdBy": "00000000-0000-4000-8000-000000000010",
+    "createdAt": "2026-09-30T01:45:44.583Z"
+  },
+  "documents": [
+    {
+      "id": "84144cd2-0cab-4a95-96b7-7fcc90419709",
+      "documentType": "ROUTE_LOAD",
+      "sourceType": "ROUTE_LOAD",
+      "sourceId": "768710b1-5d73-4449-a9f0-1d4da5a49493",
+      "contentVersion": "1:pdf-v1",
+      "contentHash": "83e269cba81c8634deef40ce804380d94641dee938b2ed045b8ee6929b6dd992",
+      "state": "READY",
+      "createdBy": "00000000-0000-4000-8000-000000000010",
+      "createdAt": "2026-09-30T01:45:44.685Z",
+      "readyAt": "2026-09-30T01:45:44.708Z",
+      "lastErrorCode": null
+    },
+    {
+      "id": "ed562328-de96-4763-a462-146f3167c6cd",
+      "documentType": "CASH_CLOSE",
+      "sourceType": "CASH_CLOSE",
+      "sourceId": "2182214f-df90-4b92-862b-964f7c34320a",
+      "contentVersion": "1:pdf-v1",
+      "contentHash": "be0b73ae33f8c4a69474bd102bf73606d7963686a4b2eb987be6b095ffcdcd6e",
+      "state": "READY",
+      "createdBy": "00000000-0000-4000-8000-000000000010",
+      "createdAt": "2026-09-30T01:45:44.741Z",
+      "readyAt": "2026-09-30T01:45:44.766Z",
+      "lastErrorCode": null
+    }
+  ]
+}

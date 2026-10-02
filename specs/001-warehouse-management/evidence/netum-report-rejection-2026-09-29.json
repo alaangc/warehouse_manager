@@ -1,0 +1,57 @@
+{
+  "at": "2026-09-30T01:48:43.287Z",
+  "reportDocumentId": "2d0ae10f-8883-4717-9390-3d5a1f0bd63c",
+  "checks": [
+    {
+      "mode": "PRINT",
+      "status": 422,
+      "code": "DOCUMENT_NOT_PRINTABLE"
+    },
+    {
+      "mode": "REPRINT",
+      "status": 422,
+      "code": "DOCUMENT_NOT_PRINTABLE"
+    }
+  ],
+  "before": {
+    "data": [
+      {
+        "id": "a298cf81-6b71-4b37-be66-d43b63243a1d",
+        "actorId": "00000000-0000-4000-8000-000000000010",
+        "documentId": "2d0ae10f-8883-4717-9390-3d5a1f0bd63c",
+        "mode": "GENERATE",
+        "state": "SUCCEEDED",
+        "attemptNumber": 1,
+        "createdAt": "2026-09-30T01:48:43.178Z",
+        "printerProfileId": null,
+        "errorCode": null,
+        "requestId": "ac50106e-5c85-4094-ae0e-8e36c867e5b7"
+      }
+    ],
+    "page": {
+      "hasNextPage": false,
+      "nextCursor": null
+    }
+  },
+  "after": {
+    "data": [
+      {
+        "id": "a298cf81-6b71-4b37-be66-d43b63243a1d",
+        "actorId": "00000000-0000-4000-8000-000000000010",
+        "documentId": "2d0ae10f-8883-4717-9390-3d5a1f0bd63c",
+        "mode": "GENERATE",
+        "state": "SUCCEEDED",
+        "attemptNumber": 1,
+        "createdAt": "2026-09-30T01:48:43.178Z",
+        "printerProfileId": null,
+        "errorCode": null,
+        "requestId": "ac50106e-5c85-4094-ae0e-8e36c867e5b7"
+      }
+    ],
+    "page": {
+      "hasNextPage": false,
+      "nextCursor": null
+    }
+  },
+  "scope": "HTTP rejection and unchanged attempt history only; browser/device-access observation pending"
+}

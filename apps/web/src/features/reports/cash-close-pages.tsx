@@ -24,9 +24,12 @@ import type { CashCloseResource } from '@warehouse/contracts';
 import { useRef, useState } from 'react';
 import { Link as RouterLink, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { formatDate, formatDateTime, formatDecimal } from '../../i18n/format.js';
+import { LanguageSettingsButton } from '../settings/language-settings.js';
 import { useSession } from '../../app/session.js';
 import { apiRequest } from '../../lib/api/client.js';
 import { ApiProblem } from '../../lib/api/problem.js';
+import { DocumentCenter } from '../documents/document-center.js';
 import {
   PeriodControls,
   ResolvedBoundaries,
@@ -172,7 +175,7 @@ export function CashClosePages() {
                 <TableRow key={row.id}>
                   <TableCell>{row.closeNumber}</TableCell>
                   <TableCell>
-                    {row.anchorDate} · {t(`reports.${row.periodKind}`)}
+                    {formatDate(row.anchorDate)} · {t(`reports.${row.periodKind}`)}
                   </TableCell>
                   <TableCell>
                     <Chip
@@ -183,7 +186,7 @@ export function CashClosePages() {
                   </TableCell>
                   <TableCell>{row.correctionReason}</TableCell>
                   <TableCell>
-                    {row.currencyCode} {row.grossTotal}
+                    {row.currencyCode} {formatDecimal(row.grossTotal)}
                   </TableCell>
                   <TableCell>
                     <Button onClick={() => setParams({ closeId: row.id })}>
@@ -221,6 +224,14 @@ export function CashClosePages() {
               {selected.closeNumber}
             </Typography>
             <Chip label={t(`reports.${selected.status}`)} />
+            <DocumentCenter
+              source={{
+                documentType: 'CASH_CLOSE',
+                sourceType: 'CASH_CLOSE',
+                sourceId: selected.id,
+                sourceState: 'CLOSED',
+              }}
+            />
             <ResolvedBoundaries {...selected} />
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
               {(
@@ -233,21 +244,22 @@ export function CashClosePages() {
                 <Stack key={label}>
                   <Typography>{t(`reports.${label}`)}</Typography>
                   <Typography variant="h6">
-                    {selected.currencyCode} {amount}
+                    {selected.currencyCode} {formatDecimal(amount)}
                   </Typography>
                 </Stack>
               ))}
             </Stack>
             {selected.lines.map((line) => (
               <Typography key={line.reportingGroup}>
-                {t(`reports.${line.reportingGroup}`)}: {selected.currencyCode} {line.total}
+                {t(`reports.${line.reportingGroup}`)}: {selected.currencyCode}{' '}
+                {formatDecimal(line.total)}
               </Typography>
             ))}
             <Typography>
               {t('reports.createdBy')}: {selected.createdBy}
             </Typography>
             <Typography>
-              {t('reports.createdAt')}: {selected.createdAt}
+              {t('reports.createdAt')}: {formatDateTime(selected.createdAt)}
             </Typography>
             {selected.correctionReason && (
               <Typography>
@@ -294,7 +306,7 @@ export function CashClosePages() {
           <Stack spacing={2} sx={{ pt: 1 }}>
             <Typography>
               {dialog === 'create'
-                ? `${t(`reports.${periodKind}`)} · ${anchorDate}`
+                ? `${t(`reports.${periodKind}`)} · ${formatDate(anchorDate)}`
                 : typeof dialog === 'object'
                   ? dialog?.closeNumber
                   : ''}
@@ -319,6 +331,7 @@ export function CashClosePages() {
           </Stack>
         </DialogContent>
         <DialogActions>
+          <LanguageSettingsButton />
           <Button disabled={mutation.isPending} onClick={() => setDialog(null)}>
             {t('common.cancel')}
           </Button>
@@ -360,7 +373,8 @@ function SaleSource({ id }: { id: string }) {
       {open && sale.data && (
         <Stack>
           <Typography>
-            {sale.data.data.saleNumber}: {sale.data.data.currencyCode} {sale.data.data.total}
+            {sale.data.data.saleNumber}: {sale.data.data.currencyCode}{' '}
+            {formatDecimal(sale.data.data.total)}
           </Typography>
           {sale.data.data.lines.map((line) => (
             <Typography key={line.sequence}>

@@ -1,0 +1,1126 @@
+{
+  "baseCommit": "0caa74041b31103906f508ac3c8278c8305861b1",
+  "includesT144WorkingTreeChanges": true,
+  "timezone": "America/Hermosillo",
+  "environment": {
+    "os": "Windows",
+    "node": "24.18.0",
+    "pnpm": "10.28.1",
+    "docker": "29.7.2",
+    "postgres": "18.6",
+    "installPackages": 625,
+    "dependencyStore": "dedicated initially empty store",
+    "database": "disposable Testcontainers; separate Compose bootstrap database"
+  },
+  "commands": [
+    {
+      "stage": "install",
+      "command": "install (original log omits exact argv)",
+      "exitCode": 0,
+      "started": "2026-09-17T12:34:45.8176579-07:00",
+      "seconds": 54.429
+    },
+    {
+      "stage": "format",
+      "command": "pnpm format:check",
+      "exitCode": 1,
+      "started": "2026-09-17T12:36:05.7616939-07:00",
+      "seconds": 12.386
+    },
+    {
+      "stage": "build",
+      "command": "pnpm build",
+      "exitCode": 0,
+      "started": "2026-09-17T12:36:05.8720327-07:00",
+      "seconds": 23.938
+    },
+    {
+      "stage": "lint",
+      "command": "pnpm lint",
+      "exitCode": 0,
+      "started": "2026-09-17T12:36:06.1163624-07:00",
+      "seconds": 40.655
+    },
+    {
+      "stage": "bootstrap-compose",
+      "command": "pnpm db:test:up",
+      "exitCode": 0,
+      "started": "2026-09-17T12:36:40.7725899-07:00",
+      "seconds": 2.631
+    },
+    {
+      "stage": "format-lf",
+      "command": "pnpm format:check",
+      "exitCode": 1,
+      "started": "2026-09-17T12:37:42.9800185-07:00",
+      "seconds": 11.936
+    },
+    {
+      "stage": "typecheck",
+      "command": "pnpm typecheck",
+      "exitCode": 0,
+      "started": "2026-09-17T12:37:43.1513418-07:00",
+      "seconds": 22.158
+    },
+    {
+      "stage": "bootstrap-migrate",
+      "command": "pnpm db:migrate",
+      "exitCode": 0,
+      "started": "2026-09-17T12:37:47.9206037-07:00",
+      "seconds": 5.727
+    },
+    {
+      "stage": "contract-generate",
+      "command": "pnpm contract:generate",
+      "exitCode": 0,
+      "started": "2026-09-17T12:38:19.2479276-07:00",
+      "seconds": 6.352
+    },
+    {
+      "stage": "bootstrap-seed",
+      "command": "pnpm db:seed",
+      "exitCode": 0,
+      "started": "2026-09-17T12:38:20.0040686-07:00",
+      "seconds": 3.476
+    },
+    {
+      "stage": "migration",
+      "command": "pnpm db:verify",
+      "exitCode": 0,
+      "started": "2026-09-17T12:38:20.6442817-07:00",
+      "seconds": 25.093
+    },
+    {
+      "stage": "format-normalized",
+      "command": "pnpm format:check",
+      "exitCode": 0,
+      "started": "2026-09-17T18:15:36.6476643-07:00",
+      "seconds": 4.788
+    },
+    {
+      "stage": "recovery",
+      "command": "pnpm db:recovery:test",
+      "exitCode": 1,
+      "started": "2026-09-17T18:15:42.5447892-07:00",
+      "seconds": 0.99
+    },
+    {
+      "stage": "recovery-retry",
+      "command": "pnpm db:recovery:test",
+      "exitCode": 1,
+      "started": "2026-09-17T18:15:59.3879596-07:00",
+      "seconds": 2.735
+    },
+    {
+      "stage": "unit",
+      "command": "pnpm test:unit --maxWorkers=2 --testTimeout=15000",
+      "exitCode": 0,
+      "started": "2026-09-17T18:16:05.5332180-07:00",
+      "seconds": 65.591
+    },
+    {
+      "stage": "contract-generate-lf",
+      "command": "pnpm contract:generate",
+      "exitCode": 0,
+      "started": "2026-09-17T18:16:54.9727741-07:00",
+      "seconds": 3.648
+    },
+    {
+      "stage": "contract-lint",
+      "command": "pnpm contract:lint",
+      "exitCode": -1073740791,
+      "started": "2026-09-17T18:17:26.7490839-07:00",
+      "seconds": 3.33
+    },
+    {
+      "stage": "api",
+      "command": "pnpm test:api --no-file-parallelism",
+      "exitCode": 1,
+      "started": "2026-09-17T18:17:52.5049792-07:00",
+      "seconds": 28.914
+    },
+    {
+      "stage": "recovery-docker",
+      "command": "pnpm db:recovery:test",
+      "exitCode": 0,
+      "started": "2026-09-17T18:18:17.8331076-07:00",
+      "seconds": 17.316
+    },
+    {
+      "stage": "contract-lint-retry",
+      "command": "pnpm contract:lint",
+      "exitCode": 0,
+      "started": "2026-09-17T18:18:41.5460034-07:00",
+      "seconds": 1.143
+    },
+    {
+      "stage": "contract-check",
+      "command": "pnpm contract:check-diff",
+      "exitCode": 0,
+      "started": "2026-09-17T18:18:45.4070524-07:00",
+      "seconds": 2.554
+    },
+    {
+      "stage": "api-docker",
+      "command": "pnpm test:api --no-file-parallelism",
+      "exitCode": 0,
+      "started": "2026-09-17T18:19:13.2958777-07:00",
+      "seconds": 98.334
+    },
+    {
+      "stage": "contract-test",
+      "command": "pnpm test:contract",
+      "exitCode": 0,
+      "started": "2026-09-17T18:19:26.4652784-07:00",
+      "seconds": 3.487
+    },
+    {
+      "stage": "integration",
+      "command": "pnpm test:integration --no-file-parallelism",
+      "exitCode": 1,
+      "started": "2026-09-17T18:19:43.6674159-07:00",
+      "seconds": 167.045
+    },
+    {
+      "stage": "bootstrap-compose-resume",
+      "command": "pnpm db:test:up",
+      "exitCode": 0,
+      "started": "2026-09-17T18:20:26.3527462-07:00",
+      "seconds": 1.782
+    },
+    {
+      "stage": "contract-runtime",
+      "command": "pnpm contract:runtime",
+      "exitCode": 0,
+      "started": "2026-09-17T18:20:31.1946555-07:00",
+      "seconds": 2.332
+    },
+    {
+      "stage": "e2e",
+      "command": "pnpm test:e2e --reporter=list,json",
+      "exitCode": 1,
+      "started": "2026-09-17T18:23:35.5938523-07:00",
+      "seconds": 570.264
+    },
+    {
+      "stage": "integration-fixed",
+      "command": "pnpm test:integration --no-file-parallelism",
+      "exitCode": 0,
+      "started": "2026-09-17T18:24:22.9637102-07:00",
+      "seconds": 241.502
+    },
+    {
+      "stage": "contract-gates",
+      "command": "pnpm test:contract-gates",
+      "exitCode": 0,
+      "started": "2026-09-17T18:24:35.8231961-07:00",
+      "seconds": 7.851
+    },
+    {
+      "stage": "lint-final",
+      "command": "pnpm lint",
+      "exitCode": 0,
+      "started": "2026-09-17T18:24:59.0345570-07:00",
+      "seconds": 44.667
+    },
+    {
+      "stage": "typecheck-final",
+      "command": "pnpm typecheck",
+      "exitCode": 0,
+      "started": "2026-09-17T18:25:11.6789798-07:00",
+      "seconds": 26.351
+    },
+    {
+      "stage": "browser-secrets",
+      "command": "pnpm security:browser",
+      "exitCode": 0,
+      "started": "2026-09-17T18:25:39.3649488-07:00",
+      "seconds": 1.116
+    },
+    {
+      "stage": "contract-compatibility",
+      "command": "pnpm contract:compatibility",
+      "exitCode": 0,
+      "started": "2026-09-17T18:25:57.6124670-07:00",
+      "seconds": 2.961
+    },
+    {
+      "stage": "api-final",
+      "command": "pnpm test:api --no-file-parallelism",
+      "exitCode": 0,
+      "started": "2026-09-17T18:28:03.6736154-07:00",
+      "seconds": 125.699
+    },
+    {
+      "stage": "format-final",
+      "command": "pnpm format:check",
+      "exitCode": 0,
+      "started": "2026-09-17T18:28:32.5478212-07:00",
+      "seconds": 8.516
+    },
+    {
+      "stage": "e2e-customer-fixed",
+      "command": "pnpm test:e2e us4-customers.spec.ts --reporter=list,json",
+      "exitCode": 0,
+      "started": "2026-09-17T18:33:22.3254326-07:00",
+      "seconds": 63.187
+    },
+    {
+      "stage": "performance-search",
+      "command": "pnpm test:performance:search",
+      "exitCode": 1,
+      "started": "2026-09-17T18:34:36.4637025-07:00",
+      "seconds": 198.794
+    },
+    {
+      "stage": "performance-search-fixed",
+      "command": "pnpm test:performance:search",
+      "exitCode": 0,
+      "started": "2026-09-17T18:38:14.7076771-07:00",
+      "seconds": 160.444
+    },
+    {
+      "stage": "performance-documents",
+      "command": "pnpm test:performance:documents",
+      "exitCode": 1,
+      "started": "2026-09-18T09:49:03.3711996-07:00",
+      "seconds": 21.243
+    },
+    {
+      "stage": "performance-documents-docker",
+      "command": "pnpm test:performance:documents",
+      "exitCode": 0,
+      "started": "2026-09-18T09:49:49.3746990-07:00",
+      "seconds": 203.203
+    }
+  ],
+  "suites": {
+    "unit": {
+      "passed": 348,
+      "files": 37
+    },
+    "api": {
+      "passed": 144,
+      "files": 12
+    },
+    "integration": {
+      "passed": 212,
+      "files": 26
+    }
+  },
+  "pending": [
+    "Physical printer acceptance T133",
+    "Human usability acceptance T141",
+    "Reviewer release sign-off T145"
+  ],
+  "browsers": {
+    "initial": {
+      "stats": {
+        "startTime": "2026-09-18T01:23:36.585Z",
+        "duration": 569196.373,
+        "expected": 39,
+        "skipped": 2,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "file": "documents/document-center-ui.spec.ts",
+          "title": "document history and PDF download at 1440px with HTTP fixtures",
+          "project": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 2289,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "documents/document-center-ui.spec.ts",
+          "title": "document history and PDF download at 390px with HTTP fixtures",
+          "project": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 1951,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "documents/document-center-ui.spec.ts",
+          "title": "document history and PDF download at 1440px with HTTP fixtures",
+          "project": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 4807,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "documents/document-center-ui.spec.ts",
+          "title": "document history and PDF download at 390px with HTTP fixtures",
+          "project": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 3058,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "documents/document-center-ui.spec.ts",
+          "title": "document history and PDF download at 1440px with HTTP fixtures",
+          "project": "webkit",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 7400,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "documents/document-center-ui.spec.ts",
+          "title": "document history and PDF download at 390px with HTTP fixtures",
+          "project": "webkit",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 3921,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "t115-administration.spec.ts",
+          "title": "T115 manages users and business settings on desktop and mobile",
+          "project": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 10417,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "t115-administration.spec.ts",
+          "title": "T115 manages users and business settings on desktop and mobile",
+          "project": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 15097,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "t115-administration.spec.ts",
+          "title": "T115 manages users and business settings on desktop and mobile",
+          "project": "webkit",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 16199,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us1-inventory.spec.ts",
+          "title": "administrator inventory workflow is atomic and Driver mutations are denied",
+          "project": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 16234,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us1-inventory.spec.ts",
+          "title": "administrator inventory workflow is atomic and Driver mutations are denied",
+          "project": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 22800,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us1-inventory.spec.ts",
+          "title": "administrator inventory workflow is atomic and Driver mutations are denied",
+          "project": "webkit",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 32310,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us2-sales.spec.ts",
+          "title": "sale ticket retry, cancellation, and Driver history remain scoped",
+          "project": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 8390,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us2-sales.spec.ts",
+          "title": "sale ticket retry, cancellation, and Driver history remain scoped",
+          "project": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 9913,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us2-sales.spec.ts",
+          "title": "sale ticket retry, cancellation, and Driver history remain scoped",
+          "project": "webkit",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 12749,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us3-routes.spec.ts",
+          "title": "route lifecycle remains retry-safe, reconciled, scoped, and immutable",
+          "project": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 13801,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us3-routes.spec.ts",
+          "title": "route lifecycle remains retry-safe, reconciled, scoped, and immutable",
+          "project": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 17378,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us3-routes.spec.ts",
+          "title": "route lifecycle remains retry-safe, reconciled, scoped, and immutable",
+          "project": "webkit",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 19551,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us4-customers.spec.ts",
+          "title": "customer pricing falls back safely while history and role boundaries remain intact",
+          "project": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 13808,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us4-customers.spec.ts",
+          "title": "customer pricing falls back safely while history and role boundaries remain intact",
+          "project": "firefox",
+          "status": "unexpected",
+          "attempts": [
+            {
+              "status": "timedOut",
+              "retry": 0,
+              "durationMs": 31122,
+              "errors": [
+                "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                "Error: locator.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for getByRole('combobox', { name: 'Customer' })\u001b[22m\n\n\n  360 |\n  361 |   await driverPage.goto('/sales/new');\n> 362 |   await driverPage.getByRole('combobox', { name: 'Customer' }).click();\n      |                                                                ^\n  363 |   await driverPage.getByRole('option', { name: new RegExp(customerName) }).click();\n  364 |   await driverPage.getByRole('button', { name: 'Next: products' }).click();\n  365 |   await driverPage.getByRole('combobox', { name: 'Product' }).click();\n    at C:\\stock_control\\.tools\\t144-clean-20260917\\tests\\e2e\\us4-customers.spec.ts:362:64"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "us4-customers.spec.ts",
+          "title": "customer pricing falls back safely while history and role boundaries remain intact",
+          "project": "webkit",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 22224,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us5-reporting.spec.ts",
+          "title": "calendar reports and immutable cash-close currentness remain reproducible",
+          "project": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 4215,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us5-reporting.spec.ts",
+          "title": "calendar reports and immutable cash-close currentness remain reproducible",
+          "project": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 8279,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us5-reporting.spec.ts",
+          "title": "calendar reports and immutable cash-close currentness remain reproducible",
+          "project": "webkit",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 4026,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us6-document-history.spec.ts",
+          "title": "history traverses pages, filters and opens Administrator-created own-source attempts",
+          "project": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 15088,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us6-document-history.spec.ts",
+          "title": "Driver cannot use forbidden sources, content URLs, attempts, filters or TEST_PRINT history",
+          "project": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 14459,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us6-document-history.spec.ts",
+          "title": "history traverses pages, filters and opens Administrator-created own-source attempts",
+          "project": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 16694,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us6-document-history.spec.ts",
+          "title": "Driver cannot use forbidden sources, content URLs, attempts, filters or TEST_PRINT history",
+          "project": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 15189,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us6-document-history.spec.ts",
+          "title": "history traverses pages, filters and opens Administrator-created own-source attempts",
+          "project": "webkit",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 15534,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us6-document-history.spec.ts",
+          "title": "Driver cannot use forbidden sources, content URLs, attempts, filters or TEST_PRINT history",
+          "project": "webkit",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 14769,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us6-documents-printing.spec.ts",
+          "title": "Administrator downloads all four PDFs; Driver reuses own Ticket and assigned confirmed load",
+          "project": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 10874,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us6-documents-printing.spec.ts",
+          "title": "Chromium prints three supported types, rejects REPORT, and requires explicit UNKNOWN reprint",
+          "project": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 12532,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us6-documents-printing.spec.ts",
+          "title": "Administrator downloads all four PDFs; Driver reuses own Ticket and assigned confirmed load",
+          "project": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 12533,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us6-documents-printing.spec.ts",
+          "title": "Chromium prints three supported types, rejects REPORT, and requires explicit UNKNOWN reprint",
+          "project": "firefox",
+          "status": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "retry": 0,
+              "durationMs": 411,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us6-documents-printing.spec.ts",
+          "title": "Administrator downloads all four PDFs; Driver reuses own Ticket and assigned confirmed load",
+          "project": "webkit",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 11158,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us6-documents-printing.spec.ts",
+          "title": "Chromium prints three supported types, rejects REPORT, and requires explicit UNKNOWN reprint",
+          "project": "webkit",
+          "status": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "retry": 0,
+              "durationMs": 306,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us7-user-settings.spec.ts",
+          "title": "creates a Driver, denies administrator access, revokes access, and retains actor history",
+          "project": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 8721,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us7-user-settings.spec.ts",
+          "title": "Driver connects and tests only an approved printer without gaining configuration access",
+          "project": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 7025,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us7-user-settings.spec.ts",
+          "title": "creates a Driver, denies administrator access, revokes access, and retains actor history",
+          "project": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 6804,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us7-user-settings.spec.ts",
+          "title": "Driver connects and tests only an approved printer without gaining configuration access",
+          "project": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 5061,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us7-user-settings.spec.ts",
+          "title": "creates a Driver, denies administrator access, revokes access, and retains actor history",
+          "project": "webkit",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 7818,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us7-user-settings.spec.ts",
+          "title": "Driver connects and tests only an approved printer without gaining configuration access",
+          "project": "webkit",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 5683,
+              "errors": []
+            }
+          ]
+        }
+      ]
+    },
+    "customerVerification": {
+      "stats": {
+        "startTime": "2026-09-18T01:33:23.227Z",
+        "duration": 62227.773,
+        "expected": 3,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "file": "us4-customers.spec.ts",
+          "title": "customer pricing falls back safely while history and role boundaries remain intact",
+          "project": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 12546,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us4-customers.spec.ts",
+          "title": "customer pricing falls back safely while history and role boundaries remain intact",
+          "project": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 15999,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "file": "us4-customers.spec.ts",
+          "title": "customer pricing falls back safely while history and role boundaries remain intact",
+          "project": "webkit",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "retry": 0,
+              "durationMs": 22037,
+              "errors": []
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "sourceHashes": {
+    ".gitattributes": "489fb811f97deb0befb181e8eda6330bd155b6e1a3d7cc4b717391c31cf870f0",
+    "apps/api/tests/support/administration-harness.ts": "4d45fa890f5a06536c6640a9783416001cbc2c1158a0fb8efd5510fe9d1fe5d9",
+    "apps/api/tests/support/performance-fixture.ts": "1fddec82bcdd58ddb59ff64f51e2cd04c359bd18305dd27e0fa19d6f10cc6bfe",
+    "apps/api/tests/integration/users/user-settings.test.ts": "474476622b283b00f253437c6552938656adec40c932e1b7f85959e64a2de6a8",
+    "tests/e2e/us4-customers.spec.ts": "ed61d9c902049dfe4490a67fa9b1565d699f3344ccd477727f0d2971a0179ca4"
+  },
+  "performance": {
+    "search": {
+      "summary": {
+        "count": 450,
+        "completeCount": 450,
+        "passCount": 432,
+        "requiredPassCount": 428,
+        "p50Ms": 923.7999999821186,
+        "p95Ms": 1967.7000000178814,
+        "p99Ms": 2242.0999999940395,
+        "maxMs": 2401.9000000059605
+      },
+      "mix": {
+        "products:matching": {
+          "count": 75,
+          "completeCount": 75,
+          "passCount": 72,
+          "requiredPassCount": 72,
+          "p50Ms": 911.5999999940395,
+          "p95Ms": 1804.5,
+          "p99Ms": 2242.0999999940395,
+          "maxMs": 2242.0999999940395
+        },
+        "products:no-results": {
+          "count": 75,
+          "completeCount": 75,
+          "passCount": 72,
+          "requiredPassCount": 72,
+          "p50Ms": 904.5999999940395,
+          "p95Ms": 1862.300000011921,
+          "p99Ms": 2401.9000000059605,
+          "maxMs": 2401.9000000059605
+        },
+        "customers:matching": {
+          "count": 75,
+          "completeCount": 75,
+          "passCount": 73,
+          "requiredPassCount": 72,
+          "p50Ms": 925.5999999940395,
+          "p95Ms": 1706.4000000059605,
+          "p99Ms": 2105.4000000059605,
+          "maxMs": 2105.4000000059605
+        },
+        "customers:no-results": {
+          "count": 75,
+          "completeCount": 75,
+          "passCount": 71,
+          "requiredPassCount": 72,
+          "p50Ms": 912.7000000178814,
+          "p95Ms": 2065.2000000178814,
+          "p99Ms": 2359.5,
+          "maxMs": 2359.5
+        },
+        "inventory:matching": {
+          "count": 75,
+          "completeCount": 75,
+          "passCount": 72,
+          "requiredPassCount": 72,
+          "p50Ms": 992.6999999880791,
+          "p95Ms": 1989.8999999761581,
+          "p99Ms": 2368.0999999940395,
+          "maxMs": 2368.0999999940395
+        },
+        "inventory:no-results": {
+          "count": 75,
+          "completeCount": 75,
+          "passCount": 72,
+          "requiredPassCount": 72,
+          "p50Ms": 928.0999999940395,
+          "p95Ms": 1970.199999988079,
+          "p99Ms": 2228.800000011921,
+          "maxMs": 2228.800000011921
+        }
+      }
+    },
+    "documents": {
+      "seed": "warehouse-t139-v1",
+      "baseSeed": "wm-perf-v1",
+      "measuredAt": "2026-09-18T16:52:09.054Z",
+      "commit": "0caa74041b31103906f508ac3c8278c8305861b1",
+      "sourceHashes": {
+        "tests/e2e/performance-success-criteria.spec.ts": "8d0ef4c5df00d957bf0484e338f66d28eef86c0c7fc2ea651b0f203396f6f80c",
+        "tests/e2e/support/document-performance-fixture.ts": "afd4c1536a6ff28f0b321d35f323c8c396a2f0c83aa2f4157d71ad33ff2205f2",
+        "tests/e2e/support/performance-fixture.ts": "f89af709071c361491a0cb6900720c71e14badda84dbb76c05bd2cefeb26eb88",
+        "apps/api/tests/support/performance-fixture.ts": "1fddec82bcdd58ddb59ff64f51e2cd04c359bd18305dd27e0fa19d6f10cc6bfe",
+        "tests/e2e/support/performance-seed.sql": "18bd1b4dbdea3b727aa2b75cb43391892bae050089707aa2f77e991053b5e302",
+        "apps/api/src/modules/documents/document-service.ts": "7f50f502afa175d2f2c4155eef27765c33ccd9fb52f67d4e5a6e45ea2e3071e8",
+        "apps/api/src/modules/documents/pdf-renderers.ts": "79cd5d007a41404247e2ba49b5bfb96e1560b092c928c3edb1b3545a28cc9205",
+        "apps/web/dist/index.html": "2cf04481ef7849db916afc4b1128093b11fdd89fc9f343ea4142267641986fa1"
+      },
+      "counts": {
+        "products": 10000,
+        "customers": 10000,
+        "sales": 100000,
+        "tickets": 100000,
+        "lines": 100000,
+        "audits": 100000
+      },
+      "users": 25,
+      "role": "ADMINISTRATOR",
+      "warmupActions": 100,
+      "measuredActions": 400,
+      "profile": "25 independent closed-loop browser sessions, 16 sequential measured actions each; no round barrier, mocks or retries",
+      "timing": "Before browser POST /documents through production document page navigation, visible enabled Download PDF action, and complete PDF download; authentication, source preparation and warmup excluded. Includes navigation and automation overhead.",
+      "sourceProfile": {
+        "salesIntervalSeconds": 108,
+        "tickets": "1 line",
+        "routeLoads": "10 lines",
+        "cashCloses": "125 distinct nonempty daily periods, four reporting groups",
+        "reports": "125 distinct FINANCIAL_SUMMARY snapshots, same nonempty daily periods"
+      },
+      "mix": {
+        "TICKET": 100,
+        "ROUTE_LOAD": 100,
+        "CASH_CLOSE": 100,
+        "REPORT": 100
+      },
+      "p50": 3461.9110999999975,
+      "p95": 5389.906100000022,
+      "p99": 5989.350399999996,
+      "max": 6238.80309999999,
+      "passed": 400,
+      "passRate": 1,
+      "uncached": {
+        "documents": 500,
+        "distinctSources": 500,
+        "generationAttempts": 500,
+        "successfulGenerations": 500
+      },
+      "environment": {
+        "os": "win32 10.0.26200",
+        "cpu": "AMD Ryzen 7 7445HS w/ Radeon 740M Graphics     ",
+        "logicalCpus": 12,
+        "memoryBytes": 16396115968,
+        "node": "v24.18.0",
+        "browser": "151.0.7922.34",
+        "postgres": "PostgreSQL 18.6 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+        "frontend": "Vite production build",
+        "network": "loopback; rate limits enabled; 25 distinct trusted-proxy IPs",
+        "packageManager": "pnpm@10.28.1"
+      },
+      "browserErrors": []
+    }
+  }
+}

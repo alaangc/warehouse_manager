@@ -3,6 +3,7 @@ import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { formatDateTime, formatDecimal } from '../../i18n/format.js';
 import type { RouteDetail } from './route-types.js';
+import { DocumentCenter } from '../documents/document-center.js';
 
 interface TimelineEntry {
   id: string;
@@ -146,6 +147,17 @@ export function RouteHistory({ detail }: { detail: RouteDetail }) {
 
   return (
     <Stack component="section" spacing={2} aria-label={t('routes.historyLabel')}>
+      {detail.load?.state === 'CONFIRMED' && (
+        <DocumentCenter
+          source={{
+            documentType: 'ROUTE_LOAD',
+            sourceType: 'ROUTE_LOAD',
+            sourceId: detail.load.id,
+            sourceState: detail.load.state,
+            driverId: detail.route.driverId,
+          }}
+        />
+      )}
       <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
         <Typography variant="h6">{t('routes.history')}</Typography>
         {detail.route.state === 'CLOSED' && <Chip label={t('routes.readOnly')} color="default" />}

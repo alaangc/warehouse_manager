@@ -1,0 +1,5 @@
+{
+  "extends": "../packages/config/tsconfig.node.json",
+  "compilerOptions": { "noEmit": true },
+  "include": ["scripts/**/*.ts", "../apps/api/src/http/express.d.ts"]
+}

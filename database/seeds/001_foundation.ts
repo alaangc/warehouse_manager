@@ -7,7 +7,7 @@ const FIREFOX_DRIVER_ID = '00000000-0000-4000-8000-000000000012';
 const WEBKIT_DRIVER_ID = '00000000-0000-4000-8000-000000000013';
 const SETTINGS_ID = '00000000-0000-4000-8000-000000000001';
 
-export async function seedFoundation(database: Kysely<unknown>): Promise<void> {
+export async function seedFoundation<DB>(database: Kysely<DB>): Promise<void> {
   const passwordHash = await argon2.hash('development-password-change-me', {
     type: argon2.argon2id,
   });

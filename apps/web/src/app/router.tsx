@@ -1,5 +1,5 @@
 import { Alert, Button, Stack, Typography } from '@mui/material';
-import { createBrowserRouter, useRouteError } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppLayout } from './layout.js';
 import { UserSettingsPages } from '../features/administration/user-settings-pages.js';
@@ -14,19 +14,18 @@ import { RoutesPage } from '../features/routes/routes-page.js';
 import { CustomerPages } from '../features/customers/customer-pages.js';
 import { LoginPage } from '../features/auth/login-page.js';
 import { SettingsPage } from '../features/settings/settings-page.js';
-import { DashboardPage } from '../features/dashboard/dashboard-page.js';
+import { OverviewPage } from '../features/overview/overview-page.js';
 import { CashClosePages } from '../features/reports/cash-close-pages.js';
 import { ReportPages } from '../features/reports/report-pages.js';
+import { PrinterProfilePage } from '../features/printers/printer-profile-page.js';
+import { DocumentPage } from '../features/documents/document-page.js';
 
 function RouteError() {
   const { t } = useTranslation();
-  const error = useRouteError();
   return (
     <Stack spacing={2} sx={{ p: 3 }}>
       <Typography variant="h4">{t('common.error')}</Typography>
-      <Alert severity="error">
-        {error instanceof Error ? error.message : t('errors.pageLoad')}
-      </Alert>
+      <Alert severity="error">{t('errors.pageLoad')}</Alert>
       <Button href="/">{t('common.returnHome')}</Button>
     </Stack>
   );
@@ -43,17 +42,20 @@ export const router = createBrowserRouter([
     element: <AppLayout />,
     errorElement: <RouteError />,
     children: [
-      { index: true, element: <DashboardPage /> },
+      { index: true, element: <OverviewPage /> },
       { path: 'inventory', element: <InventoryPage /> },
       { path: 'inventory/products/:productId', element: <ProductDetailPage /> },
       { path: 'inventory/operations/new', element: <InventoryOperationForm /> },
       { path: 'inventory/movements', element: <MovementHistory /> },
       { path: 'catalog', element: <CatalogPages /> },
+      { path: 'vehicles', element: <CatalogPages only="vehicles" /> },
       { path: 'routes', element: <RoutesPage /> },
       { path: 'customers', element: <CustomerPages /> },
       { path: 'cash-closes', element: <CashClosePages /> },
       { path: 'reports', element: <ReportPages /> },
       { path: 'users', element: <UserSettingsPages /> },
+      { path: 'printer-profiles', element: <PrinterProfilePage /> },
+      { path: 'documents', element: <DocumentPage /> },
       { path: 'settings', element: <SettingsPage /> },
       { path: 'sales', element: <DriverSaleHistory /> },
       { path: 'sales/new', element: <SaleForm /> },

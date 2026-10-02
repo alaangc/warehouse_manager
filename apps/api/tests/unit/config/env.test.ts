@@ -14,6 +14,48 @@ const valid = {
 };
 
 describe('loadEnvironment', () => {
+  it('reports malformed origins without leaking configuration values', () => {
+    expect(() => loadEnvironment({ ...valid, APP_ORIGIN: 'invalid-private-value' })).toThrow(
+      'Invalid application configuration: APP_ORIGIN',
+    );
+  });
+
+  it('accepts an explicit production origin, random secret and proxy allowlist', () => {
+    expect(
+      loadEnvironment({
+        ...valid,
+        NODE_ENV: 'production',
+        SESSION_SECRET: 'Q7m4W9x2A8c6K3t5R1v0B4n8L6s9D2f5',
+        TRUST_PROXY: '127.0.0.1/32,::1/128',
+      }).TRUST_PROXY,
+    ).toBe('127.0.0.1/32,::1/128');
+  });
+  it.each([
+    'http://warehouse.example.test',
+    'https://warehouse.example.test/path',
+    'https://user:pass@warehouse.example.test',
+  ])('rejects unsafe production origins: %s', (APP_ORIGIN) => {
+    expect(() => loadEnvironment({ ...valid, NODE_ENV: 'production', APP_ORIGIN })).toThrow(
+      'APP_ORIGIN',
+    );
+  });
+
+  it.each(['replace-with-at-least-32-random-characters', 'x'.repeat(64)])(
+    'rejects production placeholder secrets',
+    (SESSION_SECRET) => {
+      expect(() => loadEnvironment({ ...valid, NODE_ENV: 'production', SESSION_SECRET })).toThrow(
+        'SESSION_SECRET',
+      );
+    },
+  );
+
+  it.each(['true', '1', '0.0.0.0/0', '::/0', 'loopback', '127.0.0.1/33', ''])(
+    'rejects broad or invalid proxy configuration: %s',
+    (TRUST_PROXY) => {
+      expect(() => loadEnvironment({ ...valid, TRUST_PROXY })).toThrow('TRUST_PROXY');
+    },
+  );
+
   it('parses and normalizes a complete environment', () => {
     expect(loadEnvironment(valid)).toMatchObject({ PORT: 3000, BUSINESS_CURRENCY: 'MXN' });
   });

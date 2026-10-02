@@ -7,6 +7,7 @@ import {
   FormControl,
   FormControlLabel,
   InputLabel,
+  InputAdornment,
   MenuItem,
   Paper,
   Select,
@@ -20,13 +21,17 @@ import {
   TableRow,
   TextField,
   Typography,
+  useMediaQuery,
 } from '@mui/material';
 import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Package, Plus, Search, ArrowRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useSession } from '../../app/session.js';
 import { formatDateTime, formatDecimal } from '../../i18n/format.js';
 import { localizedErrorMessage } from '../../lib/api/localized-error.js';
+import { apiRequest } from '../../lib/api/client.js';
 import { useInventoryBalances, type InventoryBalance } from './inventory-queries.js';
 import { quantityFromScaled, scaledQuantity } from './inventory-quantity.js';
 
@@ -45,31 +50,65 @@ function InventoryStatus({ balance }: { balance: InventoryBalance }) {
 
 export function InventoryPage() {
   const { t } = useTranslation();
+  const compact = useMediaQuery('(max-width:899px)');
   const session = useSession();
   const administrator = session.user?.role === 'ADMINISTRATOR';
   const [alertsOnly, setAlertsOnly] = useState(false);
   const [search, setSearch] = useState('');
   const [locationId, setLocationId] = useState('');
-  const balances = useInventoryBalances({ alertsOnly });
-  const rows = useMemo(() => balances.data?.data ?? [], [balances.data?.data]);
+  const balances = useInventoryBalances({
+    alertsOnly,
+    search: search.trim(),
+    ...(administrator ? { locationKind: 'BRANCH' as const } : {}),
+  });
+  const branches = useQuery({
+    queryKey: ['locations'],
+    queryFn: () =>
+      apiRequest<{ data: Array<{ id: string; name: string; active: boolean }> }>('/locations'),
+    enabled: administrator,
+  });
+  const rows = useMemo(
+    () =>
+      (balances.data?.data ?? []).filter(
+        (row) =>
+          !administrator ||
+          (row.stockLocation.kind === 'BRANCH' &&
+            (!branches.data ||
+              branches.data.data.some(
+                (branch) => branch.active && branch.id === row.stockLocation.branchId,
+              ))),
+      ),
+    [balances.data?.data, administrator, branches.data],
+  );
+  const locationKey = (row: InventoryBalance) =>
+    administrator ? row.stockLocation.branchId : row.stockLocation.id;
   const locations = useMemo(
     () =>
-      [...new Map(rows.map((row) => [row.stockLocation.id, row.stockLocation])).values()].sort(
-        (left, right) => left.label.localeCompare(right.label),
-      ),
-    [rows],
+      (administrator
+        ? (branches.data?.data ?? [])
+            .filter((branch) => branch.active)
+            .map((branch) => ({
+              id: branch.id,
+              label: branch.name,
+              kind: 'BRANCH' as const,
+              branchId: branch.id,
+              routeId: null,
+            }))
+        : [...new Map(rows.map((row) => [row.stockLocation.id, row.stockLocation])).values()]
+      ).sort((left, right) => left.label.localeCompare(right.label)),
+    [rows, administrator, branches.data],
   );
   const normalizedSearch = search.trim().toLocaleLowerCase();
   const filteredRows = rows.filter(
     (row) =>
-      (!locationId || row.stockLocation.id === locationId) &&
+      (!locationId || locationKey(row) === locationId) &&
       (!normalizedSearch ||
         `${row.productName} ${row.productId} ${row.stockLocation.label}`
           .toLocaleLowerCase()
           .includes(normalizedSearch)),
   );
   const groupedLocations = locations.map((location) => {
-    const locationRows = filteredRows.filter((row) => row.stockLocation.id === location.id);
+    const locationRows = filteredRows.filter((row) => locationKey(row) === location.id);
     return {
       location,
       rows: locationRows,
@@ -101,11 +140,16 @@ export function InventoryPage() {
           <Typography color="text.secondary">{t('inventory.overviewDescription')}</Typography>
         </Box>
         {administrator && (
-          <Stack direction="row" spacing={1}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
             <Button component={Link} to="/inventory/movements">
               {t('inventory.movementHistory')}
             </Button>
-            <Button component={Link} to="/inventory/operations/new" variant="contained">
+            <Button
+              component={Link}
+              to="/inventory/operations/new"
+              variant="contained"
+              startIcon={<Plus size={20} />}
+            >
               {t('inventory.recordOperation')}
             </Button>
           </Stack>
@@ -126,8 +170,20 @@ export function InventoryPage() {
           <Paper
             key={metric.label}
             variant="outlined"
-            sx={{ borderTop: `4px solid ${metric.tone}`, p: { xs: 2, md: 2.5 } }}
+            sx={{ p: { xs: 2, md: 2.5 }, textAlign: 'center' }}
           >
+            <Box
+              sx={{
+                display: 'inline-flex',
+                p: 1.25,
+                borderRadius: 2,
+                color: metric.tone,
+                bgcolor: `${metric.tone}12`,
+                mb: 1,
+              }}
+            >
+              <Package size={24} />
+            </Box>
             <Typography variant="h4" sx={{ color: metric.tone, fontWeight: 750 }}>
               {metric.value}
             </Typography>
@@ -143,6 +199,15 @@ export function InventoryPage() {
           <TextField
             fullWidth
             label={t('inventory.searchInventory')}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search size={20} />
+                  </InputAdornment>
+                ),
+              },
+            }}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
@@ -180,6 +245,7 @@ export function InventoryPage() {
 
       {balances.isLoading && <CircularProgress aria-label={t('inventory.loading')} />}
       {balances.error && <Alert severity="error">{localizedErrorMessage(balances.error, t)}</Alert>}
+      {branches.error && <Alert severity="error">{localizedErrorMessage(branches.error, t)}</Alert>}
 
       {!balances.isLoading && locations.length > 0 && (
         <Stack spacing={1.5}>
@@ -253,52 +319,83 @@ export function InventoryPage() {
         <Typography variant="h5" sx={{ fontWeight: 700 }}>
           {t('inventory.balances')}
         </Typography>
-        <TableContainer component={Paper} variant="outlined">
-          <Table aria-label={t('inventory.balances')}>
-            <TableHead>
-              <TableRow>
-                <TableCell>{t('common.product')}</TableCell>
-                <TableCell>{t('inventory.location')}</TableCell>
-                <TableCell align="right">{t('common.quantity')}</TableCell>
-                <TableCell>{t('common.status')}</TableCell>
-                <TableCell>{t('inventory.updated')}</TableCell>
-                <TableCell align="right">{t('catalog.actions')}</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredRows.map((balance) => (
-                <TableRow key={balance.id} hover>
-                  <TableCell>
-                    <Typography sx={{ fontWeight: 650 }}>{balance.productName}</Typography>
-                    <Typography color="text.secondary" variant="caption">
-                      {balance.productId}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>{balance.stockLocation.label}</TableCell>
-                  <TableCell align="right">{formatDecimal(balance.quantity)}</TableCell>
-                  <TableCell>
+        {compact ? (
+          <Stack spacing={1.5}>
+            {filteredRows.map((balance) => (
+              <Paper variant="outlined" key={balance.id} sx={{ p: 2 }}>
+                <Stack spacing={1.5}>
+                  <Stack direction="row" sx={{ justifyContent: 'space-between', gap: 1 }}>
+                    <Typography sx={{ fontWeight: 700 }}>{balance.productName}</Typography>
                     <InventoryStatus balance={balance} />
-                  </TableCell>
-                  <TableCell>{formatDateTime(balance.updatedAt)}</TableCell>
-                  <TableCell align="right">
+                  </Stack>
+                  <Typography variant="body2" color="text.secondary">
+                    {balance.stockLocation.label}
+                  </Typography>
+                  <Stack
+                    direction="row"
+                    sx={{ justifyContent: 'space-between', alignItems: 'center' }}
+                  >
+                    <Typography variant="h5">{formatDecimal(balance.quantity)}</Typography>
                     <Button
                       component={Link}
-                      size="small"
                       to={`/inventory/products/${balance.productId}`}
+                      endIcon={<ArrowRight size={18} />}
                     >
                       {t('inventory.viewProduct')}
                     </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {!balances.isLoading && filteredRows.length === 0 && (
+                  </Stack>
+                </Stack>
+              </Paper>
+            ))}
+            {!balances.isLoading && filteredRows.length === 0 && (
+              <Typography>{t('inventory.noBalances')}</Typography>
+            )}
+          </Stack>
+        ) : (
+          <TableContainer component={Paper} variant="outlined">
+            <Table aria-label={t('inventory.balances')} aria-busy={balances.isFetching}>
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={6}>{t('inventory.noBalances')}</TableCell>
+                  <TableCell>{t('common.product')}</TableCell>
+                  <TableCell>{t('inventory.location')}</TableCell>
+                  <TableCell align="right">{t('common.quantity')}</TableCell>
+                  <TableCell>{t('common.status')}</TableCell>
+                  <TableCell>{t('inventory.updated')}</TableCell>
+                  <TableCell align="right">{t('catalog.actions')}</TableCell>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {filteredRows.map((balance) => (
+                  <TableRow key={balance.id} hover>
+                    <TableCell>
+                      <Typography sx={{ fontWeight: 650 }}>{balance.productName}</Typography>
+                    </TableCell>
+                    <TableCell>{balance.stockLocation.label}</TableCell>
+                    <TableCell align="right">{formatDecimal(balance.quantity)}</TableCell>
+                    <TableCell>
+                      <InventoryStatus balance={balance} />
+                    </TableCell>
+                    <TableCell>{formatDateTime(balance.updatedAt)}</TableCell>
+                    <TableCell align="right">
+                      <Button
+                        component={Link}
+                        size="small"
+                        to={`/inventory/products/${balance.productId}`}
+                      >
+                        {t('inventory.viewProduct')}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {!balances.isLoading && filteredRows.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6}>{t('inventory.noBalances')}</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
       </Stack>
     </Stack>
   );

@@ -1,4 +1,7 @@
 import { fileURLToPath } from 'node:url';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import request from 'supertest';
 import { seedFoundation } from '../../../../database/seeds/001_foundation.js';
 import { createDatabase } from '../../src/db/database.js';
@@ -23,8 +26,11 @@ export const testPrinterProfile = {
   maxChunkBytes: 20,
   interChunkDelayMs: 10,
 };
-export async function administrationHarness() {
+export async function administrationHarness(options: { documentStoragePath?: string } = {}) {
   const postgres = await startPostgres();
+  const ownedStorage = options.documentStoragePath
+    ? undefined
+    : await mkdtemp(join(tmpdir(), 'warehouse-http-'));
   const database = createDatabase(postgres.connectionString);
   const origin = 'https://warehouse.test';
   try {
@@ -36,22 +42,25 @@ export async function administrationHarness() {
   } catch (error) {
     await database.destroy();
     await postgres.container.stop();
+    if (ownedStorage) await rm(ownedStorage, { recursive: true, force: true });
     throw error;
   }
-  const app = createServer(
-    {
-      NODE_ENV: 'test',
-      DATABASE_URL: postgres.connectionString,
-      SESSION_SECRET: 'x'.repeat(32),
-      APP_ORIGIN: origin,
-      BUSINESS_TIMEZONE: 'America/Hermosillo',
-      BUSINESS_CURRENCY: 'MXN',
-      PORT: 3000,
-      LOG_LEVEL: 'fatal',
-      DOCUMENT_STORAGE_PATH: '/tmp/warehouse-administration-tests',
-    },
-    { database },
-  );
+  const createApp = () =>
+    createServer(
+      {
+        NODE_ENV: 'test',
+        DATABASE_URL: postgres.connectionString,
+        SESSION_SECRET: 'x'.repeat(32),
+        APP_ORIGIN: origin,
+        BUSINESS_TIMEZONE: 'America/Hermosillo',
+        BUSINESS_CURRENCY: 'MXN',
+        PORT: 3000,
+        LOG_LEVEL: 'fatal',
+        DOCUMENT_STORAGE_PATH: options.documentStoragePath ?? ownedStorage!,
+      },
+      { database },
+    );
+  let app = createApp();
   async function login(
     username: string,
     password = 'development-password-change-me',
@@ -76,17 +85,26 @@ export async function administrationHarness() {
     body?: object,
   ) {
     let test = request(app)[method](`/api/v1${path}`).set('Origin', origin);
+    if (method === 'post' && path === '/output-attempts')
+      test = test.set('Idempotency-Key', crypto.randomUUID());
     if (principal) test = test.set('Cookie', principal.cookie).set('X-CSRF-Token', principal.csrf);
     return body === undefined ? test : test.send(body);
   }
   return {
     database,
-    app,
+    get app() {
+      return app;
+    },
+    // Keep database fixtures and sessions, but isolate in-memory HTTP limits per test.
+    resetHttp() {
+      app = createApp();
+    },
     login,
     send,
     close: async () => {
       await database.destroy();
       await postgres.container.stop();
+      if (ownedStorage) await rm(ownedStorage, { recursive: true, force: true });
     },
   };
 }

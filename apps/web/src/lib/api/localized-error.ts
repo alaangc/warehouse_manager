@@ -1,5 +1,4 @@
 import type { TFunction } from 'i18next';
-import i18n from '../../i18n/index.js';
 import { ApiProblem } from './problem.js';
 
 const translatedCodes = new Set([
@@ -24,6 +23,8 @@ const translatedCodes = new Set([
   'CATALOG_DUPLICATE',
   'CATALOG_REFERENCE_INVALID',
   'VEHICLE_ASSIGNED',
+  'DRIVER_ASSIGNED',
+  'ROUTE_ASSIGNMENT_INVALID',
   'ROUTE_SCOPE_REQUIRED',
   'DIFFERENCE_REASON_REQUIRED',
   'SALE_ALREADY_CANCELLED',
@@ -31,10 +32,8 @@ const translatedCodes = new Set([
 
 export function localizedErrorMessage(error: unknown, t: TFunction): string {
   if (error instanceof ApiProblem) {
-    if (!i18n.resolvedLanguage?.startsWith('es')) {
-      return error.problem.detail ?? error.problem.title;
-    }
     const code = error.problem.code;
+    if (code === 'PRODUCT_NOT_FOUND') return t('errors.RESOURCE_NOT_FOUND');
     if (code && translatedCodes.has(code)) return t(`errors.${code}`);
   }
   return t('errors.generic');

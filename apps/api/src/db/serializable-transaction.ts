@@ -1,4 +1,5 @@
 import type { Kysely, Transaction } from 'kysely';
+import { recordOperationFailure } from '../observability/operations.js';
 
 type RetryOptions = {
   maxAttempts?: number;
@@ -28,7 +29,19 @@ export async function retryTransactionOperation<T>(
     try {
       return await operation(attempt);
     } catch (error) {
-      if (!isRetryableTransactionError(error) || attempt === maxAttempts) throw error;
+      const retryable = isRetryableTransactionError(error);
+      recordOperationFailure(
+        !retryable
+          ? 'TRANSACTION_FAILED'
+          : attempt === maxAttempts
+            ? 'TRANSACTION_EXHAUSTED'
+            : 'TRANSACTION_RETRY',
+        {
+          attempt,
+          ...(retryable ? { sqlState: (error as { code: '40001' | '40P01' }).code } : {}),
+        },
+      );
+      if (!retryable || attempt === maxAttempts) throw error;
       options.onRetry?.(error, attempt);
       const jitter = Math.floor(random() * baseDelayMs);
       await sleep(baseDelayMs * 2 ** (attempt - 1) + jitter);

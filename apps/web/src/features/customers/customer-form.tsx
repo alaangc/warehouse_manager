@@ -82,7 +82,7 @@ export function CustomerForm({
   const submit = (active: boolean) =>
     form.handleSubmit((values) => {
       if (!active && !values.archiveReason.trim()) {
-        form.setError('archiveReason', { message: t('customers.archiveReasonRequired') });
+        form.setError('archiveReason', { message: 'customers.archiveReasonRequired' });
         return;
       }
       save.mutate({ values, active });
@@ -129,7 +129,11 @@ export function CustomerForm({
           <TextField
             label={t('customers.archiveReason')}
             error={Boolean(form.formState.errors.archiveReason)}
-            helperText={form.formState.errors.archiveReason?.message}
+            helperText={
+              form.formState.errors.archiveReason?.message
+                ? t(form.formState.errors.archiveReason.message)
+                : undefined
+            }
             sx={{ gridColumn: { sm: '1 / -1' } }}
             {...form.register('archiveReason')}
           />

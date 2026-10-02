@@ -8,6 +8,12 @@ import { CatalogService } from '../../../src/modules/catalog/catalog-service.js'
 import { InventoryService } from '../../../src/modules/inventory/inventory-service.js';
 import { parseExactDecimal } from '../../../src/shared/money.js';
 import { createCatalogFixture } from '../../support/catalog-factories.js';
+import {
+  auditForRequest,
+  rejectAudit,
+  snapshotTables,
+  transactionId,
+} from '../../support/audit-verification.js';
 import { expectLedgerMatchesBalance } from '../../support/inventory-assertions.js';
 import { startPostgres, type TestDatabase } from '../../support/postgres-container.js';
 import { resetDatabase } from '../../support/reset-database.js';
@@ -61,6 +67,230 @@ describe('inventory ledger lifecycle in PostgreSQL 18', () => {
       requestId: crypto.randomUUID(),
     };
   }
+
+  const catalogKinds = ['product', 'category', 'unit', 'location', 'vehicle'] as const;
+  const lifecycleActions = ['create', 'edit', 'archive', 'reactivate'] as const;
+  const catalogCases = catalogKinds.flatMap((kind) =>
+    lifecycleActions.map((action) => ({ kind, action })),
+  );
+
+  it.each(catalogCases)('T150 audits and rolls back $kind $action', async ({ kind, action }) => {
+    const service = new CatalogService(database);
+    const references = await createCatalogFixture(database);
+    const suffix = crypto.randomUUID().slice(0, 8);
+    const base = { code: `A-${suffix}`, name: `Audit ${suffix}` };
+    type Change = { expectedVersion: number; active: boolean; name: string; reason: string };
+    const product = {
+      sku: base.code,
+      name: base.name,
+      categoryId: references.category.id,
+      unitId: references.unit.id,
+      standardUnitPrice: '12.0000',
+      lowStockThreshold: '1.000',
+    };
+    const adapters = {
+      product: {
+        create: (requestId: string) => service.createProduct(product, actorId, requestId),
+        update: (id: string, change: Change, requestId: string) =>
+          service.updateProduct(id, { ...product, ...change }, actorId, requestId),
+      },
+      category: {
+        create: (requestId: string) =>
+          service.createCategory({ name: base.name, reportingGroup: 'OTHER' }, actorId, requestId),
+        update: (id: string, change: Change, requestId: string) =>
+          service.updateCategory(id, { reportingGroup: 'OTHER', ...change }, actorId, requestId),
+      },
+      unit: {
+        create: (requestId: string) =>
+          service.createUnit({ ...base, quantityScale: 0 }, actorId, requestId),
+        update: (id: string, change: Change, requestId: string) =>
+          service.updateUnit(id, { ...base, quantityScale: 0, ...change }, actorId, requestId),
+      },
+      location: {
+        create: (requestId: string) => service.createLocation(base, actorId, requestId),
+        update: (id: string, change: Change, requestId: string) =>
+          service.updateLocation(id, { ...base, ...change }, actorId, requestId),
+      },
+      vehicle: {
+        create: (requestId: string) => service.createVehicle(base, actorId, requestId),
+        update: (id: string, change: Change, requestId: string) =>
+          service.updateVehicle(id, { ...base, ...change }, actorId, requestId),
+      },
+    };
+    const adapter = adapters[kind];
+    let existing = action === 'create' ? undefined : await adapter.create(crypto.randomUUID());
+    if (action === 'reactivate') {
+      existing = await adapter.update(
+        existing!.id,
+        {
+          expectedVersion: existing!.version,
+          active: false,
+          name: base.name,
+          reason: 'Fixture archive',
+        },
+        crypto.randomUUID(),
+      );
+    }
+    const change = {
+      expectedVersion: existing?.version ?? 0,
+      active: action !== 'archive',
+      name: `${base.name} changed`,
+      reason: `T150 ${action}`,
+    };
+    const requestId = crypto.randomUUID();
+    const command = () =>
+      action === 'create'
+        ? adapter.create(requestId)
+        : adapter.update(existing!.id, change, requestId);
+    const tables = [...catalogKinds, 'stock_location', 'audit_event'] as const;
+    const before = await snapshotTables(database, tables);
+    await rejectAudit(database, command);
+    expect(await snapshotTables(database, tables)).toEqual(before);
+
+    const result = await command();
+    const event = await auditForRequest(database, requestId);
+    expect(event).toMatchObject({
+      actor_id: actorId,
+      action: 'CATALOG_CHANGED',
+      entity_type: kind.toUpperCase(),
+      entity_id: result.id,
+      reason: action === 'create' ? null : change.reason,
+      after_values: {
+        name: action === 'create' ? base.name : change.name,
+        active: action !== 'archive',
+        version: result.version,
+      },
+    });
+    if (existing) {
+      expect(event.before_values).toMatchObject({
+        name: existing.name,
+        active: existing.active,
+        version: existing.version,
+      });
+      expect(result.version).toBe(existing.version + 1);
+    } else expect(event.before_values).toBeNull();
+    expect(result.archived_at === null).toBe(action !== 'archive');
+    const xid = await transactionId(database, kind, result.id);
+    expect(await transactionId(database, 'audit_event', event.id)).toBe(xid);
+    if (kind === 'location' && action === 'create') {
+      const derived = await database
+        .selectFrom('stock_location')
+        .select('id')
+        .where('branch_id', '=', result.id)
+        .executeTakeFirstOrThrow();
+      expect(await transactionId(database, 'stock_location', derived.id)).toBe(xid);
+    }
+  });
+
+  it.each([
+    'ENTRY',
+    'MANUAL_EXIT',
+    'TRANSFER',
+    'POSITIVE_ADJUSTMENT',
+    'NEGATIVE_ADJUSTMENT',
+    'REVERSAL',
+  ] as const)('T150 audits and rolls back inventory %s', async (kind) => {
+    const { product } = await createCatalogFixture(database);
+    const inventory = new InventoryService(database);
+    const destination = await database
+      .selectFrom('location')
+      .select('id')
+      .where('code', '=', 'CABORCA')
+      .executeTakeFirstOrThrow();
+    await inventory.createBranchOperation(
+      {
+        operationType: 'ENTRY',
+        branchId,
+        reason: 'T150 source stock',
+        lines: [{ productId: product.id, quantity: '10' }],
+      },
+      context(),
+    );
+    const transferInput = {
+      sourceBranchId: branchId,
+      destinationBranchId: destination.id,
+      reason: 'T150 inventory operation',
+      lines: [{ productId: product.id, quantity: '2' }],
+    };
+    const original =
+      kind === 'REVERSAL' ? await inventory.createTransfer(transferInput, context()) : undefined;
+    const ctx = context();
+    const command = () =>
+      kind === 'REVERSAL'
+        ? inventory.reverse(original!.id, 'T150 inventory operation', ctx)
+        : kind === 'TRANSFER'
+          ? inventory.createTransfer(transferInput, ctx)
+          : inventory.createBranchOperation(
+              {
+                operationType: kind,
+                branchId,
+                reason: 'T150 inventory operation',
+                lines: [{ productId: product.id, quantity: '2' }],
+              },
+              ctx,
+            );
+    const tables = [
+      'inventory_balance',
+      'inventory_operation',
+      'inventory_movement',
+      'idempotency_request',
+      'audit_event',
+    ] as const;
+    const before = await snapshotTables(database, tables);
+    await rejectAudit(database, command);
+    expect(await snapshotTables(database, tables)).toEqual(before);
+
+    const result = await command();
+    const event = await auditForRequest(database, ctx.requestId);
+    expect(event).toMatchObject({
+      actor_id: actorId,
+      action: 'INVENTORY_CHANGED',
+      entity_type: 'INVENTORY_OPERATION',
+      entity_id: result.id,
+      operation_id: result.id,
+      reason: 'T150 inventory operation',
+      before_values: null,
+      after_values: { operationType: kind === 'REVERSAL' ? 'TRANSFER' : kind, movementCount: 1 },
+    });
+    const xid = await transactionId(database, 'inventory_operation', result.id);
+    expect(await transactionId(database, 'audit_event', event.id)).toBe(xid);
+    expect(result.movements).toHaveLength(1);
+    for (const movement of result.movements) {
+      expect(await transactionId(database, 'inventory_movement', movement.id)).toBe(xid);
+      for (const locationId of [
+        movement.source_stock_location_id,
+        movement.destination_stock_location_id,
+      ]) {
+        if (!locationId) continue;
+        const balance = await database
+          .selectFrom('inventory_balance')
+          .select('id')
+          .where('stock_location_id', '=', locationId)
+          .where('product_id', '=', product.id)
+          .executeTakeFirstOrThrow();
+        expect(await transactionId(database, 'inventory_balance', balance.id)).toBe(xid);
+        await expectLedgerMatchesBalance(database, locationId, product.id);
+      }
+    }
+    const savedKey = await database
+      .selectFrom('idempotency_request')
+      .select('id')
+      .where('idempotency_key', '=', ctx.idempotencyKey)
+      .executeTakeFirstOrThrow();
+    expect(await transactionId(database, 'idempotency_request', savedKey.id)).toBe(xid);
+    if (original) {
+      const reversal = await database
+        .selectFrom('inventory_operation')
+        .select('reverses_operation_id')
+        .where('id', '=', result.id)
+        .executeTakeFirstOrThrow();
+      expect(reversal.reverses_operation_id).toBe(original.id);
+      expect(result.movements[0]!.reverses_movement_id).toBe(original.movements[0]!.id);
+    }
+    const committed = await snapshotTables(database, tables);
+    await command();
+    expect(await snapshotTables(database, tables)).toEqual(committed);
+  });
 
   it('keeps movements, balances, low-stock state, reversal links, and audits consistent', async () => {
     const { product } = await createCatalogFixture(database);

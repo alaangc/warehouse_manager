@@ -2,6 +2,7 @@
 services:
   - type: web
     name: warehouse-manager-demo
+    branch: demo/render-neon
     runtime: node
     plan: free
     region: oregon
@@ -20,6 +21,10 @@ services:
         sync: false
       - key: SESSION_SECRET
         generateValue: true
+      # Obtain the actual ingress proxy IPs/CIDRs for this service; never use
+      # trust-all, hop counts or guessed private-network ranges.
+      - key: TRUST_PROXY
+        sync: false
       - key: BUSINESS_TIMEZONE
         value: America/Hermosillo
       - key: BUSINESS_CURRENCY

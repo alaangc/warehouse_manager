@@ -1,3 +1,4 @@
+import { LanguageSettingsButton } from '../settings/language-settings.js';
 import {
   Alert,
   Button,
@@ -57,6 +58,7 @@ export function SaleCancellationDialog({
         />
       </DialogContent>
       <DialogActions>
+        <LanguageSettingsButton />
         <Button onClick={onClose}>{t('sales.keepSale')}</Button>
         <Button
           color="error"

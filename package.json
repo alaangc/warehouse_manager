@@ -4,17 +4,25 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.28.1",
+  "pnpm": {
+    "overrides": {
+      "qs": "6.16.0"
+    }
+  },
   "engines": {
     "node": ">=24 <25",
     "pnpm": "10.28.1"
   },
   "scripts": {
     "demo:start": "node scripts/start-demo.mjs",
+    "security:licenses": "node scripts/check-dependency-licenses.ts",
+    "security:browser": "node scripts/check-browser-bundle-secrets.ts",
+    "security:test": "node --test scripts/security.test.ts",
     "dev": "pnpm --parallel --filter @warehouse/api --filter @warehouse/web dev",
     "build": "pnpm -r build",
     "build:api": "pnpm --filter @warehouse/api build",
     "build:web": "pnpm --filter @warehouse/web build",
-    "typecheck": "pnpm -r typecheck",
+    "typecheck": "pnpm -r typecheck && tsc -p scripts/tsconfig.json",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -24,9 +32,14 @@
     "test:integration": "pnpm --filter @warehouse/contracts build && vitest run --config vitest.workspace.ts --project api-integration",
     "test:contract": "pnpm --filter @warehouse/contracts contract:check",
     "test:e2e": "playwright test",
+    "test:performance:search": "pnpm --filter @warehouse/contracts build && pnpm build:web && playwright test --config playwright.performance.config.ts performance-search.spec.ts",
+    "test:performance:documents": "pnpm --filter @warehouse/contracts build && pnpm build:web && playwright test --config playwright.performance.config.ts performance-success-criteria.spec.ts",
     "contract:generate": "pnpm --filter @warehouse/contracts contract:generate",
     "contract:lint": "pnpm --filter @warehouse/contracts contract:lint",
     "contract:check-diff": "pnpm --filter @warehouse/contracts contract:check",
+    "contract:runtime": "pnpm --filter @warehouse/contracts contract:runtime",
+    "contract:compatibility": "pnpm --filter @warehouse/contracts contract:compatibility",
+    "test:contract-gates": "pnpm --filter @warehouse/contracts contract:test",
     "db:migrate": "pnpm --filter @warehouse/api db:migrate",
     "db:seed": "pnpm --filter @warehouse/api db:seed",
     "db:test:up": "docker compose up -d postgres-test",
@@ -35,6 +48,10 @@
     "db:recovery:test": "pnpm --filter @warehouse/api db:recovery:test"
   },
   "devDependencies": {
+    "@testcontainers/postgresql": "12.1.0",
+    "@types/express": "5.0.6",
+    "express": "5.2.1",
+    "kysely": "0.29.5",
     "@eslint/js": "10.0.1",
     "@types/node": "26.4.0",
     "@playwright/test": "1.62.1",

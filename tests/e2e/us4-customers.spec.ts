@@ -156,6 +156,9 @@ test('customer pricing falls back safely while history and role boundaries remai
   administratorPage,
   driverPage,
 }, testInfo) => {
+  // Two authenticated browsers perform setup, pricing, sales, archival, and closure.
+  // Keep per-action assertions strict while allowing the complete workflow to finish.
+  test.setTimeout(60_000);
   test.skip(!process.env.E2E_BASE_URL, 'Set E2E_BASE_URL to run against the isolated full stack.');
 
   const suffix = `${testInfo.project.name}-${testInfo.workerIndex}-${Date.now()}`
@@ -242,7 +245,8 @@ test('customer pricing falls back safely while history and role boundaries remai
   await expect(administratorPage.getByRole('heading', { name: customerName })).toBeVisible();
   await expect(administratorPage.getByText(customer.customerNumber).first()).toBeVisible();
 
-  await administratorPage.getByLabel('Product ID').fill(product.id);
+  await administratorPage.getByRole('combobox', { name: /^Product/ }).fill(productName);
+  await administratorPage.getByRole('option', { name: `${productName} (PRICE-${suffix})`, exact: true }).click();
   await administratorPage.getByLabel('Exact unit price').fill('17.2500');
   const priceResponsePromise = matchingResponse(
     administratorPage,
@@ -339,7 +343,7 @@ test('customer pricing falls back safely while history and role boundaries remai
   await driverPage.getByRole('combobox', { name: 'Product' }).click();
   await driverPage.getByRole('option', { name: productName, exact: true }).click();
   await driverPage.getByLabel('Quantity').fill('1');
-  await driverPage.getByRole('button', { name: 'Review authoritative quote' }).click();
+  await driverPage.getByRole('button', { name: 'Review sale' }).click();
   await expect(driverPage.getByText('Customer-specific price')).toBeVisible();
   await expect(driverPage.getByText('MXN 17.25').last()).toBeVisible();
   const saleResponsePromise = matchingResponse(driverPage, '/sales');
@@ -365,7 +369,7 @@ test('customer pricing falls back safely while history and role boundaries remai
   await driverPage.getByRole('combobox', { name: 'Product' }).click();
   await driverPage.getByRole('option', { name: productName, exact: true }).click();
   await driverPage.getByLabel('Quantity').fill('1');
-  await driverPage.getByRole('button', { name: 'Review authoritative quote' }).click();
+  await driverPage.getByRole('button', { name: 'Review sale' }).click();
   await expect(driverPage.getByText('Standard price')).toBeVisible();
   await expect(driverPage.getByText('MXN 20').last()).toBeVisible();
 

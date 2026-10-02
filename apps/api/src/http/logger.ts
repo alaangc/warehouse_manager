@@ -31,6 +31,17 @@ export function createHttpLogger(
     : pino(loggerOptions(environment));
   return pinoHttp({
     logger,
+    // Allowlist metadata: raw URLs, bodies, headers and exception messages may
+    // contain credentials or customer data, including database error details.
+    serializers: {
+      req: (request: { id?: unknown; method?: string; url?: string }) => ({
+        id: request.id,
+        method: request.method,
+        path: request.url?.split('?')[0],
+      }),
+      res: (response: { statusCode?: number }) => ({ statusCode: response.statusCode }),
+      err: () => ({ type: 'RequestError' }),
+    },
     customProps: (request) => ({ requestId: request.id }),
   });
 }

@@ -79,8 +79,10 @@ export function createAuthRouter(auth: AuthenticationGateway, environment: Envir
   const limiter = rateLimit({
     windowMs: 60_000,
     limit: 10,
-    standardHeaders: true,
+    standardHeaders: 'draft-8',
     legacyHeaders: false,
+    handler: (_request, _response, next) =>
+      next(new HttpProblem(429, 'RATE_LIMIT_EXCEEDED', 'Too Many Requests')),
     keyGenerator: (request) => {
       const body: unknown = request.body;
       const username =
@@ -88,7 +90,7 @@ export function createAuthRouter(auth: AuthenticationGateway, environment: Envir
         body !== null &&
         'username' in body &&
         typeof body.username === 'string'
-          ? body.username
+          ? body.username.trim().toLowerCase()
           : '';
       return createHash('sha256')
         .update(`${ipKeyGenerator(request.ip ?? '')}:${username}`)

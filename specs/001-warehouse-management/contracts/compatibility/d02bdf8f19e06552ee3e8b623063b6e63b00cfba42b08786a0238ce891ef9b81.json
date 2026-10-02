@@ -1,0 +1,9 @@
+{
+  "baseSha256": "62248836e1baf202bd9239549e86e08e1ffd305cdcf806836a325809023b0ffd",
+  "headSha256": "d02bdf8f19e06552ee3e8b623063b6e63b00cfba42b08786a0238ce891ef9b81",
+  "classification": "compatible",
+  "owner": "Warehouse Manager maintainers",
+  "rationale": "T138 adds an optional search parameter to GET /inventory/balances so matching occurs before the existing 100-row limit. Existing clients without search receive unchanged response shapes and authorization scope.",
+  "migration": "Deploy the API before the updated frontend. No database migration or API version change is needed. Roll back the frontend first if necessary; clients omitting search remain supported.",
+  "validation": "Regression checks prove a match beyond the first 100 rows is found, absent matches return no rows, malformed queries are rejected, and Driver scope remains enforced. Generated OpenAPI/types and runtime contract validation are included. This note documents the change for ordinary maintainer review; it is not a claim of human approval."
+}

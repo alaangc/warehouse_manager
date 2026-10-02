@@ -1,0 +1,572 @@
+{
+  "inventory": "BILINGUAL-1",
+  "fixture": "BILINGUAL-FIXTURE-1",
+  "date": "2026-09-19",
+  "runs": [
+    {
+      "name": "final-matrix",
+      "stats": {
+        "startTime": "2026-09-19T20:15:26.438Z",
+        "duration": 711119.302,
+        "expected": 52,
+        "skipped": 0,
+        "unexpected": 4,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "id": "admin-overview",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-inventory",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-product",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-movements",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-customers",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-sales-history",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-routes-active",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-documents",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-attempts",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-document-detail",
+          "browser": "chromium",
+          "status": "unexpected"
+        },
+        {
+          "id": "admin-attempt-detail",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-settings",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "driver-overview",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "driver-inventory",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "driver-product",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "driver-movements",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "driver-customers",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "driver-sales-history",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "driver-routes-active",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "driver-documents",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "driver-attempts",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "driver-document-detail",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "driver-attempt-detail",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "driver-settings",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-catalog",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "driver-catalog",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-inventory-draft",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-customer-create",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-route-create",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "driver-route-load",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-reconciliation",
+          "browser": "chromium",
+          "status": "unexpected"
+        },
+        {
+          "id": "admin-users",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-printer-editor",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-cash-close",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-cash-correction",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-report-SALES_BY_DRIVER",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-report-BEST_SELLING_PRODUCTS",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-report-INVENTORY_BY_BRANCH",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-report-FINANCIAL_SUMMARY",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "driver-sale-customer",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "driver-sale-products",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "driver-sale-review",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "driver-sale-result",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-print-dialog",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-navigation",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "driver-print-dialog",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "driver-navigation",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-api-error",
+          "browser": "chromium",
+          "status": "unexpected"
+        },
+        {
+          "id": "admin-api-generic-error",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "driver-denied-reports",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "driver-denied-cash-closes",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "driver-denied-users",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "driver-denied-printer-profiles",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "fresh and invalid preferences default to Spanish; login preserves input and errors",
+          "browser": "chromium",
+          "status": "unexpected"
+        },
+        {
+          "id": "admin direct Settings selector",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "driver direct Settings selector",
+          "browser": "chromium",
+          "status": "expected"
+        }
+      ]
+    },
+    {
+      "name": "other-browsers",
+      "stats": {
+        "startTime": "2026-09-19T20:18:47.020Z",
+        "duration": 249404.91700000002,
+        "expected": 12,
+        "skipped": 0,
+        "unexpected": 2,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "id": "admin-document-detail",
+          "browser": "firefox",
+          "status": "expected"
+        },
+        {
+          "id": "admin-catalog",
+          "browser": "firefox",
+          "status": "expected"
+        },
+        {
+          "id": "driver-sale-products",
+          "browser": "firefox",
+          "status": "expected"
+        },
+        {
+          "id": "admin-navigation",
+          "browser": "firefox",
+          "status": "expected"
+        },
+        {
+          "id": "fresh and invalid preferences default to Spanish; login preserves input and errors",
+          "browser": "firefox",
+          "status": "unexpected"
+        },
+        {
+          "id": "admin direct Settings selector",
+          "browser": "firefox",
+          "status": "expected"
+        },
+        {
+          "id": "driver direct Settings selector",
+          "browser": "firefox",
+          "status": "expected"
+        },
+        {
+          "id": "admin-document-detail",
+          "browser": "webkit",
+          "status": "expected"
+        },
+        {
+          "id": "admin-catalog",
+          "browser": "webkit",
+          "status": "expected"
+        },
+        {
+          "id": "driver-sale-products",
+          "browser": "webkit",
+          "status": "expected"
+        },
+        {
+          "id": "admin-navigation",
+          "browser": "webkit",
+          "status": "expected"
+        },
+        {
+          "id": "fresh and invalid preferences default to Spanish; login preserves input and errors",
+          "browser": "webkit",
+          "status": "unexpected"
+        },
+        {
+          "id": "admin direct Settings selector",
+          "browser": "webkit",
+          "status": "expected"
+        },
+        {
+          "id": "driver direct Settings selector",
+          "browser": "webkit",
+          "status": "expected"
+        }
+      ]
+    },
+    {
+      "name": "corrections",
+      "stats": {
+        "startTime": "2026-09-19T20:24:18.425Z",
+        "duration": 343886.309,
+        "expected": 9,
+        "skipped": 0,
+        "unexpected": 3,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "id": "admin-document-detail",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-reconciliation",
+          "browser": "chromium",
+          "status": "unexpected"
+        },
+        {
+          "id": "admin-printer-editor",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "fresh and invalid preferences default to Spanish; login preserves input and errors",
+          "browser": "chromium",
+          "status": "unexpected"
+        },
+        {
+          "id": "admin-document-detail",
+          "browser": "firefox",
+          "status": "expected"
+        },
+        {
+          "id": "admin-reconciliation",
+          "browser": "firefox",
+          "status": "unexpected"
+        },
+        {
+          "id": "admin-printer-editor",
+          "browser": "firefox",
+          "status": "expected"
+        },
+        {
+          "id": "fresh and invalid preferences default to Spanish; login preserves input and errors",
+          "browser": "firefox",
+          "status": "expected"
+        },
+        {
+          "id": "admin-document-detail",
+          "browser": "webkit",
+          "status": "expected"
+        },
+        {
+          "id": "admin-reconciliation",
+          "browser": "webkit",
+          "status": "expected"
+        },
+        {
+          "id": "admin-printer-editor",
+          "browser": "webkit",
+          "status": "expected"
+        },
+        {
+          "id": "fresh and invalid preferences default to Spanish; login preserves input and errors",
+          "browser": "webkit",
+          "status": "expected"
+        }
+      ]
+    },
+    {
+      "name": "verified-corrections",
+      "stats": {
+        "startTime": "2026-09-19T20:27:39.849Z",
+        "duration": 260552.65300000002,
+        "expected": 14,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "id": "admin-document-detail",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-reconciliation",
+          "browser": "chromium",
+          "status": "unexpected"
+        },
+        {
+          "id": "admin-printer-editor",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-api-error",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "fresh and invalid preferences default to Spanish; login preserves input and errors",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-document-detail",
+          "browser": "firefox",
+          "status": "expected"
+        },
+        {
+          "id": "admin-reconciliation",
+          "browser": "firefox",
+          "status": "expected"
+        },
+        {
+          "id": "admin-printer-editor",
+          "browser": "firefox",
+          "status": "expected"
+        },
+        {
+          "id": "admin-api-error",
+          "browser": "firefox",
+          "status": "expected"
+        },
+        {
+          "id": "fresh and invalid preferences default to Spanish; login preserves input and errors",
+          "browser": "firefox",
+          "status": "expected"
+        },
+        {
+          "id": "admin-document-detail",
+          "browser": "webkit",
+          "status": "expected"
+        },
+        {
+          "id": "admin-reconciliation",
+          "browser": "webkit",
+          "status": "expected"
+        },
+        {
+          "id": "admin-printer-editor",
+          "browser": "webkit",
+          "status": "expected"
+        },
+        {
+          "id": "admin-api-error",
+          "browser": "webkit",
+          "status": "expected"
+        },
+        {
+          "id": "fresh and invalid preferences default to Spanish; login preserves input and errors",
+          "browser": "webkit",
+          "status": "expected"
+        }
+      ]
+    },
+    {
+      "name": "reconciliation-final",
+      "stats": {
+        "startTime": "2026-09-19T20:29:34.275Z",
+        "duration": 99752.685,
+        "expected": 3,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "id": "admin-reconciliation",
+          "browser": "chromium",
+          "status": "expected"
+        },
+        {
+          "id": "admin-reconciliation",
+          "browser": "firefox",
+          "status": "expected"
+        },
+        {
+          "id": "admin-reconciliation",
+          "browser": "webkit",
+          "status": "expected"
+        }
+      ]
+    }
+  ]
+}

@@ -7,6 +7,7 @@ import { AdminRoutePages } from '../../src/features/routes/admin-route-pages.js'
 import { DriverRoutePages } from '../../src/features/routes/driver-route-pages.js';
 import { ReconciliationPage } from '../../src/features/routes/reconciliation-page.js';
 import { RouteOverview } from '../../src/features/routes/route-overview.js';
+import { DriverReturnForm } from '../../src/features/routes/driver-return-form.js';
 import type { RouteDetail, RouteResource } from '../../src/features/routes/route-types.js';
 
 const routeId = '00000000-0000-4000-8000-000000000401';
@@ -73,12 +74,95 @@ afterEach(() => {
 });
 
 describe('route workflow UI', () => {
-  it('submits an Administrator route assignment and opens the created route', async () => {
+  it('lets the driver declare a difference and prefills the administrator review without losing edits on refetch', async () => {
+    const current = detail('EN_ROUTE');
+    current.load = {
+      id: loadId,
+      routeId,
+      state: 'CONFIRMED',
+      recordedBy: driverId,
+      confirmedAt: '2026-09-03T15:30:00.000Z',
+      lines: [{ productId, quantity: '5.000' }],
+      version: 2,
+    };
+    current.balances = [
+      { id: crypto.randomUUID(), productId, productName: 'Cola', quantity: '4.000' },
+    ];
+    const fetchMock = vi.fn(() => jsonResponse({ data: route('RETURNED') }));
+    vi.stubGlobal('fetch', fetchMock);
+    const rendered = renderWithQuery(<DriverReturnForm detail={current} />);
+    expect(screen.getByLabelText(/difference reason/i)).toBeDisabled();
+    fireEvent.change(screen.getByLabelText(/physical return/i), { target: { value: '3.000' } });
+    const reason = screen.getByLabelText(/difference reason/i);
+    expect(reason).toBeEnabled();
+    expect(reason).toBeRequired();
+    fireEvent.click(screen.getByRole('button', { name: 'Mark returned' }));
+    expect(fetchMock).not.toHaveBeenCalled();
+    fireEvent.change(reason, { target: { value: 'One damaged' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Mark returned' }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    const [url, request] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe(`/api/v1/routes/${routeId}/return`);
+    expect(JSON.parse(String(request.body)).lines).toEqual([
+      { productId, physicalReturnQuantity: '3.000', differenceReason: 'One damaged' },
+    ]);
+    rendered.unmount();
+    const returned: RouteDetail = {
+      ...current,
+      route: route('RETURNED'),
+      returnDeclaration: {
+        id: crypto.randomUUID(),
+        recordedBy: driverId,
+        createdAt: '2026-09-03T18:00:00.000Z',
+        kind: 'DECLARED',
+        routeNumber: 'R-UI-401',
+        lines: [
+          {
+            productId,
+            productName: 'Cola',
+            unitCode: 'PZA',
+            quantity: '3.000',
+            expectedQuantity: '4.000',
+            differenceQuantity: '1.000',
+            differenceReason: 'One damaged',
+          },
+        ],
+      },
+    };
+    const client = new QueryClient();
+    const review = render(
+      <QueryClientProvider client={client}>
+        <ReconciliationPage detail={returned} />
+      </QueryClientProvider>,
+    );
+    expect(screen.getByLabelText(/physical return/i)).toHaveValue('3.000');
+    expect(screen.getByLabelText(/difference reason/i)).toHaveValue('One damaged');
+    fireEvent.change(screen.getByLabelText(/difference reason/i), {
+      target: { value: 'Count verified' },
+    });
+    review.rerender(
+      <QueryClientProvider client={client}>
+        <ReconciliationPage detail={structuredClone(returned)} />
+      </QueryClientProvider>,
+    );
+    expect(screen.getByLabelText(/difference reason/i)).toHaveValue('Count verified');
+  });
+  it('creates an Administrator route without manually entering its generated number', async () => {
     let created = false;
     const assignedRoute = route();
     const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const url = new URL(String(input), 'http://warehouse.test');
       const method = init?.method ?? 'GET';
+      if (url.pathname.endsWith('/products'))
+        return jsonResponse({ data: [{ id: productId, sku: 'W-1', name: 'Route widget' }] });
+      if (url.pathname.endsWith('/locations'))
+        return jsonResponse({ data: [{ id: originId, code: 'M', name: 'Magdalena' }] });
+      if (url.pathname.endsWith('/vehicles'))
+        return jsonResponse({ data: [{ id: vehicleId, code: 'V1', name: 'Truck' }] });
+      if (url.pathname.endsWith('/users'))
+        return jsonResponse({
+          data: [{ id: driverId, displayName: 'Assigned driver', role: 'DRIVER' }],
+        });
       if (url.pathname.endsWith(`/routes/${routeId}`)) return jsonResponse({ data: detail() });
       if (url.pathname.endsWith('/routes') && method === 'POST') {
         created = true;
@@ -94,14 +178,15 @@ describe('route workflow UI', () => {
     vi.stubGlobal('fetch', fetchMock);
     renderWithQuery(<AdminRoutePages />);
 
-    fireEvent.change(await screen.findByLabelText('Route number'), {
-      target: { value: 'R-UI-401' },
-    });
-    fireEvent.change(screen.getByLabelText('Origin location ID'), {
-      target: { value: originId },
-    });
-    fireEvent.change(screen.getByLabelText('Driver ID'), { target: { value: driverId } });
-    fireEvent.change(screen.getByLabelText('Vehicle ID'), { target: { value: vehicleId } });
+    expect(
+      await screen.findByText('Optional. Leave blank to generate it automatically.'),
+    ).toBeVisible();
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: /Origin branch/ }));
+    fireEvent.click(await screen.findByRole('option', { name: 'Magdalena (M)' }));
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: /Seller/ }));
+    fireEvent.click(await screen.findByRole('option', { name: 'Assigned driver' }));
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: /Vehicle/ }));
+    fireEvent.click(await screen.findByRole('option', { name: 'Truck (V1)' }));
     fireEvent.change(screen.getByLabelText('Business date'), {
       target: { value: '2026-09-03' },
     });
@@ -111,7 +196,6 @@ describe('route workflow UI', () => {
     const createCall = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST');
     expect(createCall?.[0]).toBe('/api/v1/routes');
     expect(JSON.parse(String(createCall?.[1]?.body))).toEqual({
-      routeNumber: 'R-UI-401',
       originLocationId: originId,
       driverId,
       vehicleId,
@@ -130,6 +214,16 @@ describe('route workflow UI', () => {
     const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const url = new URL(String(input), 'http://warehouse.test');
       const method = init?.method ?? 'GET';
+      if (url.pathname.endsWith('/products'))
+        return jsonResponse({ data: [{ id: productId, sku: 'W-1', name: 'Route widget' }] });
+      if (url.pathname.endsWith('/locations'))
+        return jsonResponse({ data: [{ id: originId, code: 'M', name: 'Magdalena' }] });
+      if (url.pathname.endsWith('/vehicles'))
+        return jsonResponse({ data: [{ id: vehicleId, code: 'V1', name: 'Truck' }] });
+      if (url.pathname.endsWith('/users'))
+        return jsonResponse({
+          data: [{ id: driverId, displayName: 'Assigned driver', role: 'DRIVER' }],
+        });
       if (url.pathname.endsWith('/routes') && method === 'GET')
         return jsonResponse({
           data: [current.route],
@@ -195,9 +289,8 @@ describe('route workflow UI', () => {
     vi.stubGlobal('fetch', fetchMock);
     renderWithQuery(<DriverRoutePages />);
 
-    fireEvent.change(await screen.findByLabelText('Product ID'), {
-      target: { value: productId },
-    });
+    fireEvent.mouseDown(await screen.findByLabelText('Product'));
+    fireEvent.click(await screen.findByRole('option', { name: 'W-1 — Route widget' }));
     fireEvent.change(screen.getByLabelText('Load quantity'), {
       target: { value: '5.000' },
     });
@@ -220,7 +313,7 @@ describe('route workflow UI', () => {
       },
       { expectedVersion: 2 },
       { expectedVersion: 1 },
-      { expectedVersion: 2 },
+      { expectedVersion: 2, lines: [{ productId, physicalReturnQuantity: '5.000' }] },
     ]);
     expect(mutationCalls[0]!.key).toBeNull();
     expect(mutationCalls.slice(1).every(({ key }) => /^[0-9a-f-]{36}$/i.test(key ?? ''))).toBe(
@@ -294,6 +387,16 @@ describe('route workflow UI', () => {
     const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const url = new URL(String(input), 'http://warehouse.test');
       const method = init?.method ?? 'GET';
+      if (url.pathname.endsWith('/products'))
+        return jsonResponse({ data: [{ id: productId, sku: 'W-1', name: 'Route widget' }] });
+      if (url.pathname.endsWith('/locations'))
+        return jsonResponse({ data: [{ id: originId, code: 'M', name: 'Magdalena' }] });
+      if (url.pathname.endsWith('/vehicles'))
+        return jsonResponse({ data: [{ id: vehicleId, code: 'V1', name: 'Truck' }] });
+      if (url.pathname.endsWith('/users'))
+        return jsonResponse({
+          data: [{ id: driverId, displayName: 'Assigned driver', role: 'DRIVER' }],
+        });
       if (url.pathname.endsWith('/routes') && method === 'GET')
         return jsonResponse({
           data: [current.route],
@@ -333,18 +436,17 @@ describe('route workflow UI', () => {
     vi.stubGlobal('fetch', fetchMock);
     renderWithQuery(<DriverRoutePages />);
 
-    fireEvent.change(await screen.findByLabelText('Product ID'), {
-      target: { value: productId },
-    });
+    fireEvent.mouseDown(await screen.findByLabelText('Product'));
+    fireEvent.click(await screen.findByRole('option', { name: 'W-1 — Route widget' }));
     fireEvent.change(screen.getByLabelText('Load quantity'), {
       target: { value: '5.000' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Save full load' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'The route changed. Review it and try again.',
+      'This record changed. Refresh it and try again.',
     );
-    expect(screen.getByDisplayValue(productId)).toBeVisible();
+    expect(screen.getByRole('combobox', { name: 'Product' })).toHaveTextContent('Route widget');
     expect(screen.getByDisplayValue('5.000')).toBeVisible();
     fireEvent.click(screen.getByRole('button', { name: 'Save full load' }));
 
@@ -446,12 +548,15 @@ describe('route workflow UI', () => {
     );
     renderWithQuery(<DriverRoutePages />);
 
+    await screen.findByText('No active routes.');
+    expect(screen.queryByRole('heading', { name: 'R-UI-401' })).toBeNull();
+    fireEvent.click(screen.getByRole('tab', { name: 'Route history' }));
     expect(await screen.findByRole('heading', { name: 'R-UI-401' })).toBeVisible();
     expect(screen.getAllByText('Read only')).toHaveLength(2);
     expect(screen.getByText('Route load · 5.000')).toBeVisible();
     expect(screen.getByText('Negative adjustment · 1.000')).toBeVisible();
     expect(screen.getByText('Route return · 3.000')).toBeVisible();
-    expect(screen.getByText(/One unit damaged/)).toBeVisible();
+    expect(screen.getAllByText(/One unit damaged/).length).toBeGreaterThan(0);
     const timeline = screen.getByRole('list', { name: 'Route timeline' });
     const entries = within(timeline)
       .getAllByRole('listitem')
