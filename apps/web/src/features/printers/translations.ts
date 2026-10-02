@@ -1,4 +1,5 @@
 export const printersEn = {
+  chooseDevice: 'Choose another Bluetooth device',
   WITH_RESPONSE: 'With response',
   WITHOUT_RESPONSE: 'Without response',
   documentTitle: 'Print document',
@@ -69,6 +70,7 @@ export const printersEn = {
   missing: 'The profile is no longer available.',
 };
 export const printersEs = {
+  chooseDevice: 'Elegir otro dispositivo Bluetooth',
   WITH_RESPONSE: 'Con respuesta',
   WITHOUT_RESPONSE: 'Sin respuesta',
   documentTitle: 'Imprimir documento',

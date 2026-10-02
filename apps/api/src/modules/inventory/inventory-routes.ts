@@ -171,6 +171,13 @@ export function createInventoryRouter(database: AppDatabase): Router {
       const productId = queryString(request.query.productId);
       const branchFilter = queryString(request.query.branchId);
       const routeFilter = queryString(request.query.routeId);
+      const locationKind = z.enum(['BRANCH', 'ROUTE']).optional().parse(request.query.locationKind);
+      if (locationKind) query = query.where('stock.kind', '=', locationKind);
+      if (locationKind === 'BRANCH') query = query.where('branch.active', '=', true);
+      if (!routeFilter)
+        query = query.where((eb) =>
+          eb.or([eb('stock.kind', '=', 'BRANCH'), eb('stock_route.state', '!=', 'CLOSED')]),
+        );
       const search = z.string().trim().max(120).optional().parse(request.query.search);
       if (search) {
         const pattern = `%${search.replace(/[\\%_]/g, '\\$&')}%`;

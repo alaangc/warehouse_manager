@@ -222,6 +222,73 @@ describe('route lifecycle in PostgreSQL 18', () => {
     return { ...load, started, returned };
   }
 
+  it('records a legacy returned route declaration once without changing inventory and freezes it after approval', async () => {
+    const scenario = await createScenario();
+    const { returned } = await moveToReturned(scenario);
+    const lines = [
+      {
+        productId: scenario.products[0]!.id,
+        physicalReturnQuantity: '4.000',
+        differenceReason: 'One damaged',
+      },
+    ];
+    const service = new RouteTransitionService(database);
+    await expect(
+      service.transition(
+        returned.id,
+        'DECLARE_RETURN',
+        returned.version,
+        commandContext(adminId),
+        lines,
+      ),
+    ).rejects.toMatchObject({ code: 'ROUTE_FORBIDDEN' });
+    const updated = await service.transition(
+      returned.id,
+      'DECLARE_RETURN',
+      returned.version,
+      commandContext(scenario.driverId),
+      lines,
+    );
+    expect(updated.version).toBe(returned.version + 1);
+    expect(await balance(scenario.routeStockId, scenario.products[0]!.id)).toBe('5.000');
+    await expect(
+      service.transition(
+        returned.id,
+        'DECLARE_RETURN',
+        updated.version,
+        commandContext(scenario.driverId),
+        lines,
+      ),
+    ).rejects.toMatchObject({ code: 'INVALID_ROUTE_TRANSITION' });
+    await new RouteReconciliationService(database).approve(
+      returned.id,
+      { expectedVersion: updated.version, lines },
+      commandContext(adminId),
+    );
+    const records = await database
+      .selectFrom('route_return')
+      .selectAll()
+      .where('route_id', '=', returned.id)
+      .execute();
+    expect(records.map((row) => row.kind).sort()).toEqual(['APPROVED', 'DECLARED']);
+    await expect(
+      database
+        .updateTable('route_return')
+        .set({ recorded_by: adminId })
+        .where('id', '=', records[0]!.id)
+        .execute(),
+    ).rejects.toThrow();
+    await expect(
+      service.transition(
+        returned.id,
+        'DECLARE_RETURN',
+        updated.version,
+        commandContext(scenario.driverId),
+        lines,
+      ),
+    ).rejects.toMatchObject({ code: 'INVALID_ROUTE_TRANSITION' });
+  });
+
   async function reconcileExact(scenario: RouteScenario, expectedVersion: number) {
     return new RouteReconciliationService(database).approve(
       scenario.route.id,

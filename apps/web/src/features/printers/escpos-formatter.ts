@@ -75,6 +75,74 @@ export function formatEscPos(raw: unknown, options: FormatOptions): Uint8Array<A
       add(item.productName);
       add(`${item.quantity} ${item.unitCode}`);
     }
+  } else if (doc.documentType === 'ROUTE_RETURN') {
+    const s = doc.snapshot;
+    add('DEVOLUCION DE RUTA');
+    add(`Ruta: ${s.routeNumber}`);
+    add(s.kind === 'APPROVED' ? 'APROBADA' : 'DECLARADA - PENDIENTE DE CONCILIACION');
+    separator();
+    for (const item of s.lines) {
+      add(item.productName);
+      add(`Devuelto: ${item.quantity} ${item.unitCode}`);
+      add(`Esperado: ${item.expectedQuantity}`);
+      add(`Diferencia: ${item.differenceQuantity}`);
+      if (item.differenceReason) add(`Motivo: ${item.differenceReason}`);
+    }
+  } else if (doc.documentType === 'REPORT') {
+    const r = doc.snapshot.result;
+    const labels: Record<string, string> = {
+      SALES_BY_DRIVER: 'VENTAS POR VENDEDOR',
+      BEST_SELLING_PRODUCTS: 'PRODUCTOS MAS VENDIDOS',
+      INVENTORY_BY_BRANCH: 'INVENTARIO POR SUCURSAL',
+      FINANCIAL_SUMMARY: 'RESUMEN FINANCIERO',
+      driverName: 'Vendedor',
+      saleCount: 'Ventas',
+      productName: 'Producto',
+      branchName: 'Sucursal',
+      unitCode: 'Unidad',
+      quantity: 'Cantidad',
+      total: 'Total',
+      reportingGroup: 'Categoria',
+      grossTotal: 'Ventas',
+      partnerAmount: 'Socio',
+      remainingAmount: 'Propietario',
+      SODAS: 'Refrescos',
+      CHARCOAL: 'Carbon',
+      TOSTADAS: 'Tostadas',
+      OTHER: 'Otros',
+    };
+    add('REPORTE');
+    add(labels[r.reportType] ?? r.reportType);
+    add(`Generado: ${r.generatedAt}`);
+    add(`Zona: ${r.businessTimezone}`);
+    for (const [key, label] of [
+      ['periodStart', 'Desde'],
+      ['periodEnd', 'Hasta (exclusivo)'],
+    ] as const)
+      if (typeof r.filters[key] === 'string') add(`${label}: ${r.filters[key]}`);
+    separator();
+    const columns: Record<string, string[]> = {
+      SALES_BY_DRIVER: ['driverName', 'saleCount', 'total'],
+      BEST_SELLING_PRODUCTS: ['productName', 'quantity', 'total'],
+      INVENTORY_BY_BRANCH: ['branchName', 'productName', 'unitCode', 'quantity'],
+      FINANCIAL_SUMMARY: ['reportingGroup', 'total'],
+    };
+    const currency = typeof r.totals?.currencyCode === 'string' ? r.totals.currencyCode : '';
+    for (const row of r.rows) {
+      for (const key of columns[r.reportType] ?? []) {
+        const value = row[key];
+        if (typeof value === 'string' || typeof value === 'number')
+          add(
+            `${labels[key]}: ${key === 'reportingGroup' ? (labels[String(value)] ?? value) : value}${key === 'total' && currency ? ' ' + currency : ''}`,
+          );
+      }
+      separator();
+    }
+    if (!r.rows.length) add('Sin actividad');
+    for (const key of ['grossTotal', 'partnerAmount', 'remainingAmount']) {
+      const value = r.totals?.[key];
+      if (typeof value === 'string') add(`${labels[key]}: ${value} ${currency}`);
+    }
   } else {
     const s = doc.snapshot;
     add('CORTE DE CAJA');

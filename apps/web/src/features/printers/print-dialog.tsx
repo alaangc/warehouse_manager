@@ -49,9 +49,11 @@ export function canOfferPrint(
   user: SessionUser,
   source?: DocumentSource,
 ) {
-  if (!user.active || document.state !== 'READY' || document.documentType === 'REPORT')
-    return false;
-  if (user.role === 'DRIVER' && !['TICKET', 'ROUTE_LOAD'].includes(document.documentType))
+  if (!user.active || document.state !== 'READY') return false;
+  if (
+    user.role === 'DRIVER' &&
+    !['TICKET', 'ROUTE_LOAD', 'ROUTE_RETURN'].includes(document.documentType)
+  )
     return false;
   if (source) {
     if (
@@ -158,7 +160,11 @@ function PrintPanel({
     refetchOnMount: 'always',
   });
   const profile = profiles.data?.find(
-    (row) => row.id === (selection ?? preference.data?.data?.printerProfileId),
+    (row) =>
+      row.id ===
+      (selection ??
+        preference.data?.data?.printerProfileId ??
+        (profiles.data?.length === 1 ? profiles.data[0]?.id : undefined)),
   );
   useEffect(() => {
     mounted.current = true;
@@ -287,6 +293,8 @@ function PrintPanel({
             </Alert>
           )}
           {capability !== 'AVAILABLE' && <Typography>{t(`printers.${capability}`)}</Typography>}
+          <Typography>{t('workflow.printHelp')}</Typography>
+          <Typography variant="body2">{t('workflow.bluetoothHelp')}</Typography>
           <FormControl disabled={busy || Boolean(pending)}>
             <InputLabel shrink htmlFor="print-profile">
               {t('printers.printer')}
@@ -319,6 +327,12 @@ function PrintPanel({
             onClick={() => void perform(() => adapter.connect(profile!))}
           >
             {t('printers.connect')}
+          </Button>
+          <Button
+            disabled={!profile || busy || capability !== 'AVAILABLE' || Boolean(pending)}
+            onClick={() => void perform(() => adapter.connect(profile!, true))}
+          >
+            {t('printers.chooseDevice')}
           </Button>
           <Button
             disabled={

@@ -23,15 +23,22 @@ function document(documentType = 'TICKET') {
   return {
     id: '00000000-0000-4000-8000-000000000119',
     documentType,
-    sourceType: documentType === 'TICKET' ? 'SALE' : documentType,
+    sourceType:
+      documentType === 'TICKET'
+        ? 'SALE'
+        : documentType === 'REPORT'
+          ? 'REPORT_SNAPSHOT'
+          : documentType,
     sourceId: '00000000-0000-4000-8000-000000000120',
     state: 'READY',
     sourceState:
-      documentType === 'ROUTE_LOAD'
-        ? 'CONFIRMED'
-        : documentType === 'CASH_CLOSE'
-          ? 'CLOSED'
-          : 'COMPLETED',
+      documentType === 'REPORT'
+        ? 'READY'
+        : documentType === 'ROUTE_LOAD'
+          ? 'CONFIRMED'
+          : documentType === 'CASH_CLOSE'
+            ? 'CLOSED'
+            : 'COMPLETED',
     contentVersion: '1',
     snapshot: {
       ticketNumber: 'T-118',
@@ -118,6 +125,40 @@ afterEach(() => {
 });
 
 describe('T118 ESC/POS templates (T129 red phase)', () => {
+  it.each([58, 80])(
+    'prints declared and approved physical returns on %s mm paper',
+    async (paperWidthMm) => {
+      for (const kind of ['DECLARED', 'APPROVED']) {
+        const bytes = await format(
+          {
+            ...document('ROUTE_RETURN'),
+            sourceState: 'READY',
+            snapshot: {
+              routeNumber: 'R-RETURN',
+              kind,
+              lines: [
+                {
+                  productId: crypto.randomUUID(),
+                  productName: 'Cola',
+                  unitCode: 'PZA',
+                  quantity: '3.000',
+                  expectedQuantity: '4.000',
+                  differenceQuantity: '1.000',
+                  differenceReason: 'Una rota',
+                },
+              ],
+            },
+          },
+          { profile: { ...profile, paperWidthMm } },
+        );
+        const text = String.fromCharCode(...bytes);
+        expect(text).toContain('DEVOLUCION DE RUTA');
+        expect(text).toContain('Devuelto: 3.000 PZA');
+        expect(text).toContain('Motivo: Una rota');
+        expect(text).toContain(kind === 'APPROVED' ? 'APROBADA' : 'DECLARADA');
+      }
+    },
+  );
   it.each([
     ['CP437', [27, 64, 27, 116, 0]],
     ['CP850', [27, 64, 27, 116, 2]],
@@ -247,12 +288,55 @@ describe('T118 ESC/POS templates (T129 red phase)', () => {
     expect(reprint).not.toEqual(original);
     expect(doc).toEqual(before);
   });
-  it('rejects REPORT thermal formatting', async () => {
-    await expect(format(document('REPORT'))).rejects.toMatchObject({ status: 422 });
+  it('formats immutable REPORT snapshots with period, rows and totals', async () => {
+    const doc = {
+      ...document('REPORT'),
+      snapshot: {
+        reportType: 'FINANCIAL_SUMMARY',
+        filters: {},
+        businessTimezone: 'America/Hermosillo',
+        result: {
+          reportType: 'FINANCIAL_SUMMARY',
+          generatedAt: '2026-09-30T12:00:00Z',
+          businessTimezone: 'America/Hermosillo',
+          filters: { periodStart: '2026-09-30T07:00:00Z' },
+          rows: [{ reportingGroup: 'SODAS', total: '20.01' }],
+          totals: {
+            currencyCode: 'MXN',
+            grossTotal: '20.01',
+            partnerAmount: '10.01',
+            remainingAmount: '10.00',
+          },
+        },
+      },
+    };
+    const before = structuredClone(doc);
+    const output = String.fromCharCode(...(await format(doc)));
+    expect(output).toContain('REPORTE');
+    expect(output).toContain('Refrescos');
+    expect(output).toContain('20.01 MXN');
+    expect(output).toContain('10.01 MXN');
+    expect(output).toContain('2026-09-30T07:00:00Z');
+    expect(doc).toEqual(before);
+    await expect(format({ ...doc, sourceState: 'PENDING' })).rejects.toMatchObject({ status: 409 });
   });
 });
 
 describe('T118 document transport (T128 red phase)', () => {
+  it('reconnects the granted device across screens and allows choosing another', async () => {
+    const s = transport();
+    await s.connect();
+    s.adapter.disconnect();
+    const requestDevice = (
+      navigator as unknown as { bluetooth: { requestDevice: ReturnType<typeof vi.fn> } }
+    ).bluetooth.requestDevice;
+    const next = new WebBluetoothPrinterAdapter();
+    await next.connect(profile);
+    expect(requestDevice).toHaveBeenCalledTimes(1);
+    await next.connect(profile, true);
+    expect(requestDevice).toHaveBeenCalledTimes(2);
+    expect(s.write).not.toHaveBeenCalled();
+  });
   it('freezes prepared bytes and blocks tests, prints and reconnects while sending', async () => {
     const s = transport();
     await s.connect();
@@ -404,13 +488,13 @@ describe('T118 document transport (T128 red phase)', () => {
     });
     expect(doc).toEqual(before);
   });
-  it.each(['PRINT', 'REPRINT'])('rejects REPORT %s before writing', async (mode) => {
+  it.each(['PRINT', 'REPRINT'])('sends authorized prepared REPORT %s bytes', async (mode) => {
     const s = transport();
     await s.connect();
-    await expect(s.print(document('REPORT'), { mode, confirmed: true })).rejects.toMatchObject({
-      status: 422,
+    await expect(s.print(document('REPORT'), { mode, confirmed: true })).resolves.toMatchObject({
+      state: 'SUCCEEDED',
     });
-    expect(s.write).not.toHaveBeenCalled();
+    expect(s.write).toHaveBeenCalled();
   });
   it('rejects an unconfirmed route load before writing', async () => {
     const s = transport();

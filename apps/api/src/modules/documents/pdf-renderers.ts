@@ -1,3 +1,4 @@
+import { RouteReturnSnapshotSchema } from '@warehouse/contracts';
 import { createHash } from 'node:crypto';
 import PDFDocument from 'pdfkit';
 import { z } from 'zod';
@@ -73,8 +74,8 @@ const reportSchema = z.object({
   totals: z.object(totalsFields).optional(),
 });
 const sourceSchema = z.object({
-  documentType: z.enum(['TICKET', 'ROUTE_LOAD', 'CASH_CLOSE', 'REPORT']),
-  sourceType: z.enum(['SALE', 'ROUTE_LOAD', 'CASH_CLOSE', 'REPORT_SNAPSHOT']),
+  documentType: z.enum(['TICKET', 'ROUTE_LOAD', 'ROUTE_RETURN', 'CASH_CLOSE', 'REPORT']),
+  sourceType: z.enum(['SALE', 'ROUTE_LOAD', 'ROUTE_RETURN', 'CASH_CLOSE', 'REPORT_SNAPSHOT']),
   sourceId: z.uuid(),
   contentVersion: text.min(1),
   createdAt: z.iso.datetime({ offset: true }),
@@ -109,6 +110,11 @@ const labels = {
   es: {
     TICKET: 'Ticket de venta',
     ROUTE_LOAD: 'Carga de ruta',
+    ROUTE_RETURN: 'Devolución de ruta',
+    returnKind: 'Estado de devolución',
+    expectedQuantity: 'Esperado',
+    differenceQuantity: 'Diferencia',
+    differenceReason: 'Motivo de diferencia',
     CASH_CLOSE: 'Corte de caja',
     REPORT: 'Reporte',
     ticketNumber: 'Ticket',
@@ -152,6 +158,11 @@ const labels = {
   en: {
     TICKET: 'Sale ticket',
     ROUTE_LOAD: 'Route load',
+    ROUTE_RETURN: 'Route return',
+    returnKind: 'Return status',
+    expectedQuantity: 'Expected',
+    differenceQuantity: 'Difference',
+    differenceReason: 'Difference reason',
     CASH_CLOSE: 'Cash close',
     REPORT: 'Report',
     ticketNumber: 'Ticket',
@@ -313,6 +324,10 @@ export async function renderDocumentPdf(input: unknown): Promise<RenderedDocumen
   // Validate all fields before opening a PDF stream.
   const ticket = source.documentType === 'TICKET' ? parse(ticketSchema, source.snapshot) : null;
   const load = source.documentType === 'ROUTE_LOAD' ? parse(loadSchema, source.snapshot) : null;
+  const returned =
+    source.documentType === 'ROUTE_RETURN'
+      ? parse(RouteReturnSnapshotSchema, source.snapshot)
+      : null;
   const cash = source.documentType === 'CASH_CLOSE' ? parse(cashSchema, source.snapshot) : null;
   const report =
     source.documentType === 'REPORT'
@@ -405,6 +420,28 @@ export async function renderDocumentPdf(input: unknown): Promise<RenderedDocumen
         ],
         load.lines,
       );
+    }
+    if (returned) {
+      layout.field('routeNumber', returned.routeNumber);
+      layout.field(
+        'returnKind',
+        returned.kind === 'APPROVED'
+          ? source.locale === 'es'
+            ? 'Aprobada'
+            : 'Approved'
+          : source.locale === 'es'
+            ? 'Declarada por el vendedor; pendiente de conciliación'
+            : 'Declared by seller; pending reconciliation',
+      );
+      for (const item of returned.lines) {
+        layout.field('productName', item.productName);
+        layout.field('quantity', item.quantity);
+        layout.field('unitCode', item.unitCode);
+        layout.field('expectedQuantity', item.expectedQuantity);
+        layout.field('differenceQuantity', item.differenceQuantity);
+        if (item.differenceReason) layout.field('differenceReason', item.differenceReason);
+        doc.moveDown();
+      }
     }
     if (cash) {
       layout.field('closeNumber', cash.closeNumber);

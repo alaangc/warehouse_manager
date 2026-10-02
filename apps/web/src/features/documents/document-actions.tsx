@@ -28,7 +28,8 @@ export function DocumentActions(props: Props) {
   const { user } = useSession();
   if (
     !user?.active ||
-    (user.role === 'DRIVER' && !['TICKET', 'ROUTE_LOAD'].includes(props.document.documentType))
+    (user.role === 'DRIVER' &&
+      !['TICKET', 'ROUTE_LOAD', 'ROUTE_RETURN'].includes(props.document.documentType))
   )
     return null;
   return (

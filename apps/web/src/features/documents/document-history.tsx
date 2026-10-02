@@ -122,16 +122,16 @@ function History({
           (row) =>
             administrator ||
             ('documentType' in row
-              ? ['TICKET', 'ROUTE_LOAD'].includes(row.documentType)
+              ? ['TICKET', 'ROUTE_LOAD', 'ROUTE_RETURN'].includes(row.documentType)
               : row.mode !== 'TEST_PRINT'),
         );
   const choices: Record<string, string[]> = {
     documentType: administrator
-      ? ['TICKET', 'ROUTE_LOAD', 'CASH_CLOSE', 'REPORT']
-      : ['TICKET', 'ROUTE_LOAD'],
+      ? ['TICKET', 'ROUTE_LOAD', 'ROUTE_RETURN', 'CASH_CLOSE', 'REPORT']
+      : ['TICKET', 'ROUTE_LOAD', 'ROUTE_RETURN'],
     sourceType: administrator
-      ? ['SALE', 'ROUTE_LOAD', 'CASH_CLOSE', 'REPORT_SNAPSHOT']
-      : ['SALE', 'ROUTE_LOAD'],
+      ? ['SALE', 'ROUTE_LOAD', 'ROUTE_RETURN', 'CASH_CLOSE', 'REPORT_SNAPSHOT']
+      : ['SALE', 'ROUTE_LOAD', 'ROUTE_RETURN'],
     state:
       collection === 'documents'
         ? ['PENDING', 'READY', 'FAILED']

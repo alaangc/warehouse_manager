@@ -136,12 +136,6 @@ export function createDocumentRouter(database: AppDatabase, environment: Environ
       z.uuid().parse(request.params.documentId),
       request.principal!,
     );
-    if (document.document_type === 'REPORT')
-      throw new HttpProblem(
-        422,
-        'DOCUMENT_NOT_PRINTABLE',
-        'Reports do not support thermal printing',
-      );
     if (document.state !== 'READY')
       throw new HttpProblem(409, 'DOCUMENT_NOT_READY', 'Document is not ready');
     const source = await documents.loadSource(request.principal!, {

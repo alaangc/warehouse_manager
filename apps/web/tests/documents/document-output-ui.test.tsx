@@ -28,7 +28,7 @@ describe('T121 document output UI (red until T130–T132)', () => {
       return failure(500);
     });
     await mount('DocumentCenter', { source });
-    fireEvent.click(await screen.findByRole('button', { name: /generate pdf/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /prepare ticket/i }));
     await waitFor(() => expect(screen.getByRole('button', { name: /download/i })).toBeEnabled(), {
       timeout: 5_000,
     });
@@ -47,7 +47,7 @@ describe('T121 document output UI (red until T130–T132)', () => {
     async (status) => {
       const s = network(() => failure(status));
       await mount('DocumentCenter', { source });
-      fireEvent.click(await screen.findByRole('button', { name: /generate pdf/i }));
+      fireEvent.click(await screen.findByRole('button', { name: /prepare ticket/i }));
       expect(await screen.findByRole('alert')).toBeVisible();
       expect(s.calls.filter((call) => call.method === 'POST')).toHaveLength(1);
       const download = screen.queryByRole('button', { name: /download/i });
@@ -63,7 +63,7 @@ describe('T121 document output UI (red until T130–T132)', () => {
       ),
     );
     await mount('DocumentCenter', { source });
-    fireEvent.click(await screen.findByRole('button', { name: /generate pdf/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /prepare ticket/i }));
     fireEvent.click(await screen.findByRole('button', { name: /retry/i }));
     await waitFor(() => expect(s.calls.filter((call) => call.method === 'POST')).toHaveLength(2));
     expect(s.calls.every((call) => call.url.pathname.startsWith('/api/v1/documents'))).toBe(true);
@@ -91,7 +91,7 @@ describe('T121 document output UI (red until T130–T132)', () => {
         : json({ data: document }, 202),
     );
     await mount('DocumentCenter', { source });
-    fireEvent.click(await screen.findByRole('button', { name: /generate pdf/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /prepare ticket/i }));
     fireEvent.click(await screen.findByRole('button', { name: /download/i }));
     await waitFor(() => expect(click).toHaveBeenCalledTimes(1));
     expect(click.mock.instances[0]).toHaveAttribute('download', 'ticket-123.pdf');
@@ -114,7 +114,7 @@ describe('T121 document output UI (red until T130–T132)', () => {
         : json({ data: document }, 202),
     );
     await mount('DocumentCenter', { source });
-    fireEvent.click(await screen.findByRole('button', { name: /generate pdf/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /prepare ticket/i }));
     const button = await screen.findByRole('button', { name: /^share/i });
     expect(share).not.toHaveBeenCalled();
     fireEvent.click(button);
@@ -184,7 +184,7 @@ describe('T121 print acceptance and uncertainty UI', () => {
     expect(screen.getByRole('button', { name: /download/i })).toBeVisible();
     expect(adapter.print).not.toHaveBeenCalled();
   });
-  it('does not offer Administrator REPORT printing', async () => {
+  it('rejects mismatched REPORT source metadata', async () => {
     const adapter = printer();
     await mount(
       'PrintDialog',

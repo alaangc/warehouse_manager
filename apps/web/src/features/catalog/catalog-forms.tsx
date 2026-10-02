@@ -127,7 +127,11 @@ export function SimpleCatalogForm({
     onSuccess: async () => {
       if (!record) form.reset(simpleDefaults);
       onSaved?.();
-      await queryClient.invalidateQueries({ queryKey: [kind] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: [kind] }),
+        queryClient.invalidateQueries({ queryKey: ['route-resource-options', kind] }),
+        queryClient.invalidateQueries({ queryKey: ['catalog-options', kind] }),
+      ]);
     },
   });
 
@@ -299,7 +303,7 @@ export function ProductForm({
     onSuccess: async (response) => {
       if (!product) form.reset(productValues());
       onSaved?.(response.data);
-      await queryClient.invalidateQueries({ queryKey: ['products'] });
+      await Promise.all([queryClient.invalidateQueries({ queryKey: ['products'] }), queryClient.invalidateQueries({ queryKey: ['catalog-options', 'products'] })]);
     },
   });
 

@@ -46,6 +46,7 @@ export class RouteReconciliationService {
               'route.state',
               'route.origin_location_id',
               'route.version',
+              'route.route_number',
               'route_stock.id as routeStockId',
             ])
             .where('route.id', '=', routeId)
@@ -85,6 +86,7 @@ export class RouteReconciliationService {
           const requested = new Map(input.lines.map((line) => [line.productId, line]));
           if (
             loaded.length !== requested.size ||
+            requested.size !== input.lines.length ||
             loaded.some((line) => !requested.has(line.product_id))
           )
             throw Object.assign(
@@ -253,6 +255,28 @@ export class RouteReconciliationService {
             operationId: returnOperationId,
             requestId: context.requestId,
           });
+          await transaction
+            .insertInto('route_return')
+            .values({
+              id: reconciliationId,
+              route_id: routeId,
+              kind: 'APPROVED',
+              recorded_by: context.actorId,
+              snapshot: {
+                routeNumber: route.route_number,
+                kind: 'APPROVED',
+                lines: records.map((record) => ({
+                  productId: record.productId,
+                  productName: record.productName,
+                  unitCode: record.unitCode,
+                  quantity: record.physical,
+                  expectedQuantity: record.expected,
+                  differenceQuantity: record.difference,
+                  differenceReason: record.reason,
+                })),
+              },
+            })
+            .execute();
           return reconciliation;
         },
       );

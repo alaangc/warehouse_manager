@@ -11,7 +11,7 @@ describe('T132 authorized thermal snapshots', () => {
     await h?.close();
   });
   it('returns immutable, version-bound printable data without storage keys', async () => {
-    for (const source of [h.ticket, h.load, h.cashClose]) {
+    for (const source of [h.ticket, h.load, h.cashClose, h.reportSource]) {
       const doc = await h.ready(source);
       const response = await h.send(h.admin, 'get', `/documents/${doc.id}/print-data`);
       expect(response.status).toBe(200);
@@ -27,10 +27,10 @@ describe('T132 authorized thermal snapshots', () => {
       expect((await h.send(h.driver, 'get', `/documents/${doc.id}/print-data`)).status).toBe(200);
     }
   });
-  it('authorizes before rejecting report capability and rejects unready print acceptance', async () => {
+  it('restricts report printing to administrators and rejects unready print acceptance', async () => {
     const report = await h.ready(h.reportSource);
     problem(await h.send(h.driver, 'get', `/documents/${report.id}/print-data`), 403);
-    problem(await h.send(h.admin, 'get', `/documents/${report.id}/print-data`), 422);
+    expect((await h.send(h.admin, 'get', `/documents/${report.id}/print-data`)).status).toBe(200);
     const doc = await h.ready(h.ticket);
     await h.database
       .updateTable('document_output')

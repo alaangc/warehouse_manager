@@ -34,7 +34,7 @@ test('Administrator downloads all four PDFs; Driver reuses own Ticket and assign
   }
 });
 
-test('Chromium prints three supported types, rejects REPORT, and requires explicit UNKNOWN reprint', async ({
+test('Chromium prints all four supported types, and requires explicit UNKNOWN reprint', async ({
   page,
   warehouse: h,
   browserName,
@@ -79,7 +79,7 @@ test('Chromium prints three supported types, rejects REPORT, and requires explic
   await page.goto('/settings');
   await page.getByLabel('Printer', { exact: true }).selectOption(h.printerId);
   await page.getByRole('button', { name: 'Save printer selection' }).click();
-  for (const source of h.sources.slice(0, 3)) {
+  for (const source of h.sources) {
     const doc = await h.create(source);
     await page.goto(`/documents?documentId=${doc.id}`);
     await page.getByRole('button', { name: /^print$/i }).click();
@@ -97,23 +97,6 @@ test('Chromium prints three supported types, rejects REPORT, and requires explic
       await page.evaluate(() => Reflect.get(window, 'documentPrintTest').writes),
     ).toBeGreaterThan(0);
   }
-  const report = await h.create(h.sources[3]!);
-  await page.goto(`/documents?documentId=${report.id}`);
-  const before = await page.evaluate(() => Reflect.get(window, 'documentPrintTest').writes);
-  for (const mode of ['PRINT', 'REPRINT']) {
-    expect(
-      (
-        await api(page, '/output-attempts', {
-          documentId: report.id,
-          mode,
-          printerProfileId: h.printerId,
-          state: 'STARTED',
-        })
-      ).status,
-    ).toBe(422);
-  }
-  await expect(page.getByRole('button', { name: /^print$|reprint/i })).toHaveCount(0);
-  expect(await page.evaluate(() => Reflect.get(window, 'documentPrintTest').writes)).toBe(before);
   const doc = await h.create(h.ticket);
   await page.goto(`/documents?documentId=${doc.id}`);
   await page.getByRole('button', { name: /^print$/i }).click();

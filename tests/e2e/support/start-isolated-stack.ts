@@ -21,6 +21,8 @@ import { resolveReportingPeriod } from '../../../apps/api/src/modules/reports/re
 // This launcher only writes to the container it creates; it never reads DATABASE_URL.
 const postgres = await startPostgres();
 const database = createDatabase(postgres.connectionString);
+const apiPort = Number(process.env.E2E_API_PORT ?? 3000);
+const webPort = Number(process.env.E2E_WEB_PORT ?? 5173);
 let api: Server | undefined;
 let web: ReturnType<typeof spawn> | undefined;
 let closing = false;
@@ -102,17 +104,17 @@ try {
       NODE_ENV: 'development',
       DATABASE_URL: postgres.connectionString,
       SESSION_SECRET: randomUUID(),
-      APP_ORIGIN: 'http://127.0.0.1:5173',
+      APP_ORIGIN: `http://127.0.0.1:${webPort}`,
       BUSINESS_TIMEZONE: 'America/Hermosillo',
       BUSINESS_CURRENCY: 'MXN',
-      PORT: 3000,
+      PORT: apiPort,
       LOG_LEVEL: 'fatal',
       DOCUMENT_STORAGE_PATH: documentStorage,
     },
     { database },
   );
   await new Promise<void>((resolve, reject) => {
-    api = app.listen(3000, '127.0.0.1', resolve);
+    api = app.listen(apiPort, '127.0.0.1', resolve);
     api.once('error', reject);
   });
   web = spawn(
@@ -122,10 +124,14 @@ try {
       '--host',
       '127.0.0.1',
       '--port',
-      '5173',
+      String(webPort),
       '--strictPort',
     ],
-    { cwd: fileURLToPath(new URL('../../../apps/web', import.meta.url)), stdio: 'inherit' },
+    {
+      cwd: fileURLToPath(new URL('../../../apps/web', import.meta.url)),
+      stdio: 'inherit',
+      env: { ...process.env, API_PROXY_TARGET: `http://127.0.0.1:${apiPort}` },
+    },
   );
   web.once('exit', () => {
     void stop();

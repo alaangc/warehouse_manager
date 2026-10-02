@@ -4,7 +4,9 @@ info:
   title: Warehouse Manager API
   version: 1.0.0
   description: >-
-    Authoritative HTTP contract for warehouse, route, sale, reconciliation, reporting, document, user, and printer-profile operations. Money and quantities are decimal strings. All protected authorization and business rules are enforced by the API.
+    Authoritative HTTP contract for warehouse, route, sale, reconciliation, reporting, document, user, and
+    printer-profile operations. Money and quantities are decimal strings. All protected authorization and business rules
+    are enforced by the API.
 servers:
   - url: /api/v1
 security:
@@ -45,7 +47,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: false
-                required: [status]
+                required: [ status ]
                 properties:
                   status:
                     const: ok
@@ -59,7 +61,7 @@ paths:
 
   /auth/login:
     post:
-      tags: [Authentication]
+      tags: [ Authentication ]
       operationId: login
       security: []
       requestBody:
@@ -100,7 +102,7 @@ paths:
 
   /auth/session:
     get:
-      tags: [Authentication]
+      tags: [ Authentication ]
       operationId: getSession
       responses:
         '200':
@@ -134,7 +136,7 @@ paths:
 
   /auth/logout:
     post:
-      tags: [Authentication]
+      tags: [ Authentication ]
       operationId: logout
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -189,7 +191,7 @@ paths:
 
   /users:
     get:
-      tags: [Users]
+      tags: [ Users ]
       operationId: listUsers
       parameters:
         - $ref: '#/components/parameters/Cursor'
@@ -224,7 +226,7 @@ paths:
           $ref: "#/components/responses/Problem"
       summary: List users
     post:
-      tags: [Users]
+      tags: [ Users ]
       operationId: createUser
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -263,7 +265,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/UserId'
     get:
-      tags: [Users]
+      tags: [ Users ]
       operationId: getUser
       responses:
         '200':
@@ -290,7 +292,7 @@ paths:
           $ref: "#/components/responses/Problem"
       summary: Get user
     patch:
-      tags: [Users]
+      tags: [ Users ]
       operationId: updateUser
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -327,7 +329,7 @@ paths:
 
   /locations:
     get:
-      tags: [Catalog]
+      tags: [ Catalog ]
       operationId: listLocations
       responses:
         '200':
@@ -353,8 +355,14 @@ paths:
         "500":
           $ref: "#/components/responses/Problem"
       summary: List locations
+      parameters:
+        - name: active
+          in: query
+          description: Filter active or archived catalog entries; omitted returns both.
+          schema:
+            type: boolean
     post:
-      tags: [Catalog]
+      tags: [ Catalog ]
       operationId: createLocation
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -391,7 +399,7 @@ paths:
 
   /categories:
     get:
-      tags: [Catalog]
+      tags: [ Catalog ]
       operationId: listCategories
       responses:
         '200':
@@ -417,8 +425,14 @@ paths:
         "500":
           $ref: "#/components/responses/Problem"
       summary: List categories
+      parameters:
+        - name: active
+          in: query
+          description: Filter active or archived catalog entries; omitted returns both.
+          schema:
+            type: boolean
     post:
-      tags: [Catalog]
+      tags: [ Catalog ]
       operationId: createCategory
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -455,7 +469,7 @@ paths:
 
   /units:
     get:
-      tags: [Catalog]
+      tags: [ Catalog ]
       operationId: listUnits
       responses:
         '200':
@@ -481,8 +495,14 @@ paths:
         "500":
           $ref: "#/components/responses/Problem"
       summary: List units
+      parameters:
+        - name: active
+          in: query
+          description: Filter active or archived catalog entries; omitted returns both.
+          schema:
+            type: boolean
     post:
-      tags: [Catalog]
+      tags: [ Catalog ]
       operationId: createUnit
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -519,14 +539,15 @@ paths:
 
   /products:
     get:
-      tags: [Catalog]
+      tags: [ Catalog ]
       operationId: listProducts
       parameters:
-        - $ref: '#/components/parameters/Cursor'
-        - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Search'
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Search"
         - name: active
           in: query
+          description: Filter active or archived catalog entries; omitted returns both.
           schema:
             type: boolean
       responses:
@@ -554,7 +575,7 @@ paths:
           $ref: "#/components/responses/Problem"
       summary: List products
     post:
-      tags: [Catalog]
+      tags: [ Catalog ]
       operationId: createProduct
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -593,7 +614,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/ProductId'
     get:
-      tags: [Catalog]
+      tags: [ Catalog ]
       operationId: getProduct
       responses:
         '200':
@@ -620,7 +641,7 @@ paths:
           $ref: "#/components/responses/Problem"
       summary: Get product
     patch:
-      tags: [Catalog]
+      tags: [ Catalog ]
       operationId: updateProduct
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -657,7 +678,7 @@ paths:
 
   /customers:
     get:
-      tags: [Customers]
+      tags: [ Customers ]
       operationId: listCustomers
       parameters:
         - $ref: '#/components/parameters/Cursor'
@@ -692,7 +713,7 @@ paths:
           $ref: "#/components/responses/Problem"
       summary: List customers
     post:
-      tags: [Customers]
+      tags: [ Customers ]
       operationId: createCustomer
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -731,7 +752,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/CustomerId'
     get:
-      tags: [Customers]
+      tags: [ Customers ]
       operationId: getCustomer
       responses:
         '200':
@@ -758,7 +779,7 @@ paths:
           $ref: "#/components/responses/Problem"
       summary: Get customer
     patch:
-      tags: [Customers]
+      tags: [ Customers ]
       operationId: updateCustomer
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -797,7 +818,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/CustomerId'
     get:
-      tags: [Customers]
+      tags: [ Customers ]
       operationId: listCustomerPrices
       responses:
         '200':
@@ -824,7 +845,7 @@ paths:
           $ref: "#/components/responses/Problem"
       summary: List customer prices
     post:
-      tags: [Customers]
+      tags: [ Customers ]
       operationId: createCustomerPrice
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -865,7 +886,7 @@ paths:
       - $ref: '#/components/parameters/Cursor'
       - $ref: '#/components/parameters/Limit'
     get:
-      tags: [Customers]
+      tags: [ Customers ]
       operationId: listCustomerSales
       responses:
         '200':
@@ -894,7 +915,7 @@ paths:
 
   /vehicles:
     get:
-      tags: [Catalog]
+      tags: [ Catalog ]
       operationId: listVehicles
       responses:
         '200':
@@ -920,8 +941,14 @@ paths:
         "500":
           $ref: "#/components/responses/Problem"
       summary: List vehicles
+      parameters:
+        - name: active
+          in: query
+          description: Filter active or archived catalog entries; omitted returns both.
+          schema:
+            type: boolean
     post:
-      tags: [Catalog]
+      tags: [ Catalog ]
       operationId: createVehicle
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -958,7 +985,7 @@ paths:
 
   /printer-profiles:
     get:
-      tags: [Printers]
+      tags: [ Printers ]
       operationId: listPrinterProfiles
       responses:
         '200':
@@ -985,7 +1012,7 @@ paths:
           $ref: "#/components/responses/Problem"
       summary: List printer profiles
     post:
-      tags: [Printers]
+      tags: [ Printers ]
       operationId: createPrinterProfile
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -1022,7 +1049,7 @@ paths:
 
   /me/printer-preference:
     get:
-      tags: [Printers]
+      tags: [ Printers ]
       operationId: getMyPrinterPreference
       responses:
         '200':
@@ -1049,7 +1076,7 @@ paths:
           $ref: "#/components/responses/Problem"
       summary: Get my printer preference
     put:
-      tags: [Printers]
+      tags: [ Printers ]
       operationId: setMyPrinterPreference
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -1086,28 +1113,36 @@ paths:
 
   /inventory/balances:
     get:
-      tags: [Inventory]
+      tags: [ Inventory ]
       operationId: listInventoryBalances
       parameters:
-        - $ref: '#/components/parameters/Search'
-        - $ref: '#/components/parameters/Cursor'
-        - $ref: '#/components/parameters/Limit'
+        - $ref: "#/components/parameters/Search"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
         - name: productId
           in: query
           schema:
-            $ref: '#/components/schemas/Uuid'
+            $ref: "#/components/schemas/Uuid"
         - name: branchId
           in: query
           schema:
-            $ref: '#/components/schemas/Uuid'
+            $ref: "#/components/schemas/Uuid"
         - name: routeId
           in: query
           schema:
-            $ref: '#/components/schemas/Uuid'
+            $ref: "#/components/schemas/Uuid"
         - name: alertsOnly
           in: query
           schema:
             type: boolean
+        - name: locationKind
+          in: query
+          description: BRANCH shows active branches only. Closed route balances require an explicit routeId.
+          schema:
+            type: string
+            enum:
+              - BRANCH
+              - ROUTE
       responses:
         '200':
           description: Role-filtered current balances
@@ -1135,10 +1170,12 @@ paths:
 
   /inventory/movements:
     get:
-      tags: [Inventory]
+      tags: [ Inventory ]
       operationId: listInventoryMovements
       description: >-
-        Administrators may query all permitted inventory movements. Drivers may query movements only for routes assigned to them, including Returned and Closed routes; branch-wide, general-inventory, and unrelated-route movements are forbidden. Query parameters never broaden the authenticated caller's scope.
+        Administrators may query all permitted inventory movements. Drivers may query movements only for routes assigned
+        to them, including Returned and Closed routes; branch-wide, general-inventory, and unrelated-route movements are
+        forbidden. Query parameters never broaden the authenticated caller's scope.
       parameters:
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/Limit'
@@ -1195,7 +1232,7 @@ paths:
 
   /inventory/operations:
     post:
-      tags: [Inventory]
+      tags: [ Inventory ]
       operationId: createInventoryOperation
       description: >-
         Administrator-only entry, manual exit, or positive/negative adjustment. Transfers use the dedicated endpoint.
@@ -1235,7 +1272,7 @@ paths:
 
   /inventory/transfers:
     post:
-      tags: [Inventory]
+      tags: [ Inventory ]
       operationId: createInventoryTransfer
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -1279,10 +1316,11 @@ paths:
         schema:
           $ref: '#/components/schemas/Uuid'
     post:
-      tags: [Inventory]
+      tags: [ Inventory ]
       operationId: reverseInventoryOperation
       description: >-
-        Appends an administrator-authorized compensating operation and movements; never edits the original operation or ledger rows.
+        Appends an administrator-authorized compensating operation and movements; never edits the original operation or
+        ledger rows.
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -1319,27 +1357,34 @@ paths:
 
   /routes:
     get:
-      tags: [Routes]
+      tags: [ Routes ]
       operationId: listRoutes
       description: >-
-        Administrators may list all routes. Drivers receive every route assigned to them, including Returned and Closed history. A Driver-provided filter cannot expand visibility to another Driver's routes.
+        Administrators may list all routes. Drivers receive every route assigned to them, including Returned and Closed
+        history. A Driver-provided filter cannot expand visibility to another Driver's routes.
       parameters:
-        - $ref: '#/components/parameters/Cursor'
-        - $ref: '#/components/parameters/Limit'
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
         - name: state
           in: query
           schema:
-            $ref: '#/components/schemas/RouteState'
+            $ref: "#/components/schemas/RouteState"
         - name: driverId
           in: query
           description: Administrator filter; Drivers may specify only their own identity.
           schema:
-            $ref: '#/components/schemas/Uuid'
+            $ref: "#/components/schemas/Uuid"
         - name: businessDate
           in: query
           schema:
             type: string
             format: date
+        - name: active
+          in: query
+          description: True returns non-closed routes; false returns closed history. Omitted returns both, within the
+            authenticated role scope.
+          schema:
+            type: boolean
       responses:
         '200':
           description: Routes visible under the caller's role and resource scope
@@ -1365,7 +1410,7 @@ paths:
           $ref: "#/components/responses/Problem"
       summary: List routes
     post:
-      tags: [Routes]
+      tags: [ Routes ]
       operationId: createRoute
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -1404,10 +1449,11 @@ paths:
     parameters:
       - $ref: '#/components/parameters/RouteId'
     get:
-      tags: [Routes]
+      tags: [ Routes ]
       operationId: getRoute
       description: >-
-        Administrators may retrieve any route. Drivers may retrieve only routes assigned to them, in any state; another Driver's route is forbidden.
+        Administrators may retrieve any route. Drivers may retrieve only routes assigned to them, in any state; another
+        Driver's route is forbidden.
       responses:
         '200':
           description: Route with load, balances, movements, sales, return, reconciliation, and closure history
@@ -1437,7 +1483,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/RouteId'
     put:
-      tags: [Routes]
+      tags: [ Routes ]
       operationId: replaceRouteLoadDraft
       description: Assigned driver records the complete draft load while route is Preparing.
       parameters:
@@ -1477,7 +1523,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/RouteId'
     post:
-      tags: [Routes]
+      tags: [ Routes ]
       operationId: confirmRouteLoad
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -1517,7 +1563,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/RouteId'
     post:
-      tags: [Routes]
+      tags: [ Routes ]
       operationId: startRoute
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -1557,7 +1603,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/RouteId'
     post:
-      tags: [Routes]
+      tags: [ Routes ]
       operationId: returnRoute
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -1567,7 +1613,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ExpectedVersionRequest'
+              $ref: "#/components/schemas/RouteReturnRequest"
       responses:
         '200':
           description: Assigned driver moved route from En Route to Returned
@@ -1597,10 +1643,11 @@ paths:
     parameters:
       - $ref: '#/components/parameters/RouteId'
     put:
-      tags: [Routes]
+      tags: [ Routes ]
       operationId: approveRouteReconciliation
       description: >-
-        Administrator records physical returns, provides mandatory reasons for differences, creates adjustments, and returns stock to the origin atomically.
+        Administrator records physical returns, provides mandatory reasons for differences, creates adjustments, and
+        returns stock to the origin atomically.
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -1639,7 +1686,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/RouteId'
     post:
-      tags: [Routes]
+      tags: [ Routes ]
       operationId: closeRoute
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -1677,10 +1724,12 @@ paths:
 
   /sales:
     get:
-      tags: [Sales]
+      tags: [ Sales ]
       operationId: listSales
       description: >-
-        Administrators may list all sales. Drivers receive only sales attributed to their authenticated identity, including preserved cancellation status. A Driver-provided filter cannot expand visibility to another Driver's sales.
+        Administrators may list all sales. Drivers receive only sales attributed to their authenticated identity,
+        including preserved cancellation status. A Driver-provided filter cannot expand visibility to another Driver's
+        sales.
       parameters:
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/Limit'
@@ -1732,10 +1781,11 @@ paths:
           $ref: "#/components/responses/Problem"
       summary: List sales
     post:
-      tags: [Sales]
+      tags: [ Sales ]
       operationId: confirmSale
       description: >-
-        Assigned driver confirms a sale against products in an En Route route. Price, totals, sale, sale ticket, movements, and idempotency result commit atomically.
+        Assigned driver confirms a sale against products in an En Route route. Price, totals, sale, sale ticket,
+        movements, and idempotency result commit atomically.
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -1772,10 +1822,11 @@ paths:
 
   /sales/quote:
     post:
-      tags: [Sales]
+      tags: [ Sales ]
       operationId: quoteSale
       description: >-
-        Returns advisory effective prices and current route availability without committing a sale. Sale confirmation recalculates and revalidates everything.
+        Returns advisory effective prices and current route availability without committing a sale. Sale confirmation
+        recalculates and revalidates everything.
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
       requestBody:
@@ -1813,10 +1864,11 @@ paths:
     parameters:
       - $ref: '#/components/parameters/SaleId'
     get:
-      tags: [Sales]
+      tags: [ Sales ]
       operationId: getSale
       description: >-
-        Administrators may retrieve any sale. Drivers may retrieve only a sale attributed to them; another Driver's sale is forbidden.
+        Administrators may retrieve any sale. Drivers may retrieve only a sale attributed to them; another Driver's sale
+        is forbidden.
       responses:
         '200':
           description: Preserved sale and sale-ticket detail
@@ -1846,7 +1898,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/SaleId'
     post:
-      tags: [Sales]
+      tags: [ Sales ]
       operationId: cancelSale
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -1884,10 +1936,11 @@ paths:
 
   /cash-closes:
     get:
-      tags: [Cash closes]
+      tags: [ Cash closes ]
       operationId: listCashCloses
       description: >-
-        Lists immutable cash-close versions. Administrators may filter by the calendar period resolved in the configured business timezone and by whether a version is current or superseded.
+        Lists immutable cash-close versions. Administrators may filter by the calendar period resolved in the configured
+        business timezone and by whether a version is current or superseded.
       parameters:
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/Limit'
@@ -1895,7 +1948,7 @@ paths:
           in: query
           schema:
             type: string
-            enum: [DAY, WEEK, MONTH]
+            enum: [ DAY, WEEK, MONTH ]
         - name: anchorDate
           in: query
           schema:
@@ -1905,7 +1958,7 @@ paths:
           in: query
           schema:
             type: string
-            enum: [CURRENT, SUPERSEDED]
+            enum: [ CURRENT, SUPERSEDED ]
       responses:
         '200':
           description: Saved cash closes; administrators only
@@ -1931,7 +1984,7 @@ paths:
           $ref: "#/components/responses/Problem"
       summary: List cash closes
     post:
-      tags: [Cash closes]
+      tags: [ Cash closes ]
       operationId: createCashClose
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -1953,7 +2006,8 @@ paths:
           $ref: '#/components/responses/Problem'
         '409':
           description: >-
-            CASH_CLOSE_PERIOD_ALREADY_CURRENT when a different request attempts to create another current close for the exact resolved period, or IDEMPOTENCY_KEY_REUSED when a key is reused with different content.
+            CASH_CLOSE_PERIOD_ALREADY_CURRENT when a different request attempts to create another current close for the
+            exact resolved period, or IDEMPOTENCY_KEY_REUSED when a key is reused with different content.
           content:
             application/problem+json:
               schema:
@@ -1980,7 +2034,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/CashCloseId'
     get:
-      tags: [Cash closes]
+      tags: [ Cash closes ]
       operationId: getCashClose
       responses:
         '200':
@@ -2011,10 +2065,11 @@ paths:
     parameters:
       - $ref: '#/components/parameters/CashCloseId'
     post:
-      tags: [Cash closes]
+      tags: [ Cash closes ]
       operationId: correctCashClose
       description: >-
-        Creates an immutable successor for the current close of the same exact reporting period and atomically makes the successor current. The superseded close remains readable; stale or branching correction attempts conflict.
+        Creates an immutable successor for the current close of the same exact reporting period and atomically makes the
+        successor current. The superseded close remains readable; stale or branching correction attempts conflict.
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -2055,7 +2110,7 @@ paths:
 
   /reports/sales-by-driver:
     get:
-      tags: [Reports]
+      tags: [ Reports ]
       operationId: getSalesByDriverReport
       parameters:
         - $ref: '#/components/parameters/PeriodKind'
@@ -2091,7 +2146,7 @@ paths:
 
   /reports/best-selling-products:
     get:
-      tags: [Reports]
+      tags: [ Reports ]
       operationId: getBestSellingProductsReport
       parameters:
         - $ref: '#/components/parameters/PeriodKind'
@@ -2127,7 +2182,7 @@ paths:
 
   /reports/inventory-by-branch:
     get:
-      tags: [Reports]
+      tags: [ Reports ]
       operationId: getInventoryByBranchReport
       responses:
         '200':
@@ -2156,7 +2211,7 @@ paths:
 
   /reports/financial-summary:
     get:
-      tags: [Reports]
+      tags: [ Reports ]
       operationId: getFinancialSummaryReport
       parameters:
         - $ref: '#/components/parameters/PeriodKind'
@@ -2192,7 +2247,7 @@ paths:
 
   /report-snapshots:
     post:
-      tags: [Reports, Documents]
+      tags: [ Reports, Documents ]
       operationId: createReportSnapshot
       description: Persists an immutable report result before canonical PDF generation.
       parameters:
@@ -2231,10 +2286,13 @@ paths:
 
   /documents:
     get:
-      tags: [Documents]
+      tags: [ Documents ]
       operationId: listDocuments
       description: >-
-        Administrators see all document history. Drivers see only Tickets sourced from their own Sales and confirmed Route Loads for Routes assigned to them, regardless of who created the output. Filters and opaque cursors only narrow that source-derived scope and never broaden it. Results use stable keyset ordering by createdAt DESC, id DESC.
+        Administrators see all document history. Drivers see only Tickets sourced from their own Sales and confirmed
+        Route Loads for Routes assigned to them, regardless of who created the output. Filters and opaque cursors only
+        narrow that source-derived scope and never broaden it. Results use stable keyset ordering by createdAt DESC, id
+        DESC.
       parameters:
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/Limit'
@@ -2246,12 +2304,12 @@ paths:
           in: query
           schema:
             type: string
-            enum: [PENDING, READY, FAILED]
+            enum: [ PENDING, READY, FAILED ]
         - name: sourceType
           in: query
           schema:
             type: string
-            enum: [SALE, ROUTE_LOAD, CASH_CLOSE, REPORT_SNAPSHOT]
+            enum: [ SALE, ROUTE_LOAD, CASH_CLOSE, REPORT_SNAPSHOT, ROUTE_RETURN ]
         - name: sourceId
           in: query
           schema:
@@ -2283,10 +2341,13 @@ paths:
           $ref: "#/components/responses/Problem"
       summary: List documents
     post:
-      tags: [Documents]
+      tags: [ Documents ]
       operationId: requestDocument
       description: >-
-        Creates or reuses a portable canonical PDF from an already committed source record. TICKET, ROUTE_LOAD, CASH_CLOSE, and REPORT are all supported; ROUTE_LOAD requires a confirmed immutable load. Administrators may request all four types. Drivers may request only a TICKET whose Sale belongs to them or a confirmed ROUTE_LOAD whose Route is assigned to them. Driver requests for CASH_CLOSE, REPORT, another Driver's Sale, or an unassigned Route return 403 without creating/exposing output. An authorized DRAFT-load request returns 409 ROUTE_LOAD_NOT_CONFIRMED. Source authorization is checked before reusing an existing canonical output and never derives from DocumentOutput.createdBy.
+        Creates or reuses a canonical PDF from a committed source. Administrators can access all document types. Drivers
+        can access their own sale tickets, assigned confirmed route loads, and assigned route return receipts. Return
+        receipts preserve declared or approved quantities and reasons in separate immutable snapshots. Source
+        authorization precedes generation and reuse. Draft loads return 409 ROUTE_LOAD_NOT_CONFIRMED.
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -2325,10 +2386,12 @@ paths:
     parameters:
       - $ref: '#/components/parameters/DocumentId'
     get:
-      tags: [Documents]
+      tags: [ Documents ]
       operationId: getDocument
       description: >-
-        Administrators may retrieve any document metadata. Drivers may retrieve only their own Sale Tickets and confirmed route-load documents for assigned Routes, including outputs created by an Administrator. Other direct IDs return 403 without exposing metadata.
+        Administrators may retrieve any document metadata. Drivers may retrieve only their own Sale Tickets and
+        confirmed route-load documents for assigned Routes, including outputs created by an Administrator. Other direct
+        IDs return 403 without exposing metadata.
       responses:
         '200':
           description: Document generation status and source metadata
@@ -2358,10 +2421,12 @@ paths:
     parameters:
       - $ref: '#/components/parameters/DocumentId'
     get:
-      tags: [Documents, Printers]
+      tags: [ Documents, Printers ]
       operationId: getDocumentPrintData
       description: >-
-        Read-only thermal payload from immutable committed snapshots. The same source-derived authorization as metadata applies before capability checks. Returns 409 for non-ready documents or unconfirmed loads and 422 for REPORT. Does not generate output, record an attempt, or mutate the source.
+        Read-only thermal payload from immutable committed snapshots. The same source-derived authorization as metadata
+        applies before capability checks. Returns 409 for non-ready documents or unconfirmed loads and supports
+        Administrator REPORT printing. Does not generate output, record an attempt, or mutate the source.
       responses:
         '200':
           description: Authorized printable snapshot; private, no-store
@@ -2369,7 +2434,7 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [data]
+                required: [ data ]
                 properties:
                   data:
                     $ref: '#/components/schemas/ThermalDocument'
@@ -2395,10 +2460,11 @@ paths:
     parameters:
       - $ref: '#/components/parameters/DocumentId'
     get:
-      tags: [Documents]
+      tags: [ Documents ]
       operationId: downloadDocument
       description: >-
-        Downloads/saves any ready TICKET, ROUTE_LOAD, CASH_CLOSE, or REPORT PDF. The browser may offer the same bytes through Web Share when supported. The same source-derived authorization as document metadata applies; output creator and possession of the document ID never broaden Driver access.
+        Downloads a ready PDF with source-derived authorization, including route return receipts. Drivers can download
+        only their own sale tickets and assigned route load or return receipts.
       responses:
         '200':
           description: Ready canonical PDF
@@ -2431,10 +2497,13 @@ paths:
 
   /output-attempts:
     get:
-      tags: [Documents, Printers]
+      tags: [ Documents, Printers ]
       operationId: listOutputAttempts
       description: >-
-        Administrators see all output-attempt history. Drivers see attempts only when the related document is sourced from their own Sale or from a confirmed Route Load for an assigned Route. OutputAttempt.actorId does not grant access, and TEST_PRINT attempts have no eligible business source and are therefore administrator-only. Filters and cursors only narrow the authorized scope. Results use stable keyset ordering by createdAt DESC, id DESC.
+        Administrators see all output-attempt history. Drivers see attempts only when the related document is sourced
+        from their own Sale or from a confirmed Route Load for an assigned Route. OutputAttempt.actorId does not grant
+        access, and TEST_PRINT attempts have no eligible business source and are therefore administrator-only. Filters
+        and cursors only narrow the authorized scope. Results use stable keyset ordering by createdAt DESC, id DESC.
       parameters:
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/Limit'
@@ -2446,12 +2515,12 @@ paths:
           in: query
           schema:
             type: string
-            enum: [GENERATE, DOWNLOAD, SHARE, PRINT, REPRINT, TEST_PRINT]
+            enum: [ GENERATE, DOWNLOAD, SHARE, PRINT, REPRINT, TEST_PRINT ]
         - name: state
           in: query
           schema:
             type: string
-            enum: [STARTED, SUCCEEDED, FAILED, UNKNOWN]
+            enum: [ STARTED, SUCCEEDED, FAILED, UNKNOWN ]
         - $ref: '#/components/parameters/HistoryFrom'
         - $ref: '#/components/parameters/HistoryTo'
       responses:
@@ -2479,10 +2548,12 @@ paths:
           $ref: "#/components/responses/Problem"
       summary: List output attempts
     post:
-      tags: [Documents, Printers]
+      tags: [ Documents, Printers ]
       operationId: recordOutputAttempt
       description: >-
-        Records generation/download/share/print/test outcomes only. It never performs or retries the source business transaction. PRINT and REPRINT are valid only for TICKET, ROUTE_LOAD, and CASH_CLOSE; REPORT is portable-only. A REPORT PRINT/REPRINT request returns 422 and creates no accepted OutputAttempt. TEST_PRINT validates a printer profile without a business document. For every document mode, the API first resolves the immutable source and authorizes the actor: Drivers are limited to their own Sale Tickets and confirmed loads for assigned Routes. Forbidden source access returns 403 with no accepted attempt; capability validation follows, so Administrator REPORT printing returns 422.
+        Records output outcomes without repeating the business transaction. PRINT and REPRINT support all document
+        types. Drivers are restricted to their own sale tickets and assigned route load and return receipts; reports and
+        cash closes require an administrator.
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -2521,10 +2592,11 @@ paths:
     parameters:
       - $ref: '#/components/parameters/OutputAttemptId'
     get:
-      tags: [Documents, Printers]
+      tags: [ Documents, Printers ]
       operationId: getOutputAttempt
       description: >-
-        Uses the same source-derived authorization as the history list. A direct ID, attempt actor, output creator, or prior cursor cannot broaden Driver access; TEST_PRINT detail is administrator-only.
+        Uses the same source-derived authorization as the history list. A direct ID, attempt actor, output creator, or
+        prior cursor cannot broaden Driver access; TEST_PRINT detail is administrator-only.
       responses:
         '200':
           description: Authorized output-attempt detail
@@ -2558,7 +2630,7 @@ paths:
         schema:
           $ref: '#/components/schemas/Uuid'
     patch:
-      tags: [Catalog]
+      tags: [ Catalog ]
       operationId: updateLocation
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -2601,7 +2673,7 @@ paths:
         schema:
           $ref: '#/components/schemas/Uuid'
     patch:
-      tags: [Catalog]
+      tags: [ Catalog ]
       operationId: updateCategory
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -2644,7 +2716,7 @@ paths:
         schema:
           $ref: '#/components/schemas/Uuid'
     patch:
-      tags: [Catalog]
+      tags: [ Catalog ]
       operationId: updateUnit
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -2687,7 +2759,7 @@ paths:
         schema:
           $ref: '#/components/schemas/Uuid'
     patch:
-      tags: [Catalog]
+      tags: [ Catalog ]
       operationId: updateVehicle
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -2730,7 +2802,7 @@ paths:
         schema:
           $ref: '#/components/schemas/Uuid'
     patch:
-      tags: [Printers]
+      tags: [ Printers ]
       operationId: updatePrinterProfile
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -2773,7 +2845,7 @@ paths:
         schema:
           $ref: '#/components/schemas/Uuid'
     post:
-      tags: [Customers]
+      tags: [ Customers ]
       operationId: deactivateCustomerPrice
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -2810,7 +2882,7 @@ paths:
 
   /settings/business:
     get:
-      tags: [Catalog]
+      tags: [ Catalog ]
       operationId: getBusinessSettings
       responses:
         '200':
@@ -2837,7 +2909,7 @@ paths:
           $ref: "#/components/responses/Problem"
       summary: Get business settings
     patch:
-      tags: [Catalog]
+      tags: [ Catalog ]
       operationId: updateBusinessSettings
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
@@ -2871,6 +2943,48 @@ paths:
         "500":
           $ref: "#/components/responses/Problem"
       summary: Update business settings
+  /routes/{routeId}/return-declaration:
+    parameters:
+      - $ref: "#/components/parameters/RouteId"
+    post:
+      tags:
+        - Routes
+      operationId: declareRouteReturn
+      parameters:
+        - $ref: "#/components/parameters/CsrfToken"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RouteReconciliationRequest"
+      responses:
+        "200":
+          description: Return declaration saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouteResponse"
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "403":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: Declare physical quantities for a returned route
+      description: Assigned driver only. Records an immutable declaration before administrator reconciliation, without
+        changing stock. Supports routes returned before quantity entry was available.
 
 components:
   securitySchemes:
@@ -2973,7 +3087,7 @@ components:
       description: Calendar period interpreted in the configured business timezone
       schema:
         type: string
-        enum: [DAY, WEEK, MONTH]
+        enum: [ DAY, WEEK, MONTH ]
     AnchorDate:
       name: anchorDate
       in: query
@@ -3012,263 +3126,442 @@ components:
   schemas:
     ThermalDocument:
       oneOf:
-        - type: "object"
+        - type: object
           properties:
             id:
-              type: "string"
-              format: "uuid"
-              pattern: "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
             documentType:
-              type: "string"
-              const: "TICKET"
+              type: string
+              const: ROUTE_RETURN
             sourceType:
-              type: "string"
+              type: string
             sourceId:
-              type: "string"
-              format: "uuid"
-              pattern: "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
             contentVersion:
-              type: "string"
+              type: string
             state:
-              type: "string"
+              type: string
               enum:
-                - "PENDING"
-                - "READY"
-                - "FAILED"
+                - PENDING
+                - READY
+                - FAILED
             sourceState:
-              type: "string"
+              type: string
             snapshot:
-              type: "object"
+              type: object
+              properties:
+                routeNumber:
+                  type: string
+                kind:
+                  type: string
+                  enum:
+                    - DECLARED
+                    - APPROVED
+                lines:
+                  minItems: 1
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      productId:
+                        type: string
+                        format: uuid
+                        pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+                      productName:
+                        type: string
+                      unitCode:
+                        type: string
+                      quantity:
+                        type: string
+                        pattern: ^(0|[1-9]\d*)(\.\d{1,3})?$
+                      expectedQuantity:
+                        type: string
+                        pattern: ^(0|[1-9]\d*)(\.\d{1,3})?$
+                      differenceQuantity:
+                        type: string
+                        pattern: ^-?\d+(?:\.\d{1,3})?$
+                      differenceReason:
+                        anyOf:
+                          - type: string
+                          - type: "null"
+                    required:
+                      - productId
+                      - productName
+                      - unitCode
+                      - quantity
+                      - expectedQuantity
+                      - differenceQuantity
+                      - differenceReason
+                    additionalProperties: false
+              required:
+                - routeNumber
+                - kind
+                - lines
+              additionalProperties: false
+          required:
+            - id
+            - documentType
+            - sourceType
+            - sourceId
+            - contentVersion
+            - state
+            - sourceState
+            - snapshot
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+            documentType:
+              type: string
+              const: REPORT
+            sourceType:
+              type: string
+            sourceId:
+              type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+            contentVersion:
+              type: string
+            state:
+              type: string
+              enum:
+                - PENDING
+                - READY
+                - FAILED
+            sourceState:
+              type: string
+            snapshot:
+              type: object
+              properties:
+                reportType:
+                  type: string
+                businessTimezone:
+                  type: string
+                filters:
+                  type: object
+                  propertyNames:
+                    type: string
+                  additionalProperties: {}
+                result:
+                  type: object
+                  properties:
+                    reportType:
+                      type: string
+                      enum:
+                        - SALES_BY_DRIVER
+                        - BEST_SELLING_PRODUCTS
+                        - INVENTORY_BY_BRANCH
+                        - FINANCIAL_SUMMARY
+                    generatedAt:
+                      type: string
+                      format: date-time
+                      pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                    businessTimezone:
+                      type: string
+                    filters:
+                      type: object
+                      propertyNames:
+                        type: string
+                      additionalProperties: {}
+                    rows:
+                      type: array
+                      items:
+                        type: object
+                        propertyNames:
+                          type: string
+                        additionalProperties: {}
+                    totals:
+                      type: object
+                      propertyNames:
+                        type: string
+                      additionalProperties: {}
+                  required:
+                    - reportType
+                    - generatedAt
+                    - businessTimezone
+                    - filters
+                    - rows
+                  additionalProperties: false
+              required:
+                - reportType
+                - businessTimezone
+                - filters
+                - result
+              additionalProperties: false
+          required:
+            - id
+            - documentType
+            - sourceType
+            - sourceId
+            - contentVersion
+            - state
+            - sourceState
+            - snapshot
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+            documentType:
+              type: string
+              const: TICKET
+            sourceType:
+              type: string
+            sourceId:
+              type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+            contentVersion:
+              type: string
+            state:
+              type: string
+              enum:
+                - PENDING
+                - READY
+                - FAILED
+            sourceState:
+              type: string
+            snapshot:
+              type: object
               properties:
                 ticketNumber:
-                  type: "string"
+                  type: string
                   minLength: 1
                 saleNumber:
-                  type: "string"
+                  type: string
                   minLength: 1
                 currencyCode:
-                  type: "string"
-                  pattern: "^[A-Z]{3}$"
+                  type: string
+                  pattern: ^[A-Z]{3}$
                 paymentMethod:
-                  type: "string"
+                  type: string
                 lines:
                   minItems: 1
-                  type: "array"
+                  type: array
                   items:
-                    type: "object"
+                    type: object
                     properties:
                       productName:
-                        type: "string"
+                        type: string
                         minLength: 1
                       unitCode:
-                        type: "string"
+                        type: string
                         minLength: 1
                       quantity:
-                        type: "string"
-                        pattern: "^\\d+(?:\\.\\d+)?$"
+                        type: string
+                        pattern: ^\d+(?:\.\d+)?$
                       unitPrice:
-                        type: "string"
-                        pattern: "^\\d+(?:\\.\\d+)?$"
+                        type: string
+                        pattern: ^\d+(?:\.\d+)?$
                       lineAmount:
-                        type: "string"
-                        pattern: "^\\d+(?:\\.\\d+)?$"
+                        type: string
+                        pattern: ^\d+(?:\.\d+)?$
                     required:
-                      - "productName"
-                      - "unitCode"
-                      - "quantity"
-                      - "unitPrice"
-                      - "lineAmount"
+                      - productName
+                      - unitCode
+                      - quantity
+                      - unitPrice
+                      - lineAmount
                     additionalProperties: false
                 total:
-                  type: "string"
-                  pattern: "^\\d+(?:\\.\\d+)?$"
+                  type: string
+                  pattern: ^\d+(?:\.\d+)?$
               required:
-                - "ticketNumber"
-                - "saleNumber"
-                - "currencyCode"
-                - "lines"
-                - "total"
+                - ticketNumber
+                - saleNumber
+                - currencyCode
+                - lines
+                - total
               additionalProperties: false
           required:
-            - "id"
-            - "documentType"
-            - "sourceType"
-            - "sourceId"
-            - "contentVersion"
-            - "state"
-            - "sourceState"
-            - "snapshot"
+            - id
+            - documentType
+            - sourceType
+            - sourceId
+            - contentVersion
+            - state
+            - sourceState
+            - snapshot
           additionalProperties: false
-        - type: "object"
+        - type: object
           properties:
             id:
-              type: "string"
-              format: "uuid"
-              pattern: "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
             documentType:
-              type: "string"
-              const: "ROUTE_LOAD"
+              type: string
+              const: ROUTE_LOAD
             sourceType:
-              type: "string"
+              type: string
             sourceId:
-              type: "string"
-              format: "uuid"
-              pattern: "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
             contentVersion:
-              type: "string"
+              type: string
             state:
-              type: "string"
+              type: string
               enum:
-                - "PENDING"
-                - "READY"
-                - "FAILED"
+                - PENDING
+                - READY
+                - FAILED
             sourceState:
-              type: "string"
+              type: string
             snapshot:
-              type: "object"
+              type: object
               properties:
                 loadNumber:
-                  type: "string"
+                  type: string
                   minLength: 1
                 routeNumber:
-                  type: "string"
+                  type: string
                   minLength: 1
                 lines:
                   minItems: 1
-                  type: "array"
+                  type: array
                   items:
-                    type: "object"
+                    type: object
                     properties:
                       productName:
-                        type: "string"
+                        type: string
                         minLength: 1
                       unitCode:
-                        type: "string"
+                        type: string
                         minLength: 1
                       quantity:
-                        type: "string"
-                        pattern: "^\\d+(?:\\.\\d+)?$"
+                        type: string
+                        pattern: ^\d+(?:\.\d+)?$
                     required:
-                      - "productName"
-                      - "unitCode"
-                      - "quantity"
+                      - productName
+                      - unitCode
+                      - quantity
                     additionalProperties: false
               required:
-                - "loadNumber"
-                - "routeNumber"
-                - "lines"
+                - loadNumber
+                - routeNumber
+                - lines
               additionalProperties: false
           required:
-            - "id"
-            - "documentType"
-            - "sourceType"
-            - "sourceId"
-            - "contentVersion"
-            - "state"
-            - "sourceState"
-            - "snapshot"
+            - id
+            - documentType
+            - sourceType
+            - sourceId
+            - contentVersion
+            - state
+            - sourceState
+            - snapshot
           additionalProperties: false
-        - type: "object"
+        - type: object
           properties:
             id:
-              type: "string"
-              format: "uuid"
-              pattern: "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
             documentType:
-              type: "string"
-              const: "CASH_CLOSE"
+              type: string
+              const: CASH_CLOSE
             sourceType:
-              type: "string"
+              type: string
             sourceId:
-              type: "string"
-              format: "uuid"
-              pattern: "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
             contentVersion:
-              type: "string"
+              type: string
             state:
-              type: "string"
+              type: string
               enum:
-                - "PENDING"
-                - "READY"
-                - "FAILED"
+                - PENDING
+                - READY
+                - FAILED
             sourceState:
-              type: "string"
+              type: string
             snapshot:
-              type: "object"
+              type: object
               properties:
                 closeNumber:
-                  type: "string"
+                  type: string
                   minLength: 1
                 currencyCode:
-                  type: "string"
-                  pattern: "^[A-Z]{3}$"
+                  type: string
+                  pattern: ^[A-Z]{3}$
                 grossTotal:
-                  type: "string"
-                  pattern: "^\\d+(?:\\.\\d+)?$"
+                  type: string
+                  pattern: ^\d+(?:\.\d+)?$
                 partnerShare:
-                  type: "string"
-                  pattern: "^\\d+(?:\\.\\d+)?$"
+                  type: string
+                  pattern: ^\d+(?:\.\d+)?$
                 ownerShare:
-                  type: "string"
-                  pattern: "^\\d+(?:\\.\\d+)?$"
+                  type: string
+                  pattern: ^\d+(?:\.\d+)?$
                 expensesTotal:
-                  type: "string"
-                  pattern: "^\\d+(?:\\.\\d+)?$"
+                  type: string
+                  pattern: ^\d+(?:\.\d+)?$
                 netTotal:
-                  type: "string"
-                  pattern: "^\\d+(?:\\.\\d+)?$"
+                  type: string
+                  pattern: ^\d+(?:\.\d+)?$
                 partnerRate:
-                  type: "string"
-                  pattern: "^\\d+(?:\\.\\d+)?$"
+                  type: string
+                  pattern: ^\d+(?:\.\d+)?$
                 periodKind:
-                  type: "string"
+                  type: string
                 periodStart:
-                  type: "string"
+                  type: string
                 periodEnd:
-                  type: "string"
+                  type: string
                 businessTimezone:
-                  type: "string"
+                  type: string
                 correctionReason:
                   anyOf:
-                    - type: "string"
+                    - type: string
                     - type: "null"
                 supersedesCashCloseId:
                   anyOf:
-                    - type: "string"
-                      format: "uuid"
-                      pattern: "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    - type: string
+                      format: uuid
+                      pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
                     - type: "null"
                 lines:
-                  type: "array"
+                  type: array
                   items:
-                    type: "object"
+                    type: object
                     properties:
                       reportingGroup:
-                        type: "string"
+                        type: string
                         minLength: 1
                       total:
-                        type: "string"
-                        pattern: "^\\d+(?:\\.\\d+)?$"
+                        type: string
+                        pattern: ^\d+(?:\.\d+)?$
                     required:
-                      - "reportingGroup"
-                      - "total"
+                      - reportingGroup
+                      - total
                     additionalProperties: false
               required:
-                - "closeNumber"
-                - "currencyCode"
-                - "grossTotal"
-                - "partnerShare"
-                - "ownerShare"
+                - closeNumber
+                - currencyCode
+                - grossTotal
+                - partnerShare
+                - ownerShare
               additionalProperties: false
           required:
-            - "id"
-            - "documentType"
-            - "sourceType"
-            - "sourceId"
-            - "contentVersion"
-            - "state"
-            - "sourceState"
-            - "snapshot"
+            - id
+            - documentType
+            - sourceType
+            - sourceId
+            - contentVersion
+            - state
+            - sourceState
+            - snapshot
           additionalProperties: false
     Uuid:
       type: string
@@ -3276,32 +3569,32 @@ components:
     Quantity:
       type: string
       pattern: '^(0|[1-9][0-9]*)(\.[0-9]{1,3})?$'
-      examples: ['12.500']
+      examples: [ '12.500' ]
     PositiveQuantity:
       type: string
       pattern: '^(0\.00[1-9]|0\.0[1-9][0-9]?|0\.[1-9][0-9]{0,2}|[1-9][0-9]*(\.[0-9]{1,3})?)$'
-      examples: ['1', '12.500']
+      examples: [ '1', '12.500' ]
     Money:
       type: string
       pattern: '^-?(0|[1-9][0-9]*)\.[0-9]{2}$'
-      examples: ['1250.00']
+      examples: [ '1250.00' ]
     NonnegativeMoney:
       type: string
       pattern: '^(0|[1-9][0-9]*)\.[0-9]{2}$'
-      examples: ['1250.00']
+      examples: [ '1250.00' ]
       allOf:
         - $ref: "#/components/schemas/Money"
     UnitPrice:
       type: string
       pattern: '^(0|[1-9][0-9]*)(\.[0-9]{1,4})?$'
-      examples: ['12.3450']
+      examples: [ '12.3450' ]
     UserRole:
       type: string
-      enum: [ADMINISTRATOR, DRIVER]
+      enum: [ ADMINISTRATOR, DRIVER ]
     Problem:
       type: object
       additionalProperties: false
-      required: [type, title, status, code, instance]
+      required: [ type, title, status, code, instance ]
       properties:
         type:
           type: string
@@ -3324,7 +3617,7 @@ components:
           items:
             type: object
             additionalProperties: false
-            required: [path, code, message]
+            required: [ path, code, message ]
             properties:
               path:
                 type: string
@@ -3343,17 +3636,17 @@ components:
     PageInfo:
       type: object
       additionalProperties: false
-      required: [hasNextPage]
+      required: [ hasNextPage ]
       properties:
         hasNextPage:
           type: boolean
         nextCursor:
-          type: [string, 'null']
+          type: [ string, 'null' ]
 
     LoginRequest:
       type: object
       additionalProperties: false
-      required: [username, password]
+      required: [ username, password ]
       properties:
         username:
           type: string
@@ -3366,7 +3659,7 @@ components:
     SessionUser:
       type: object
       additionalProperties: false
-      required: [id, username, displayName, role, active]
+      required: [ id, username, displayName, role, active ]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
@@ -3381,14 +3674,14 @@ components:
     SessionResponse:
       type: object
       additionalProperties: false
-      required: [data]
+      required: [ data ]
       properties:
         data:
           $ref: '#/components/schemas/SessionUser'
     User:
       type: object
       additionalProperties: false
-      required: [id, username, displayName, role, active, version, createdAt, updatedAt]
+      required: [ id, username, displayName, role, active, version, createdAt, updatedAt ]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
@@ -3404,7 +3697,7 @@ components:
           type: integer
           minimum: 1
         archivedAt:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           format: date-time
         createdAt:
           type: string
@@ -3415,7 +3708,7 @@ components:
     UserCreateRequest:
       type: object
       additionalProperties: false
-      required: [username, displayName, role, password]
+      required: [ username, displayName, role, password ]
       properties:
         username:
           type: string
@@ -3434,7 +3727,7 @@ components:
     UserUpdateRequest:
       type: object
       additionalProperties: false
-      required: [expectedVersion]
+      required: [ expectedVersion ]
       properties:
         expectedVersion:
           type: integer
@@ -3458,14 +3751,14 @@ components:
     UserResponse:
       type: object
       additionalProperties: false
-      required: [data]
+      required: [ data ]
       properties:
         data:
           $ref: '#/components/schemas/User'
     UserListResponse:
       type: object
       additionalProperties: false
-      required: [data, page]
+      required: [ data, page ]
       properties:
         data:
           type: array
@@ -3476,7 +3769,7 @@ components:
     OverviewResponse:
       type: object
       additionalProperties: false
-      required: [data]
+      required: [ data ]
       properties:
         data:
           oneOf:
@@ -3485,7 +3778,7 @@ components:
     OverviewRoute:
       type: object
       additionalProperties: false
-      required: [id, driverId, state]
+      required: [ id, driverId, state ]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
@@ -3493,12 +3786,13 @@ components:
           $ref: '#/components/schemas/Uuid'
         state:
           type: string
-          enum: [PREPARING, EN_ROUTE, RETURNED]
+          enum: [ PREPARING, EN_ROUTE, RETURNED ]
     DriverOverview:
       type: object
       additionalProperties: false
-      description: Only active routes assigned to the authenticated Driver, ordered by ID, and permitted action links. No organization-wide aggregates are queried or exposed.
-      required: [routes, actions]
+      description: Only active routes assigned to the authenticated Driver, ordered by ID, and permitted action links. No
+        organization-wide aggregates are queried or exposed.
+      required: [ routes, actions ]
       properties:
         routes:
           type: array
@@ -3512,7 +3806,7 @@ components:
       type: object
       additionalProperties: false
       description: Active routes and operational aggregates read from one consistent database snapshot.
-      required: [routes, actions, grossTotal, lowStockCount]
+      required: [ routes, actions, grossTotal, lowStockCount ]
       properties:
         routes:
           type: array
@@ -3528,11 +3822,12 @@ components:
         lowStockCount:
           type: integer
           minimum: 0
-          description: Number of active product and active branch pairs at or below the product threshold. A missing balance is zero. Route stock is excluded.
+          description: Number of active product and active branch pairs at or below the product threshold. A missing balance is
+            zero. Route stock is excluded.
     Location:
       type: object
       additionalProperties: false
-      required: [id, code, name, active, version]
+      required: [ id, code, name, active, version ]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
@@ -3548,7 +3843,7 @@ components:
     LocationWriteRequest:
       type: object
       additionalProperties: false
-      required: [code, name]
+      required: [ code, name ]
       properties:
         code:
           type: string
@@ -3561,7 +3856,7 @@ components:
     LocationUpdateRequest:
       type: object
       additionalProperties: false
-      required: [expectedVersion, code, name, active]
+      required: [ expectedVersion, code, name, active ]
       properties:
         expectedVersion:
           type: integer
@@ -3577,17 +3872,17 @@ components:
         active:
           type: boolean
         reason:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           maxLength: 500
     LocationResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           $ref: '#/components/schemas/Location'
     LocationListResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           type: array
@@ -3595,11 +3890,11 @@ components:
             $ref: '#/components/schemas/Location'
     ReportingGroup:
       type: string
-      enum: [SODAS, CHARCOAL, TOSTADAS, OTHER]
+      enum: [ SODAS, CHARCOAL, TOSTADAS, OTHER ]
     Category:
       type: object
       additionalProperties: false
-      required: [id, name, reportingGroup, active, version]
+      required: [ id, name, reportingGroup, active, version ]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
@@ -3615,7 +3910,7 @@ components:
     CategoryWriteRequest:
       type: object
       additionalProperties: false
-      required: [name, reportingGroup]
+      required: [ name, reportingGroup ]
       properties:
         name:
           type: string
@@ -3626,7 +3921,7 @@ components:
     CategoryUpdateRequest:
       type: object
       additionalProperties: false
-      required: [expectedVersion, name, reportingGroup, active]
+      required: [ expectedVersion, name, reportingGroup, active ]
       properties:
         expectedVersion:
           type: integer
@@ -3640,17 +3935,17 @@ components:
         active:
           type: boolean
         reason:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           maxLength: 500
     CategoryResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           $ref: '#/components/schemas/Category'
     CategoryListResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           type: array
@@ -3659,7 +3954,7 @@ components:
     Unit:
       type: object
       additionalProperties: false
-      required: [id, code, name, quantityScale, active, version]
+      required: [ id, code, name, quantityScale, active, version ]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
@@ -3679,7 +3974,7 @@ components:
     UnitWriteRequest:
       type: object
       additionalProperties: false
-      required: [code, name, quantityScale]
+      required: [ code, name, quantityScale ]
       properties:
         code:
           type: string
@@ -3696,7 +3991,7 @@ components:
     UnitUpdateRequest:
       type: object
       additionalProperties: false
-      required: [expectedVersion, code, name, quantityScale, active]
+      required: [ expectedVersion, code, name, quantityScale, active ]
       properties:
         expectedVersion:
           type: integer
@@ -3716,17 +4011,17 @@ components:
         active:
           type: boolean
         reason:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           maxLength: 500
     UnitResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           $ref: '#/components/schemas/Unit'
     UnitListResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           type: array
@@ -3735,7 +4030,7 @@ components:
     Product:
       type: object
       additionalProperties: false
-      required: [id, sku, name, categoryId, unitId, standardUnitPrice, lowStockThreshold, active, version]
+      required: [ id, sku, name, categoryId, unitId, standardUnitPrice, lowStockThreshold, active, version ]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
@@ -3744,7 +4039,7 @@ components:
         name:
           type: string
         description:
-          type: [string, 'null']
+          type: [ string, 'null' ]
         categoryId:
           $ref: '#/components/schemas/Uuid'
         unitId:
@@ -3761,7 +4056,7 @@ components:
     ProductWriteRequest:
       type: object
       additionalProperties: false
-      required: [sku, name, categoryId, unitId, standardUnitPrice, lowStockThreshold]
+      required: [ sku, name, categoryId, unitId, standardUnitPrice, lowStockThreshold ]
       properties:
         sku:
           type: string
@@ -3772,7 +4067,7 @@ components:
           minLength: 1
           maxLength: 160
         description:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           maxLength: 1000
         categoryId:
           $ref: '#/components/schemas/Uuid'
@@ -3785,7 +4080,7 @@ components:
     ProductUpdateRequest:
       type: object
       additionalProperties: false
-      required: [expectedVersion, sku, name, categoryId, unitId, standardUnitPrice, lowStockThreshold, active]
+      required: [ expectedVersion, sku, name, categoryId, unitId, standardUnitPrice, lowStockThreshold, active ]
       properties:
         expectedVersion:
           type: integer
@@ -3799,7 +4094,7 @@ components:
           minLength: 1
           maxLength: 160
         description:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           maxLength: 1000
         categoryId:
           $ref: '#/components/schemas/Uuid'
@@ -3812,17 +4107,17 @@ components:
         active:
           type: boolean
         reason:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           maxLength: 500
     ProductResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           $ref: '#/components/schemas/Product'
     ProductListResponse:
       type: object
-      required: [data, page]
+      required: [ data, page ]
       properties:
         data:
           type: array
@@ -3834,7 +4129,7 @@ components:
     Customer:
       type: object
       additionalProperties: false
-      required: [id, customerNumber, displayName, city, active, version]
+      required: [ id, customerNumber, displayName, city, active, version ]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
@@ -3843,18 +4138,18 @@ components:
         displayName:
           type: string
         contactName:
-          type: [string, 'null']
+          type: [ string, 'null' ]
         phone:
-          type: [string, 'null']
+          type: [ string, 'null' ]
         email:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           format: email
         address:
-          type: [string, 'null']
+          type: [ string, 'null' ]
         city:
           type: string
         notes:
-          type: [string, 'null']
+          type: [ string, 'null' ]
         active:
           type: boolean
         version:
@@ -3863,35 +4158,35 @@ components:
     CustomerWriteRequest:
       type: object
       additionalProperties: false
-      required: [displayName, city]
+      required: [ displayName, city ]
       properties:
         displayName:
           type: string
           minLength: 1
           maxLength: 200
         contactName:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           maxLength: 160
         phone:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           maxLength: 40
         email:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           format: email
         address:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           maxLength: 500
         city:
           type: string
           minLength: 1
           maxLength: 120
         notes:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           maxLength: 1000
     CustomerUpdateRequest:
       type: object
       additionalProperties: false
-      required: [expectedVersion, displayName, city, active]
+      required: [ expectedVersion, displayName, city, active ]
       properties:
         expectedVersion:
           type: integer
@@ -3901,38 +4196,38 @@ components:
           minLength: 1
           maxLength: 200
         contactName:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           maxLength: 160
         phone:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           maxLength: 40
         email:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           format: email
         address:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           maxLength: 500
         city:
           type: string
           minLength: 1
           maxLength: 120
         notes:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           maxLength: 1000
         active:
           type: boolean
         reason:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           maxLength: 500
     CustomerResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           $ref: '#/components/schemas/Customer'
     CustomerListResponse:
       type: object
-      required: [data, page]
+      required: [ data, page ]
       properties:
         data:
           type: array
@@ -3943,7 +4238,7 @@ components:
     CustomerPrice:
       type: object
       additionalProperties: false
-      required: [id, customerId, productId, unitPrice, validFrom, active]
+      required: [ id, customerId, productId, unitPrice, validFrom, active ]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
@@ -3957,14 +4252,14 @@ components:
           type: string
           format: date-time
         validTo:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           format: date-time
         active:
           type: boolean
     CustomerPriceWriteRequest:
       type: object
       additionalProperties: false
-      required: [productId, unitPrice, validFrom]
+      required: [ productId, unitPrice, validFrom ]
       properties:
         productId:
           $ref: '#/components/schemas/Uuid'
@@ -3974,17 +4269,17 @@ components:
           type: string
           format: date-time
         validTo:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           format: date-time
     CustomerPriceResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           $ref: '#/components/schemas/CustomerPrice'
     CustomerPriceListResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           type: array
@@ -3994,7 +4289,7 @@ components:
     Vehicle:
       type: object
       additionalProperties: false
-      required: [id, code, name, active, version]
+      required: [ id, code, name, active, version ]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
@@ -4003,7 +4298,7 @@ components:
         name:
           type: string
         registration:
-          type: [string, 'null']
+          type: [ string, 'null' ]
         active:
           type: boolean
         version:
@@ -4012,7 +4307,7 @@ components:
     VehicleWriteRequest:
       type: object
       additionalProperties: false
-      required: [code, name]
+      required: [ code, name ]
       properties:
         code:
           type: string
@@ -4023,12 +4318,12 @@ components:
           minLength: 1
           maxLength: 120
         registration:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           maxLength: 64
     VehicleUpdateRequest:
       type: object
       additionalProperties: false
-      required: [expectedVersion, code, name, active]
+      required: [ expectedVersion, code, name, active ]
       properties:
         expectedVersion:
           type: integer
@@ -4042,22 +4337,22 @@ components:
           minLength: 1
           maxLength: 120
         registration:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           maxLength: 64
         active:
           type: boolean
         reason:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           maxLength: 500
     VehicleResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           $ref: '#/components/schemas/Vehicle'
     VehicleListResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           type: array
@@ -4067,7 +4362,20 @@ components:
     PrinterProfile:
       type: object
       additionalProperties: false
-      required: [id, name, model, transport, serviceUuid, writeCharacteristicUuid, paperWidthMm, encoding, maxChunkBytes, active, version]
+      required:
+        [
+          id,
+          name,
+          model,
+          transport,
+          serviceUuid,
+          writeCharacteristicUuid,
+          paperWidthMm,
+          encoding,
+          maxChunkBytes,
+          active,
+          version
+        ]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
@@ -4083,12 +4391,12 @@ components:
           type: string
         writeMode:
           type: string
-          enum: [WITH_RESPONSE, WITHOUT_RESPONSE]
+          enum: [ WITH_RESPONSE, WITHOUT_RESPONSE ]
         commandDialect:
           type: string
         paperWidthMm:
           type: integer
-          enum: [58, 80]
+          enum: [ 58, 80 ]
         encoding:
           type: string
         maxChunkBytes:
@@ -4107,7 +4415,19 @@ components:
     PrinterProfileWriteRequest:
       type: object
       additionalProperties: false
-      required: [name, model, serviceUuid, writeCharacteristicUuid, writeMode, commandDialect, paperWidthMm, encoding, maxChunkBytes, interChunkDelayMs]
+      required:
+        [
+          name,
+          model,
+          serviceUuid,
+          writeCharacteristicUuid,
+          writeMode,
+          commandDialect,
+          paperWidthMm,
+          encoding,
+          maxChunkBytes,
+          interChunkDelayMs
+        ]
       properties:
         name:
           type: string
@@ -4125,13 +4445,13 @@ components:
           maxLength: 64
         writeMode:
           type: string
-          enum: [WITH_RESPONSE, WITHOUT_RESPONSE]
+          enum: [ WITH_RESPONSE, WITHOUT_RESPONSE ]
         commandDialect:
           type: string
           maxLength: 80
         paperWidthMm:
           type: integer
-          enum: [58, 80]
+          enum: [ 58, 80 ]
         encoding:
           type: string
           maxLength: 40
@@ -4146,7 +4466,21 @@ components:
     PrinterProfileUpdateRequest:
       type: object
       additionalProperties: false
-      required: [expectedVersion, name, model, serviceUuid, writeCharacteristicUuid, writeMode, commandDialect, paperWidthMm, encoding, maxChunkBytes, interChunkDelayMs, active]
+      required:
+        [
+          expectedVersion,
+          name,
+          model,
+          serviceUuid,
+          writeCharacteristicUuid,
+          writeMode,
+          commandDialect,
+          paperWidthMm,
+          encoding,
+          maxChunkBytes,
+          interChunkDelayMs,
+          active
+        ]
       properties:
         expectedVersion:
           type: integer
@@ -4167,13 +4501,13 @@ components:
           maxLength: 64
         writeMode:
           type: string
-          enum: [WITH_RESPONSE, WITHOUT_RESPONSE]
+          enum: [ WITH_RESPONSE, WITHOUT_RESPONSE ]
         commandDialect:
           type: string
           maxLength: 80
         paperWidthMm:
           type: integer
-          enum: [58, 80]
+          enum: [ 58, 80 ]
         encoding:
           type: string
           maxLength: 40
@@ -4188,17 +4522,17 @@ components:
         active:
           type: boolean
         reason:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           maxLength: 500
     PrinterProfileResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           $ref: '#/components/schemas/PrinterProfile'
     PrinterProfileListResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           type: array
@@ -4207,50 +4541,50 @@ components:
     PrinterPreferenceRequest:
       type: object
       additionalProperties: false
-      required: [printerProfileId]
+      required: [ printerProfileId ]
       properties:
         printerProfileId:
           $ref: '#/components/schemas/Uuid'
         deviceLabel:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           maxLength: 120
         testedBrowser:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           maxLength: 120
         testedOs:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           maxLength: 120
         lastTestResult:
-          type: [string, 'null']
-          enum: [SUCCEEDED, FAILED, UNKNOWN, null]
+          type: [ string, 'null' ]
+          enum: [ SUCCEEDED, FAILED, UNKNOWN, null ]
     PrinterPreferenceResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
-          type: [object, 'null']
+          type: [ object, 'null' ]
           additionalProperties: false
-          required: [printerProfileId]
+          required: [ printerProfileId ]
           properties:
             printerProfileId:
               $ref: '#/components/schemas/Uuid'
             deviceLabel:
-              type: [string, 'null']
+              type: [ string, 'null' ]
             testedBrowser:
-              type: [string, 'null']
+              type: [ string, 'null' ]
             testedOs:
-              type: [string, 'null']
+              type: [ string, 'null' ]
             lastTestResult:
-              type: [string, 'null']
-              enum: [SUCCEEDED, FAILED, UNKNOWN, null]
+              type: [ string, 'null' ]
+              enum: [ SUCCEEDED, FAILED, UNKNOWN, null ]
             lastTestedAt:
-              type: [string, 'null']
+              type: [ string, 'null' ]
               format: date-time
 
     ReasonRequest:
       type: object
       additionalProperties: false
-      required: [reason]
+      required: [ reason ]
       properties:
         reason:
           type: string
@@ -4259,7 +4593,7 @@ components:
     BusinessSetting:
       type: object
       additionalProperties: false
-      required: [currencyCode, currencyScale, businessTimezone, partnerShareRate, moneyRoundingMode, version]
+      required: [ currencyCode, currencyScale, businessTimezone, partnerShareRate, moneyRoundingMode, version ]
       properties:
         currencyCode:
           type: string
@@ -4279,7 +4613,7 @@ components:
     BusinessSettingUpdateRequest:
       type: object
       additionalProperties: false
-      required: [expectedVersion, currencyCode, businessTimezone, reason]
+      required: [ expectedVersion, currencyCode, businessTimezone, reason ]
       properties:
         expectedVersion:
           type: integer
@@ -4297,36 +4631,47 @@ components:
           maxLength: 500
     BusinessSettingResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           $ref: '#/components/schemas/BusinessSetting'
 
     InventoryOperationType:
       type: string
-      enum: [ENTRY, MANUAL_EXIT, TRANSFER, ROUTE_LOAD, SALE, ROUTE_RETURN, POSITIVE_ADJUSTMENT, NEGATIVE_ADJUSTMENT, SALE_CANCELLATION]
+      enum:
+        [
+          ENTRY,
+          MANUAL_EXIT,
+          TRANSFER,
+          ROUTE_LOAD,
+          SALE,
+          ROUTE_RETURN,
+          POSITIVE_ADJUSTMENT,
+          NEGATIVE_ADJUSTMENT,
+          SALE_CANCELLATION
+        ]
     StockLocationRef:
       type: object
       additionalProperties: false
-      required: [id, kind, label]
+      required: [ id, kind, label ]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
         kind:
           type: string
-          enum: [BRANCH, ROUTE]
+          enum: [ BRANCH, ROUTE ]
         label:
           type: string
         branchId:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           format: uuid
         routeId:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           format: uuid
     InventoryBalance:
       type: object
       additionalProperties: false
-      required: [id, productId, stockLocation, quantity, lowStockAlert, version, updatedAt]
+      required: [ id, productId, stockLocation, quantity, lowStockAlert, version, updatedAt ]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
@@ -4348,7 +4693,7 @@ components:
           format: date-time
     InventoryBalanceListResponse:
       type: object
-      required: [data, page]
+      required: [ data, page ]
       properties:
         data:
           type: array
@@ -4359,7 +4704,19 @@ components:
     InventoryMovement:
       type: object
       additionalProperties: false
-      required: [id, operationId, operationType, productId, quantity, actorId, occurredAt, relatedEntityType, relatedEntityId, reversesMovementId]
+      required:
+        [
+          id,
+          operationId,
+          operationType,
+          productId,
+          quantity,
+          actorId,
+          occurredAt,
+          relatedEntityType,
+          relatedEntityId,
+          reversesMovementId
+        ]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
@@ -4390,7 +4747,7 @@ components:
         actorId:
           $ref: '#/components/schemas/Uuid'
         reason:
-          type: [string, 'null']
+          type: [ string, 'null' ]
         occurredAt:
           type: string
           format: date-time
@@ -4404,7 +4761,7 @@ components:
             - type: 'null'
     InventoryMovementListResponse:
       type: object
-      required: [data, page]
+      required: [ data, page ]
       properties:
         data:
           type: array
@@ -4415,7 +4772,7 @@ components:
     InventoryOperationLineRequest:
       type: object
       additionalProperties: false
-      required: [productId, quantity]
+      required: [ productId, quantity ]
       properties:
         productId:
           $ref: '#/components/schemas/Uuid'
@@ -4424,11 +4781,11 @@ components:
     InventoryOperationRequest:
       type: object
       additionalProperties: false
-      required: [operationType, branchId, reason, lines]
+      required: [ operationType, branchId, reason, lines ]
       properties:
         operationType:
           type: string
-          enum: [ENTRY, MANUAL_EXIT, POSITIVE_ADJUSTMENT, NEGATIVE_ADJUSTMENT]
+          enum: [ ENTRY, MANUAL_EXIT, POSITIVE_ADJUSTMENT, NEGATIVE_ADJUSTMENT ]
         branchId:
           $ref: '#/components/schemas/Uuid'
         reason:
@@ -4444,7 +4801,7 @@ components:
     InventoryTransferRequest:
       type: object
       additionalProperties: false
-      required: [sourceBranchId, destinationBranchId, reason, lines]
+      required: [ sourceBranchId, destinationBranchId, reason, lines ]
       properties:
         sourceBranchId:
           $ref: '#/components/schemas/Uuid'
@@ -4463,7 +4820,7 @@ components:
     InventoryOperation:
       type: object
       additionalProperties: false
-      required: [id, operationType, actorId, reason, movements, occurredAt]
+      required: [ id, operationType, actorId, reason, movements, occurredAt ]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
@@ -4472,7 +4829,7 @@ components:
         actorId:
           $ref: '#/components/schemas/Uuid'
         reason:
-          type: [string, 'null']
+          type: [ string, 'null' ]
         movements:
           type: array
           items:
@@ -4482,7 +4839,7 @@ components:
           format: date-time
     InventoryOperationResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           $ref: '#/components/schemas/InventoryOperation'
@@ -4490,18 +4847,18 @@ components:
     ExpectedVersionRequest:
       type: object
       additionalProperties: false
-      required: [expectedVersion]
+      required: [ expectedVersion ]
       properties:
         expectedVersion:
           type: integer
           minimum: 1
     RouteState:
       type: string
-      enum: [PREPARING, EN_ROUTE, RETURNED, CLOSED]
+      enum: [ PREPARING, EN_ROUTE, RETURNED, CLOSED ]
     RouteCreateRequest:
       type: object
       additionalProperties: false
-      required: [originLocationId, driverId, vehicleId, businessDate]
+      required: [ originLocationId, driverId, vehicleId, businessDate ]
       properties:
         originLocationId:
           $ref: '#/components/schemas/Uuid'
@@ -4519,7 +4876,7 @@ components:
     Route:
       type: object
       additionalProperties: false
-      required: [id, routeNumber, state, originLocationId, driverId, vehicleId, businessDate, createdBy, createdAt, version]
+      required: [ id, routeNumber, state, originLocationId, driverId, vehicleId, businessDate, createdBy, createdAt, version ]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
@@ -4542,29 +4899,29 @@ components:
           type: string
           format: date-time
         startedAt:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           format: date-time
         returnedAt:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           format: date-time
         closedAt:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           format: date-time
         closedBy:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           format: uuid
         version:
           type: integer
           minimum: 1
     RouteResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           $ref: '#/components/schemas/Route'
     RouteListResponse:
       type: object
-      required: [data, page]
+      required: [ data, page ]
       properties:
         data:
           type: array
@@ -4575,7 +4932,7 @@ components:
     RouteLoadLineRequest:
       type: object
       additionalProperties: false
-      required: [productId, quantity]
+      required: [ productId, quantity ]
       properties:
         productId:
           $ref: '#/components/schemas/Uuid'
@@ -4584,7 +4941,7 @@ components:
     RouteLoadDraftRequest:
       type: object
       additionalProperties: false
-      required: [expectedVersion, lines]
+      required: [ expectedVersion, lines ]
       properties:
         expectedVersion:
           type: integer
@@ -4598,7 +4955,7 @@ components:
     RouteLoad:
       type: object
       additionalProperties: false
-      required: [id, routeId, state, recordedBy, lines, version]
+      required: [ id, routeId, state, recordedBy, lines, version ]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
@@ -4606,18 +4963,18 @@ components:
           $ref: '#/components/schemas/Uuid'
         state:
           type: string
-          enum: [DRAFT, CONFIRMED]
+          enum: [ DRAFT, CONFIRMED ]
         recordedBy:
           $ref: '#/components/schemas/Uuid'
         confirmedAt:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           format: date-time
         lines:
           type: array
           items:
             type: object
             additionalProperties: false
-            required: [productId, quantity]
+            required: [ productId, quantity ]
             properties:
               productId:
                 $ref: '#/components/schemas/Uuid'
@@ -4628,26 +4985,26 @@ components:
           minimum: 1
     RouteLoadResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           $ref: '#/components/schemas/RouteLoad'
     RouteReconciliationLineRequest:
       type: object
       additionalProperties: false
-      required: [productId, physicalReturnQuantity]
+      required: [ productId, physicalReturnQuantity ]
       properties:
         productId:
           $ref: '#/components/schemas/Uuid'
         physicalReturnQuantity:
           $ref: '#/components/schemas/Quantity'
         differenceReason:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           maxLength: 500
     RouteReconciliationRequest:
       type: object
       additionalProperties: false
-      required: [expectedVersion, lines]
+      required: [ expectedVersion, lines ]
       properties:
         expectedVersion:
           type: integer
@@ -4661,7 +5018,7 @@ components:
     RouteReconciliationLine:
       type: object
       additionalProperties: false
-      required: [productId, loadedQuantity, soldQuantity, expectedReturnQuantity, physicalReturnQuantity, differenceQuantity]
+      required: [ productId, loadedQuantity, soldQuantity, expectedReturnQuantity, physicalReturnQuantity, differenceQuantity ]
       properties:
         productId:
           $ref: '#/components/schemas/Uuid'
@@ -4677,11 +5034,11 @@ components:
           type: string
           pattern: '^-?(0|[1-9][0-9]*)(\.[0-9]{1,3})?$'
         differenceReason:
-          type: [string, 'null']
+          type: [ string, 'null' ]
     RouteReconciliation:
       type: object
       additionalProperties: false
-      required: [id, routeId, state, recordedBy, approvedBy, approvedAt, lines, version]
+      required: [ id, routeId, state, recordedBy, approvedBy, approvedAt, lines, version ]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
@@ -4705,14 +5062,14 @@ components:
           minimum: 1
     RouteReconciliationResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           $ref: '#/components/schemas/RouteReconciliation'
     RouteDetail:
       type: object
       additionalProperties: false
-      required: [route, balances, movements, sales]
+      required: [ route, balances, movements, sales ]
       properties:
         route:
           $ref: '#/components/schemas/Route'
@@ -4737,23 +5094,27 @@ components:
           oneOf:
             - $ref: '#/components/schemas/RouteReconciliation'
             - type: 'null'
+        returnDeclaration:
+          oneOf:
+            - $ref: "#/components/schemas/RouteReturnDeclaration"
+            - type: "null"
     RouteDetailResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           $ref: '#/components/schemas/RouteDetail'
 
     PaymentMethod:
       type: string
-      enum: [CASH, BANK_TRANSFER, CARD]
+      enum: [ CASH, BANK_TRANSFER, CARD ]
     SaleStatus:
       type: string
-      enum: [COMPLETED, CANCELLED]
+      enum: [ COMPLETED, CANCELLED ]
     SaleCreateLineRequest:
       type: object
       additionalProperties: false
-      required: [productId, quantity]
+      required: [ productId, quantity ]
       properties:
         productId:
           $ref: '#/components/schemas/Uuid'
@@ -4762,7 +5123,7 @@ components:
     SaleQuoteRequest:
       type: object
       additionalProperties: false
-      required: [customerId, routeId, lines]
+      required: [ customerId, routeId, lines ]
       properties:
         customerId:
           $ref: '#/components/schemas/Uuid'
@@ -4777,7 +5138,7 @@ components:
     SaleQuoteLine:
       type: object
       additionalProperties: false
-      required: [productId, requestedQuantity, availableQuantity, available, appliedPriceSource, unitPrice, lineAmount]
+      required: [ productId, requestedQuantity, availableQuantity, available, appliedPriceSource, unitPrice, lineAmount ]
       properties:
         productId:
           $ref: '#/components/schemas/Uuid'
@@ -4789,7 +5150,7 @@ components:
           type: boolean
         appliedPriceSource:
           type: string
-          enum: [CUSTOMER, STANDARD]
+          enum: [ CUSTOMER, STANDARD ]
         unitPrice:
           $ref: '#/components/schemas/UnitPrice'
         lineAmount:
@@ -4816,12 +5177,12 @@ components:
     SaleQuoteResponse:
       type: object
       additionalProperties: false
-      required: [data]
+      required: [ data ]
       properties:
         data:
           type: object
           additionalProperties: false
-          required: [customerId, routeId, currencyCode, lines, total, quotedAt]
+          required: [ customerId, routeId, currencyCode, lines, total, quotedAt ]
           properties:
             customerId:
               $ref: '#/components/schemas/Uuid'
@@ -4842,7 +5203,7 @@ components:
     SaleCreateRequest:
       type: object
       additionalProperties: false
-      required: [clientOperationId, customerId, routeId, paymentMethod, lines]
+      required: [ clientOperationId, customerId, routeId, paymentMethod, lines ]
       properties:
         clientOperationId:
           $ref: '#/components/schemas/Uuid'
@@ -4861,7 +5222,19 @@ components:
     SaleLine:
       type: object
       additionalProperties: false
-      required: [sequence, productId, productName, categoryName, reportingGroup, unitCode, quantity, appliedPriceSource, unitPrice, lineAmount]
+      required:
+        [
+          sequence,
+          productId,
+          productName,
+          categoryName,
+          reportingGroup,
+          unitCode,
+          quantity,
+          appliedPriceSource,
+          unitPrice,
+          lineAmount
+        ]
       properties:
         sequence:
           type: integer
@@ -4880,7 +5253,7 @@ components:
           $ref: '#/components/schemas/PositiveQuantity'
         appliedPriceSource:
           type: string
-          enum: [CUSTOMER, STANDARD]
+          enum: [ CUSTOMER, STANDARD ]
         unitPrice:
           $ref: '#/components/schemas/UnitPrice'
         lineAmount:
@@ -4888,7 +5261,7 @@ components:
     SaleSummary:
       type: object
       additionalProperties: false
-      required: [id, saleNumber, status, customerId, driverId, routeId, paymentMethod, total, completedAt]
+      required: [ id, saleNumber, status, customerId, driverId, routeId, paymentMethod, total, completedAt ]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
@@ -4910,12 +5283,30 @@ components:
           type: string
           format: date-time
         cancelledAt:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           format: date-time
     Sale:
       type: object
       additionalProperties: false
-      required: [id, saleNumber, clientOperationId, status, customerId, driverId, routeId, originLocationId, paymentMethod, currencyCode, subtotal, total, roundingMode, lines, ticketNumber, completedAt]
+      required:
+        [
+          id,
+          saleNumber,
+          clientOperationId,
+          status,
+          customerId,
+          driverId,
+          routeId,
+          originLocationId,
+          paymentMethod,
+          currencyCode,
+          subtotal,
+          total,
+          roundingMode,
+          lines,
+          ticketNumber,
+          completedAt
+        ]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
@@ -4954,22 +5345,22 @@ components:
           type: string
           format: date-time
         cancelledAt:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           format: date-time
         cancelledBy:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           format: uuid
         cancellationReason:
-          type: [string, 'null']
+          type: [ string, 'null' ]
     SaleResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           $ref: '#/components/schemas/Sale'
     SaleListResponse:
       type: object
-      required: [data, page]
+      required: [ data, page ]
       properties:
         data:
           type: array
@@ -4980,7 +5371,7 @@ components:
     SaleCancellationRequest:
       type: object
       additionalProperties: false
-      required: [reason]
+      required: [ reason ]
       properties:
         reason:
           type: string
@@ -4990,18 +5381,18 @@ components:
     CashCloseCreateRequest:
       type: object
       additionalProperties: false
-      required: [periodKind, anchorDate]
+      required: [ periodKind, anchorDate ]
       properties:
         periodKind:
           type: string
-          enum: [DAY, WEEK, MONTH]
+          enum: [ DAY, WEEK, MONTH ]
         anchorDate:
           type: string
           format: date
     CashCloseCorrectionRequest:
       type: object
       additionalProperties: false
-      required: [reason]
+      required: [ reason ]
       properties:
         reason:
           type: string
@@ -5010,7 +5401,7 @@ components:
     CashCloseLine:
       type: object
       additionalProperties: false
-      required: [reportingGroup, total]
+      required: [ reportingGroup, total ]
       properties:
         reportingGroup:
           $ref: '#/components/schemas/ReportingGroup'
@@ -5019,7 +5410,30 @@ components:
     CashClose:
       type: object
       additionalProperties: false
-      required: [id, closeNumber, periodKind, anchorDate, periodStart, periodEnd, businessTimezone, status, supersedesCashCloseId, supersededByCashCloseId, correctionReason, currencyCode, grossTotal, partnerRate, partnerAmount, remainingAmount, roundingMode, lines, contributingSaleIds, createdBy, createdAt]
+      required:
+        [
+          id,
+          closeNumber,
+          periodKind,
+          anchorDate,
+          periodStart,
+          periodEnd,
+          businessTimezone,
+          status,
+          supersedesCashCloseId,
+          supersededByCashCloseId,
+          correctionReason,
+          currencyCode,
+          grossTotal,
+          partnerRate,
+          partnerAmount,
+          remainingAmount,
+          roundingMode,
+          lines,
+          contributingSaleIds,
+          createdBy,
+          createdAt
+        ]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
@@ -5027,7 +5441,7 @@ components:
           type: string
         periodKind:
           type: string
-          enum: [DAY, WEEK, MONTH]
+          enum: [ DAY, WEEK, MONTH ]
         anchorDate:
           type: string
           format: date
@@ -5041,15 +5455,15 @@ components:
           type: string
         status:
           type: string
-          enum: [CURRENT, SUPERSEDED]
+          enum: [ CURRENT, SUPERSEDED ]
         supersedesCashCloseId:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           format: uuid
         supersededByCashCloseId:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           format: uuid
         correctionReason:
-          type: [string, 'null']
+          type: [ string, 'null' ]
         currencyCode:
           type: string
           pattern: '^[A-Z]{3}$'
@@ -5079,13 +5493,13 @@ components:
           format: date-time
     CashCloseResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           $ref: '#/components/schemas/CashClose'
     CashCloseListResponse:
       type: object
-      required: [data, page]
+      required: [ data, page ]
       properties:
         data:
           type: array
@@ -5097,16 +5511,16 @@ components:
     ReportResponse:
       type: object
       additionalProperties: false
-      required: [data]
+      required: [ data ]
       properties:
         data:
           type: object
           additionalProperties: false
-          required: [reportType, generatedAt, businessTimezone, filters, rows]
+          required: [ reportType, generatedAt, businessTimezone, filters, rows ]
           properties:
             reportType:
               type: string
-              enum: [SALES_BY_DRIVER, BEST_SELLING_PRODUCTS, INVENTORY_BY_BRANCH, FINANCIAL_SUMMARY]
+              enum: [ SALES_BY_DRIVER, BEST_SELLING_PRODUCTS, INVENTORY_BY_BRANCH, FINANCIAL_SUMMARY ]
             generatedAt:
               type: string
               format: date-time
@@ -5126,24 +5540,24 @@ components:
     ReportSnapshotCreateRequest:
       type: object
       additionalProperties: false
-      required: [reportType, filters]
+      required: [ reportType, filters ]
       properties:
         reportType:
           type: string
-          enum: [SALES_BY_DRIVER, BEST_SELLING_PRODUCTS, INVENTORY_BY_BRANCH, FINANCIAL_SUMMARY]
+          enum: [ SALES_BY_DRIVER, BEST_SELLING_PRODUCTS, INVENTORY_BY_BRANCH, FINANCIAL_SUMMARY ]
         filters:
           type: object
           additionalProperties: true
     ReportSnapshot:
       type: object
       additionalProperties: false
-      required: [id, reportType, filters, businessTimezone, sourceWatermark, result, createdBy, createdAt]
+      required: [ id, reportType, filters, businessTimezone, sourceWatermark, result, createdBy, createdAt ]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
         reportType:
           type: string
-          enum: [SALES_BY_DRIVER, BEST_SELLING_PRODUCTS, INVENTORY_BY_BRANCH, FINANCIAL_SUMMARY]
+          enum: [ SALES_BY_DRIVER, BEST_SELLING_PRODUCTS, INVENTORY_BY_BRANCH, FINANCIAL_SUMMARY ]
         filters:
           type: object
           additionalProperties: true
@@ -5161,66 +5575,110 @@ components:
           format: date-time
     ReportSnapshotResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           $ref: '#/components/schemas/ReportSnapshot'
 
     DocumentType:
       type: string
-      description: >-
-        TICKET is the sole customer-facing Sale Ticket document type. All values are portable PDF types; only TICKET, ROUTE_LOAD, and CASH_CLOSE are thermal-printable.
-      enum: [TICKET, ROUTE_LOAD, CASH_CLOSE, REPORT]
+      enum:
+        - TICKET
+        - ROUTE_LOAD
+        - ROUTE_RETURN
+        - CASH_CLOSE
+        - REPORT
     DocumentCreateRequest:
       oneOf:
         - type: object
-          description: Source must be an existing committed Sale.
-          additionalProperties: false
-          required: [documentType, sourceType, sourceId]
           properties:
             documentType:
+              type: string
+              const: ROUTE_RETURN
+            sourceType:
+              type: string
+              const: ROUTE_RETURN
+            sourceId:
+              type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+          required:
+            - documentType
+            - sourceType
+            - sourceId
+          additionalProperties: false
+        - type: object
+          properties:
+            documentType:
+              type: string
               const: TICKET
             sourceType:
+              type: string
               const: SALE
             sourceId:
-              $ref: '#/components/schemas/Uuid'
-        - type: object
-          description: Source must be a CONFIRMED immutable RouteLoad; DRAFT returns 409.
+              type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+          required:
+            - documentType
+            - sourceType
+            - sourceId
           additionalProperties: false
-          required: [documentType, sourceType, sourceId]
+        - type: object
           properties:
             documentType:
+              type: string
               const: ROUTE_LOAD
             sourceType:
+              type: string
               const: ROUTE_LOAD
             sourceId:
-              $ref: '#/components/schemas/Uuid'
-        - type: object
-          description: Source must be an existing committed CashClose.
+              type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+          required:
+            - documentType
+            - sourceType
+            - sourceId
           additionalProperties: false
-          required: [documentType, sourceType, sourceId]
+        - type: object
           properties:
             documentType:
+              type: string
               const: CASH_CLOSE
             sourceType:
+              type: string
               const: CASH_CLOSE
             sourceId:
-              $ref: '#/components/schemas/Uuid'
-        - type: object
-          description: Source must be an immutable ReportSnapshot.
+              type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+          required:
+            - documentType
+            - sourceType
+            - sourceId
           additionalProperties: false
-          required: [documentType, sourceType, sourceId]
+        - type: object
           properties:
             documentType:
+              type: string
               const: REPORT
             sourceType:
+              type: string
               const: REPORT_SNAPSHOT
             sourceId:
-              $ref: '#/components/schemas/Uuid'
+              type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+          required:
+            - documentType
+            - sourceType
+            - sourceId
+          additionalProperties: false
     DocumentOutput:
       type: object
       additionalProperties: false
-      required: [id, documentType, sourceType, sourceId, contentVersion, state, createdBy, createdAt]
+      required: [ id, documentType, sourceType, sourceId, contentVersion, state, createdBy, createdAt ]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
@@ -5233,30 +5691,30 @@ components:
         contentVersion:
           type: string
         contentHash:
-          type: [string, 'null']
+          type: [ string, 'null' ]
         state:
           type: string
-          enum: [PENDING, READY, FAILED]
+          enum: [ PENDING, READY, FAILED ]
         createdBy:
           $ref: '#/components/schemas/Uuid'
         createdAt:
           type: string
           format: date-time
         readyAt:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           format: date-time
         lastErrorCode:
-          type: [string, 'null']
+          type: [ string, 'null' ]
     DocumentResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           $ref: '#/components/schemas/DocumentOutput'
     DocumentListResponse:
       type: object
       additionalProperties: false
-      required: [data, page]
+      required: [ data, page ]
       properties:
         data:
           type: array
@@ -5266,52 +5724,54 @@ components:
           $ref: '#/components/schemas/PageInfo'
     OutputAttemptRequest:
       description: >-
-        PRINT/REPRINT require a printer and a TICKET, ROUTE_LOAD, or CASH_CLOSE document. REPORT print/reprint is rejected with 422. TEST_PRINT has a printer but no document. Cross-resource document-type validation is authoritative in the API and database.
+        PRINT/REPRINT require a printer and a ready TICKET, ROUTE_LOAD, CASH_CLOSE, or REPORT document. REPORT printing
+        requires Administrator access. TEST_PRINT has a printer but no document. Cross-resource document-type validation
+        is authoritative in the API and database.
       oneOf:
         - type: object
           additionalProperties: false
-          required: [documentId, mode, state]
+          required: [ documentId, mode, state ]
           properties:
             documentId:
               type: string
               format: uuid
             mode:
               type: string
-              enum: [GENERATE, DOWNLOAD, SHARE]
+              enum: [ GENERATE, DOWNLOAD, SHARE ]
             state:
               type: string
-              enum: [STARTED, SUCCEEDED, FAILED, UNKNOWN]
+              enum: [ STARTED, SUCCEEDED, FAILED, UNKNOWN ]
             errorCode:
-              type: [string, 'null']
+              type: [ string, 'null' ]
               maxLength: 120
             requestId:
-              type: [string, 'null']
+              type: [ string, 'null' ]
               maxLength: 200
         - type: object
           additionalProperties: false
-          required: [documentId, mode, printerProfileId, state]
+          required: [ documentId, mode, printerProfileId, state ]
           properties:
             documentId:
               type: string
               format: uuid
             mode:
               type: string
-              enum: [PRINT, REPRINT]
+              enum: [ PRINT, REPRINT ]
             printerProfileId:
               type: string
               format: uuid
             state:
               type: string
-              enum: [STARTED, SUCCEEDED, FAILED, UNKNOWN]
+              enum: [ STARTED, SUCCEEDED, FAILED, UNKNOWN ]
             errorCode:
-              type: [string, 'null']
+              type: [ string, 'null' ]
               maxLength: 120
             requestId:
-              type: [string, 'null']
+              type: [ string, 'null' ]
               maxLength: 200
         - type: object
           additionalProperties: false
-          required: [mode, printerProfileId, state]
+          required: [ mode, printerProfileId, state ]
           properties:
             mode:
               const: TEST_PRINT
@@ -5320,38 +5780,38 @@ components:
               format: uuid
             state:
               type: string
-              enum: [STARTED, SUCCEEDED, FAILED, UNKNOWN]
+              enum: [ STARTED, SUCCEEDED, FAILED, UNKNOWN ]
             errorCode:
-              type: [string, 'null']
+              type: [ string, 'null' ]
               maxLength: 120
             requestId:
-              type: [string, 'null']
+              type: [ string, 'null' ]
               maxLength: 200
     OutputAttempt:
       type: object
       additionalProperties: false
-      required: [id, actorId, mode, state, attemptNumber, createdAt]
+      required: [ id, actorId, mode, state, attemptNumber, createdAt ]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
         actorId:
           $ref: '#/components/schemas/Uuid'
         documentId:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           format: uuid
         mode:
           type: string
-          enum: [GENERATE, DOWNLOAD, SHARE, PRINT, REPRINT, TEST_PRINT]
+          enum: [ GENERATE, DOWNLOAD, SHARE, PRINT, REPRINT, TEST_PRINT ]
         printerProfileId:
-          type: [string, 'null']
+          type: [ string, 'null' ]
           format: uuid
         state:
           type: string
-          enum: [STARTED, SUCCEEDED, FAILED, UNKNOWN]
+          enum: [ STARTED, SUCCEEDED, FAILED, UNKNOWN ]
         errorCode:
-          type: [string, 'null']
+          type: [ string, 'null' ]
         requestId:
-          type: [string, 'null']
+          type: [ string, 'null' ]
         attemptNumber:
           type: integer
           minimum: 1
@@ -5360,14 +5820,14 @@ components:
           format: date-time
     OutputAttemptResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           $ref: '#/components/schemas/OutputAttempt'
     OutputAttemptListResponse:
       type: object
       additionalProperties: false
-      required: [data, page]
+      required: [ data, page ]
       properties:
         data:
           type: array
@@ -5375,3 +5835,99 @@ components:
             $ref: '#/components/schemas/OutputAttempt'
         page:
           $ref: '#/components/schemas/PageInfo'
+    RouteReturnRequest:
+      type: object
+      properties:
+        expectedVersion:
+          type: integer
+          exclusiveMinimum: 0
+          maximum: 9007199254740991
+        lines:
+          minItems: 1
+          maxItems: 200
+          type: array
+          items:
+            type: object
+            properties:
+              productId:
+                type: string
+                format: uuid
+                pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+              physicalReturnQuantity:
+                type: string
+                pattern: ^(0|[1-9]\d*)(\.\d{1,3})?$
+              differenceReason:
+                anyOf:
+                  - type: string
+                    minLength: 1
+                    maxLength: 500
+                  - type: "null"
+            required:
+              - productId
+              - physicalReturnQuantity
+            additionalProperties: false
+      required:
+        - expectedVersion
+      additionalProperties: false
+    RouteReturnDeclaration:
+      type: object
+      required:
+        - routeNumber
+        - kind
+        - lines
+        - id
+        - recordedBy
+        - createdAt
+      properties:
+        routeNumber:
+          type: string
+        kind:
+          type: string
+          enum:
+            - DECLARED
+            - APPROVED
+        lines:
+          minItems: 1
+          type: array
+          items:
+            type: object
+            properties:
+              productId:
+                type: string
+                format: uuid
+                pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+              productName:
+                type: string
+              unitCode:
+                type: string
+              quantity:
+                type: string
+                pattern: ^(0|[1-9]\d*)(\.\d{1,3})?$
+              expectedQuantity:
+                type: string
+                pattern: ^(0|[1-9]\d*)(\.\d{1,3})?$
+              differenceQuantity:
+                type: string
+                pattern: ^-?\d+(?:\.\d{1,3})?$
+              differenceReason:
+                anyOf:
+                  - type: string
+                  - type: "null"
+            required:
+              - productId
+              - productName
+              - unitCode
+              - quantity
+              - expectedQuantity
+              - differenceQuantity
+              - differenceReason
+            additionalProperties: false
+        id:
+          type: string
+          format: uuid
+        recordedBy:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time

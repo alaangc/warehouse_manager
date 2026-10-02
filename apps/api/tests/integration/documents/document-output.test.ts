@@ -121,7 +121,7 @@ describe('T120 document database constraints and retry isolation (red until T123
   });
 
   it.each(['PRINT', 'REPRINT'])(
-    'requires a printer and rejects REPORT %s at the database boundary',
+    'requires a printer and accepts REPORT %s at the database boundary',
     async (mode) => {
       const ticket = await h.insertDocument(h.ticket);
       const report = await h.insertDocument(h.reportSource);
@@ -135,7 +135,7 @@ describe('T120 document database constraints and retry isolation (red until T123
           mode,
           printerId: h.printerProfileId,
         }),
-      ).rejects.toMatchObject({ code: '23514' });
+      ).resolves.toEqual(expect.any(String));
       await expect(
         h.insertAttempt({
           documentId: ticket,

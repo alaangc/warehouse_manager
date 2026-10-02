@@ -857,7 +857,7 @@ export interface paths {
     put?: never;
     /**
      * Request document
-     * @description Creates or reuses a portable canonical PDF from an already committed source record. TICKET, ROUTE_LOAD, CASH_CLOSE, and REPORT are all supported; ROUTE_LOAD requires a confirmed immutable load. Administrators may request all four types. Drivers may request only a TICKET whose Sale belongs to them or a confirmed ROUTE_LOAD whose Route is assigned to them. Driver requests for CASH_CLOSE, REPORT, another Driver's Sale, or an unassigned Route return 403 without creating/exposing output. An authorized DRAFT-load request returns 409 ROUTE_LOAD_NOT_CONFIRMED. Source authorization is checked before reusing an existing canonical output and never derives from DocumentOutput.createdBy.
+     * @description Creates or reuses a canonical PDF from a committed source. Administrators can access all document types. Drivers can access their own sale tickets, assigned confirmed route loads, and assigned route return receipts. Return receipts preserve declared or approved quantities and reasons in separate immutable snapshots. Source authorization precedes generation and reuse. Draft loads return 409 ROUTE_LOAD_NOT_CONFIRMED.
      */
     post: operations['requestDocument'];
     delete?: never;
@@ -899,7 +899,7 @@ export interface paths {
     };
     /**
      * Get document print data
-     * @description Read-only thermal payload from immutable committed snapshots. The same source-derived authorization as metadata applies before capability checks. Returns 409 for non-ready documents or unconfirmed loads and 422 for REPORT. Does not generate output, record an attempt, or mutate the source.
+     * @description Read-only thermal payload from immutable committed snapshots. The same source-derived authorization as metadata applies before capability checks. Returns 409 for non-ready documents or unconfirmed loads and supports Administrator REPORT printing. Does not generate output, record an attempt, or mutate the source.
      */
     get: operations['getDocumentPrintData'];
     put?: never;
@@ -921,7 +921,7 @@ export interface paths {
     };
     /**
      * Download document
-     * @description Downloads/saves any ready TICKET, ROUTE_LOAD, CASH_CLOSE, or REPORT PDF. The browser may offer the same bytes through Web Share when supported. The same source-derived authorization as document metadata applies; output creator and possession of the document ID never broaden Driver access.
+     * @description Downloads a ready PDF with source-derived authorization, including route return receipts. Drivers can download only their own sale tickets and assigned route load or return receipts.
      */
     get: operations['downloadDocument'];
     put?: never;
@@ -947,7 +947,7 @@ export interface paths {
     put?: never;
     /**
      * Record output attempt
-     * @description Records generation/download/share/print/test outcomes only. It never performs or retries the source business transaction. PRINT and REPRINT are valid only for TICKET, ROUTE_LOAD, and CASH_CLOSE; REPORT is portable-only. A REPORT PRINT/REPRINT request returns 422 and creates no accepted OutputAttempt. TEST_PRINT validates a printer profile without a business document. For every document mode, the API first resolves the immutable source and authorizes the actor: Drivers are limited to their own Sale Tickets and confirmed loads for assigned Routes. Forbidden source access returns 403 with no accepted attempt; capability validation follows, so Administrator REPORT printing returns 422.
+     * @description Records output outcomes without repeating the business transaction. PRINT and REPRINT support all document types. Drivers are restricted to their own sale tickets and assigned route load and return receipts; reports and cash closes require an administrator.
      */
     post: operations['recordOutputAttempt'];
     delete?: never;
@@ -1110,11 +1110,101 @@ export interface paths {
     patch: operations['updateBusinessSettings'];
     trace?: never;
   };
+  '/routes/{routeId}/return-declaration': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        routeId: components['parameters']['RouteId'];
+      };
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Declare physical quantities for a returned route
+     * @description Assigned driver only. Records an immutable declaration before administrator reconciliation, without changing stock. Supports routes returned before quantity entry was available.
+     */
+    post: operations['declareRouteReturn'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
     ThermalDocument:
+      | {
+          /** Format: uuid */
+          id: string;
+          /** @constant */
+          documentType: 'ROUTE_RETURN';
+          sourceType: string;
+          /** Format: uuid */
+          sourceId: string;
+          contentVersion: string;
+          /** @enum {string} */
+          state: 'PENDING' | 'READY' | 'FAILED';
+          sourceState: string;
+          snapshot: {
+            routeNumber: string;
+            /** @enum {string} */
+            kind: 'DECLARED' | 'APPROVED';
+            lines: {
+              /** Format: uuid */
+              productId: string;
+              productName: string;
+              unitCode: string;
+              quantity: string;
+              expectedQuantity: string;
+              differenceQuantity: string;
+              differenceReason: string | null;
+            }[];
+          };
+        }
+      | {
+          /** Format: uuid */
+          id: string;
+          /** @constant */
+          documentType: 'REPORT';
+          sourceType: string;
+          /** Format: uuid */
+          sourceId: string;
+          contentVersion: string;
+          /** @enum {string} */
+          state: 'PENDING' | 'READY' | 'FAILED';
+          sourceState: string;
+          snapshot: {
+            reportType: string;
+            businessTimezone: string;
+            filters: {
+              [key: string]: unknown;
+            };
+            result: {
+              /** @enum {string} */
+              reportType:
+                | 'SALES_BY_DRIVER'
+                | 'BEST_SELLING_PRODUCTS'
+                | 'INVENTORY_BY_BRANCH'
+                | 'FINANCIAL_SUMMARY';
+              /** Format: date-time */
+              generatedAt: string;
+              businessTimezone: string;
+              filters: {
+                [key: string]: unknown;
+              };
+              rows: {
+                [key: string]: unknown;
+              }[];
+              totals?: {
+                [key: string]: unknown;
+              };
+            };
+          };
+        }
       | {
           /** Format: uuid */
           id: string;
@@ -1816,6 +1906,7 @@ export interface components {
       movements: components['schemas']['InventoryMovement'][];
       sales: components['schemas']['SaleSummary'][];
       reconciliation?: components['schemas']['RouteReconciliation'] | null;
+      returnDeclaration?: components['schemas']['RouteReturnDeclaration'] | null;
     };
     RouteDetailResponse: {
       data: components['schemas']['RouteDetail'];
@@ -2029,39 +2120,48 @@ export interface components {
     ReportSnapshotResponse: {
       data: components['schemas']['ReportSnapshot'];
     };
-    /**
-     * @description TICKET is the sole customer-facing Sale Ticket document type. All values are portable PDF types; only TICKET, ROUTE_LOAD, and CASH_CLOSE are thermal-printable.
-     * @enum {string}
-     */
-    DocumentType: 'TICKET' | 'ROUTE_LOAD' | 'CASH_CLOSE' | 'REPORT';
+    /** @enum {string} */
+    DocumentType: 'TICKET' | 'ROUTE_LOAD' | 'ROUTE_RETURN' | 'CASH_CLOSE' | 'REPORT';
     DocumentCreateRequest:
+      | {
+          /** @constant */
+          documentType: 'ROUTE_RETURN';
+          /** @constant */
+          sourceType: 'ROUTE_RETURN';
+          /** Format: uuid */
+          sourceId: string;
+        }
       | {
           /** @constant */
           documentType: 'TICKET';
           /** @constant */
           sourceType: 'SALE';
-          sourceId: components['schemas']['Uuid'];
+          /** Format: uuid */
+          sourceId: string;
         }
       | {
           /** @constant */
           documentType: 'ROUTE_LOAD';
           /** @constant */
           sourceType: 'ROUTE_LOAD';
-          sourceId: components['schemas']['Uuid'];
+          /** Format: uuid */
+          sourceId: string;
         }
       | {
           /** @constant */
           documentType: 'CASH_CLOSE';
           /** @constant */
           sourceType: 'CASH_CLOSE';
-          sourceId: components['schemas']['Uuid'];
+          /** Format: uuid */
+          sourceId: string;
         }
       | {
           /** @constant */
           documentType: 'REPORT';
           /** @constant */
           sourceType: 'REPORT_SNAPSHOT';
-          sourceId: components['schemas']['Uuid'];
+          /** Format: uuid */
+          sourceId: string;
         };
     DocumentOutput: {
       id: components['schemas']['Uuid'];
@@ -2086,7 +2186,7 @@ export interface components {
       data: components['schemas']['DocumentOutput'][];
       page: components['schemas']['PageInfo'];
     };
-    /** @description PRINT/REPRINT require a printer and a TICKET, ROUTE_LOAD, or CASH_CLOSE document. REPORT print/reprint is rejected with 422. TEST_PRINT has a printer but no document. Cross-resource document-type validation is authoritative in the API and database. */
+    /** @description PRINT/REPRINT require a printer and a ready TICKET, ROUTE_LOAD, CASH_CLOSE, or REPORT document. REPORT printing requires Administrator access. TEST_PRINT has a printer but no document. Cross-resource document-type validation is authoritative in the API and database. */
     OutputAttemptRequest:
       | {
           /** Format: uuid */
@@ -2143,6 +2243,36 @@ export interface components {
     OutputAttemptListResponse: {
       data: components['schemas']['OutputAttempt'][];
       page: components['schemas']['PageInfo'];
+    };
+    RouteReturnRequest: {
+      expectedVersion: number;
+      lines?: {
+        /** Format: uuid */
+        productId: string;
+        physicalReturnQuantity: string;
+        differenceReason?: string | null;
+      }[];
+    };
+    RouteReturnDeclaration: {
+      routeNumber: string;
+      /** @enum {string} */
+      kind: 'DECLARED' | 'APPROVED';
+      lines: {
+        /** Format: uuid */
+        productId: string;
+        productName: string;
+        unitCode: string;
+        quantity: string;
+        expectedQuantity: string;
+        differenceQuantity: string;
+        differenceReason: string | null;
+      }[];
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      recordedBy: string;
+      /** Format: date-time */
+      createdAt: string;
     };
   };
   responses: {
@@ -2472,7 +2602,10 @@ export interface operations {
   };
   listLocations: {
     parameters: {
-      query?: never;
+      query?: {
+        /** @description Filter active or archived catalog entries; omitted returns both. */
+        active?: boolean;
+      };
       header?: never;
       path?: never;
       cookie?: never;
@@ -2535,7 +2668,10 @@ export interface operations {
   };
   listCategories: {
     parameters: {
-      query?: never;
+      query?: {
+        /** @description Filter active or archived catalog entries; omitted returns both. */
+        active?: boolean;
+      };
       header?: never;
       path?: never;
       cookie?: never;
@@ -2598,7 +2734,10 @@ export interface operations {
   };
   listUnits: {
     parameters: {
-      query?: never;
+      query?: {
+        /** @description Filter active or archived catalog entries; omitted returns both. */
+        active?: boolean;
+      };
       header?: never;
       path?: never;
       cookie?: never;
@@ -2665,6 +2804,7 @@ export interface operations {
         cursor?: components['parameters']['Cursor'];
         limit?: components['parameters']['Limit'];
         search?: components['parameters']['Search'];
+        /** @description Filter active or archived catalog entries; omitted returns both. */
         active?: boolean;
       };
       header?: never;
@@ -3031,7 +3171,10 @@ export interface operations {
   };
   listVehicles: {
     parameters: {
-      query?: never;
+      query?: {
+        /** @description Filter active or archived catalog entries; omitted returns both. */
+        active?: boolean;
+      };
       header?: never;
       path?: never;
       cookie?: never;
@@ -3228,6 +3371,8 @@ export interface operations {
         branchId?: components['schemas']['Uuid'];
         routeId?: components['schemas']['Uuid'];
         alertsOnly?: boolean;
+        /** @description BRANCH shows active branches only. Closed route balances require an explicit routeId. */
+        locationKind?: 'BRANCH' | 'ROUTE';
       };
       header?: never;
       path?: never;
@@ -3413,6 +3558,8 @@ export interface operations {
         /** @description Administrator filter; Drivers may specify only their own identity. */
         driverId?: components['schemas']['Uuid'];
         businessDate?: string;
+        /** @description True returns non-closed routes; false returns closed history. Omitted returns both, within the authenticated role scope. */
+        active?: boolean;
       };
       header?: never;
       path?: never;
@@ -3635,7 +3782,7 @@ export interface operations {
     };
     requestBody: {
       content: {
-        'application/json': components['schemas']['ExpectedVersionRequest'];
+        'application/json': components['schemas']['RouteReturnRequest'];
       };
     };
     responses: {
@@ -4273,7 +4420,7 @@ export interface operations {
         limit?: components['parameters']['Limit'];
         documentType?: components['schemas']['DocumentType'];
         state?: 'PENDING' | 'READY' | 'FAILED';
-        sourceType?: 'SALE' | 'ROUTE_LOAD' | 'CASH_CLOSE' | 'REPORT_SNAPSHOT';
+        sourceType?: 'SALE' | 'ROUTE_LOAD' | 'CASH_CLOSE' | 'REPORT_SNAPSHOT' | 'ROUTE_RETURN';
         sourceId?: components['schemas']['Uuid'];
         /** @description Optional inclusive UTC instant for history filtering */
         from?: components['parameters']['HistoryFrom'];
@@ -4813,6 +4960,45 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['BusinessSettingResponse'];
+        };
+      };
+      400: components['responses']['Problem'];
+      401: components['responses']['Problem'];
+      403: components['responses']['Problem'];
+      404: components['responses']['Problem'];
+      409: components['responses']['Problem'];
+      422: components['responses']['Problem'];
+      429: components['responses']['Problem'];
+      500: components['responses']['Problem'];
+    };
+  };
+  declareRouteReturn: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Per-session synchronizer token for an authenticated unsafe request */
+        'X-CSRF-Token': components['parameters']['CsrfToken'];
+        /** @description Unique key scoped to actor and operation; reuse requires identical content */
+        'Idempotency-Key': components['parameters']['IdempotencyKey'];
+      };
+      path: {
+        routeId: components['parameters']['RouteId'];
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RouteReconciliationRequest'];
+      };
+    };
+    responses: {
+      /** @description Return declaration saved */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RouteResponse'];
         };
       };
       400: components['responses']['Problem'];

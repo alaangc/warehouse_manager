@@ -62,6 +62,7 @@ export function useInventoryBalances(
     productId?: string;
     branchId?: string;
     routeId?: string;
+    locationKind?: 'BRANCH' | 'ROUTE';
     alertsOnly?: boolean;
     search?: string;
   } = {},

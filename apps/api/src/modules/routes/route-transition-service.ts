@@ -3,14 +3,17 @@ import { runSerializable } from '../../db/serializable-transaction.js';
 import { AuditWriter } from '../../shared/audit/audit-service.js';
 import { runRouteCommand, type RouteCommandContext } from './route-command.js';
 import { assertAssignedDriver, nextRouteState } from './route-domain.js';
+import { recordDriverReturn } from './route-return.js';
+import type { ReconciliationInput } from './route-reconciliation-service.js';
 
 export class RouteTransitionService {
   constructor(private readonly database: AppDatabase) {}
   transition(
     routeId: string,
-    action: 'START' | 'RETURN',
+    action: 'START' | 'RETURN' | 'DECLARE_RETURN',
     expectedVersion: number,
     context: RouteCommandContext,
+    lines?: ReconciliationInput['lines'],
   ) {
     return runSerializable(this.database, async (transaction) =>
       runRouteCommand(
@@ -18,7 +21,19 @@ export class RouteTransitionService {
         {
           operationType: `ROUTE_${action}`,
           resourceType: 'ROUTE',
-          request: { routeId, action, expectedVersion },
+          request: {
+            routeId,
+            action,
+            expectedVersion,
+            ...(lines
+              ? {
+                  lines: lines.map((line) => ({
+                    ...line,
+                    differenceReason: line.differenceReason ?? null,
+                  })),
+                }
+              : {}),
+          },
           context,
         },
         async () => {
@@ -31,7 +46,25 @@ export class RouteTransitionService {
           if (!route)
             throw Object.assign(new Error('Route not found'), { code: 'RESOURCE_NOT_FOUND' });
           assertAssignedDriver(context.actorId, route.driver_id);
-          const next = nextRouteState(route.state, action);
+          if (action === 'DECLARE_RETURN') {
+            const approved = await transaction
+              .selectFrom('route_reconciliation')
+              .select('id')
+              .where('route_id', '=', routeId)
+              .executeTakeFirst();
+            const declared = await transaction
+              .selectFrom('route_return')
+              .select('id')
+              .where('route_id', '=', routeId)
+              .where('kind', '=', 'DECLARED')
+              .executeTakeFirst();
+            if (route.state !== 'RETURNED' || approved || declared || !lines)
+              throw Object.assign(new Error('Return declaration is no longer editable'), {
+                code: 'INVALID_ROUTE_TRANSITION',
+              });
+          }
+          const next =
+            action === 'DECLARE_RETURN' ? 'RETURNED' : nextRouteState(route.state, action);
           if (action === 'START') {
             const load = await transaction
               .selectFrom('route_load')
@@ -44,11 +77,17 @@ export class RouteTransitionService {
               });
           }
           const now = new Date();
+          if (action !== 'START' && lines)
+            await recordDriverReturn(transaction, route, lines, context.actorId);
           const updated = await transaction
             .updateTable('route')
             .set({
               state: next,
-              ...(action === 'START' ? { started_at: now } : { returned_at: now }),
+              ...(action === 'START'
+                ? { started_at: now }
+                : action === 'RETURN'
+                  ? { returned_at: now }
+                  : {}),
               version: expectedVersion + 1,
             })
             .where('id', '=', routeId)

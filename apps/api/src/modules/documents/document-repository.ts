@@ -18,6 +18,7 @@ import {
 export const sourcePairs = {
   TICKET: 'SALE',
   ROUTE_LOAD: 'ROUTE_LOAD',
+  ROUTE_RETURN: 'ROUTE_RETURN',
   CASH_CLOSE: 'CASH_CLOSE',
   REPORT: 'REPORT_SNAPSHOT',
 } as const;
@@ -53,6 +54,9 @@ export function documentScope(principal: HistoryPrincipal, alias = 'd'): RawBuil
     )) or (${type} = 'ROUTE_LOAD' and exists (
       select 1 from route_load l join route r on r.id = l.route_id
       where l.id = ${source} and l.state = 'CONFIRMED' and r.driver_id = ${principal.id}
+    )) or (${type} = 'ROUTE_RETURN' and exists (
+      select 1 from route_return rr join route r on r.id = rr.route_id
+      where rr.id = ${source} and r.driver_id = ${principal.id}
     ))
   )`;
 }
@@ -65,9 +69,13 @@ export const historyFilterSchema = z.object({
 });
 const documentFilterSchema = historyFilterSchema
   .extend({
-    documentType: z.enum(['TICKET', 'ROUTE_LOAD', 'CASH_CLOSE', 'REPORT']).optional(),
+    documentType: z
+      .enum(['TICKET', 'ROUTE_LOAD', 'ROUTE_RETURN', 'CASH_CLOSE', 'REPORT'])
+      .optional(),
     state: z.enum(['PENDING', 'READY', 'FAILED']).optional(),
-    sourceType: z.enum(['SALE', 'ROUTE_LOAD', 'CASH_CLOSE', 'REPORT_SNAPSHOT']).optional(),
+    sourceType: z
+      .enum(['SALE', 'ROUTE_LOAD', 'ROUTE_RETURN', 'CASH_CLOSE', 'REPORT_SNAPSHOT'])
+      .optional(),
     sourceId: z.uuid().optional(),
   })
   .strict();
@@ -149,7 +157,10 @@ export class DocumentRepository {
     if (sourcePairs[source.documentType] !== source.sourceType) {
       throw new HttpProblem(422, 'INVALID_DOCUMENT_SOURCE', 'Invalid document/source pair');
     }
-    if (principal.role === 'DRIVER' && !['TICKET', 'ROUTE_LOAD'].includes(source.documentType))
+    if (
+      principal.role === 'DRIVER' &&
+      !['TICKET', 'ROUTE_LOAD', 'ROUTE_RETURN'].includes(source.documentType)
+    )
       documentForbidden();
     return inTransaction(this.database, async (db) => {
       if (source.documentType === 'TICKET') {
@@ -209,6 +220,25 @@ export class DocumentRepository {
               quantityScale: line.quantity_scale,
             })),
           },
+        };
+      }
+      if (source.documentType === 'ROUTE_RETURN') {
+        const returned = await db
+          .selectFrom('route_return as rr')
+          .innerJoin('route as r', 'r.id', 'rr.route_id')
+          .selectAll('rr')
+          .select('r.driver_id')
+          .where('rr.id', '=', source.sourceId)
+          .executeTakeFirst();
+        if (!returned)
+          throw new HttpProblem(404, 'DOCUMENT_SOURCE_NOT_FOUND', 'Document source not found');
+        if (principal.role === 'DRIVER' && returned.driver_id !== principal.id) documentForbidden();
+        return {
+          ...source,
+          state: 'READY',
+          contentVersion: '1',
+          createdAt: returned.created_at.toISOString(),
+          snapshot: returned.snapshot,
         };
       }
       if (source.documentType === 'CASH_CLOSE') {
@@ -300,8 +330,9 @@ export class DocumentRepository {
     ];
     if (principal.role === 'DRIVER') {
       if (
-        (filters.documentType && !['TICKET', 'ROUTE_LOAD'].includes(filters.documentType)) ||
-        (filters.sourceType && !['SALE', 'ROUTE_LOAD'].includes(filters.sourceType))
+        (filters.documentType &&
+          !['TICKET', 'ROUTE_LOAD', 'ROUTE_RETURN'].includes(filters.documentType)) ||
+        (filters.sourceType && !['SALE', 'ROUTE_LOAD', 'ROUTE_RETURN'].includes(filters.sourceType))
       )
         documentForbidden();
       if (filters.sourceId) {
@@ -311,7 +342,9 @@ export class DocumentRepository {
             ? 'TICKET'
             : filters.sourceType === 'ROUTE_LOAD'
               ? 'ROUTE_LOAD'
-              : undefined);
+              : filters.sourceType === 'ROUTE_RETURN'
+                ? 'ROUTE_RETURN'
+                : undefined);
         if (type)
           await this.loadSource(principal, {
             documentType: type,
@@ -323,7 +356,8 @@ export class DocumentRepository {
           const owned = (
             await sql<{ allowed: boolean }>`select (
             exists(select 1 from sale where id = ${filters.sourceId}::uuid and driver_id = ${principal.id}) or
-            exists(select 1 from route_load l join route r on r.id = l.route_id where l.id = ${filters.sourceId}::uuid and l.state = 'CONFIRMED' and r.driver_id = ${principal.id})
+            exists(select 1 from route_load l join route r on r.id = l.route_id where l.id = ${filters.sourceId}::uuid and l.state = 'CONFIRMED' and r.driver_id = ${principal.id}) or
+            exists(select 1 from route_return rr join route r on r.id = rr.route_id where rr.id = ${filters.sourceId}::uuid and r.driver_id = ${principal.id})
           ) as allowed`.execute(this.database)
           ).rows[0];
           if (!owned?.allowed) documentForbidden();

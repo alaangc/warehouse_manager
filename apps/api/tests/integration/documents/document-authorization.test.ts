@@ -169,7 +169,7 @@ describe('T120 immutable-source authorization and side-effect isolation (red unt
   });
 
   it.each(['PRINT', 'REPRINT'])(
-    'rejects REPORT %s after authorization without accepting output',
+    'allows Administrator REPORT %s without changing business records',
     async (mode) => {
       const doc = await h.ready(h.reportSource);
       const before = await h.outputState();
@@ -181,8 +181,8 @@ describe('T120 immutable-source authorization and side-effect isolation (red unt
         state: 'STARTED',
       };
       problem(await h.command(h.driver, '/output-attempts', body), 403);
-      problem(await h.command(h.admin, '/output-attempts', body), 422);
       expect(await h.outputState()).toEqual(before);
+      expect((await h.command(h.admin, '/output-attempts', body)).status).toBe(201);
       expect(await h.businessState()).toEqual(business);
     },
   );

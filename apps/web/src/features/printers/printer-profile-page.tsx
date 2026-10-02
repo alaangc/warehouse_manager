@@ -1,3 +1,4 @@
+import { PrinterPreferencePage } from './printer-preference-page.js';
 import {
   Alert,
   Box,
@@ -73,6 +74,7 @@ function Directory({ actorId }: { actorId: string }) {
         {t('printers.title')}
       </Typography>
       <Typography>{t('printers.help')}</Typography>
+      <PrinterPreferencePage />
       <Button
         variant="contained"
         onClick={() => {
@@ -151,7 +153,11 @@ function Editor({
       }),
     retry: false,
     onSuccess: async () => {
-      await client.invalidateQueries({ queryKey: ['printer-profiles'] });
+      await Promise.all([
+        client.invalidateQueries({ queryKey: ['printer-profiles'] }),
+        client.invalidateQueries({ queryKey: ['approved-printers'] }),
+        client.invalidateQueries({ queryKey: ['print-profiles'] }),
+      ]);
       onSaved();
     },
   });

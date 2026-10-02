@@ -97,6 +97,7 @@ function PrinterPreferencePanel({
       },
     });
     client.setQueryData(key, response);
+    await client.invalidateQueries({ queryKey: ['print-preference', actorId] });
     if (mounted.current) setSaved(true);
   }
   async function testPrinter() {
@@ -225,6 +226,12 @@ function PrinterPreferencePanel({
             onClick={() => void perform(() => adapter.connect(profile!))}
           >
             {t('printers.connect')}
+          </Button>
+          <Button
+            disabled={!profile || busy || capability !== 'AVAILABLE'}
+            onClick={() => void perform(() => adapter.connect(profile!, true))}
+          >
+            {t('printers.chooseDevice')}
           </Button>
           <Button
             variant="contained"

@@ -22,12 +22,19 @@ export function toRouteResource(route: Selectable<RouteTable>) {
 
 export class RouteRepository {
   constructor(private readonly database: Transaction<Database>) {}
-  async list(principal: { id: string; role: 'ADMINISTRATOR' | 'DRIVER' }) {
+  async list(
+    principal: { id: string; role: 'ADMINISTRATOR' | 'DRIVER' },
+    filters: { active?: boolean | undefined; offset?: number } = {},
+  ) {
     let query = this.database
       .selectFrom('route')
       .selectAll()
       .orderBy('business_date desc')
-      .limit(100);
+      .orderBy('id desc')
+      .offset(filters.offset ?? 0)
+      .limit(101);
+    if (filters.active !== undefined)
+      query = query.where('state', filters.active ? '!=' : '=', 'CLOSED');
     if (principal.role === 'DRIVER') query = query.where('driver_id', '=', principal.id);
     return (await query.execute()).map(toRouteResource);
   }
