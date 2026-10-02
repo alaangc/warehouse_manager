@@ -1,4 +1,6 @@
+import { workflowEs } from '../workflow.js';
 import type { en } from './en.js';
+import { redesignEs } from '../redesign.js';
 import { reportsEs } from '../../features/reports/translations.js';
 import { printersEs } from '../../features/printers/translations.js';
 import { documentsEs } from '../../features/documents/translations.js';
@@ -6,6 +8,8 @@ import { documentsEs } from '../../features/documents/translations.js';
 type DeepTranslation<T> = { [K in keyof T]: T[K] extends string ? string : DeepTranslation<T[K]> };
 
 export const es: DeepTranslation<typeof en> = {
+  workflow: workflowEs,
+  ui: redesignEs,
   documents: documentsEs,
   printers: printersEs,
   reports: reportsEs,
@@ -115,6 +119,11 @@ export const es: DeepTranslation<typeof en> = {
     saleRequiresActiveRoute: 'Una ruta debe estar en recorrido para poder registrar una venta.',
   },
   catalog: {
+    deleteRecord: 'Eliminar',
+    deleteTitle: 'Eliminar {{name}}',
+    deleteHelp:
+      'Se retirará del catálogo activo. Sus ventas, movimientos e historial se conservarán y podrás restaurarlo desde los eliminados.',
+    showDeleted: 'Mostrar eliminados',
     title: 'Catálogo de productos',
     driverReadOnly: 'El acceso del conductor es de solo lectura.',
     locations: 'Ubicaciones',
@@ -283,9 +292,26 @@ export const es: DeepTranslation<typeof en> = {
     from: 'desde',
   },
   routes: {
+    activeRoutes: 'Repartos activos',
+    closedRoutes: 'Historial de repartos',
+    noActiveRoutes: 'No hay repartos activos.',
+    noClosedRoutes: 'No hay repartos cerrados.',
+    declareReturn: 'Registrar devolución física',
+    declareReturnHelp:
+      'Cuenta los productos que regresas y explica cualquier diferencia. El administrador revisará y aprobará la devolución.',
+    saveReturn: 'Guardar devolución',
+    reasonRequiredHelp: 'Explica por qué la cantidad devuelta es diferente de la esperada.',
+    noDifferenceHelp:
+      'La cantidad coincide con la esperada. Si regresaste otra cantidad, cámbiala para indicar el motivo.',
+    reviewDeclaredReturn:
+      'Cantidades y motivos declarados por el vendedor. Revisa el conteo antes de aprobar.',
+    returnReceipt: 'Ticket de devolución',
+    returnDeclared: 'Declarada por el vendedor; pendiente de conciliación.',
+    returnApproved: 'Devolución aprobada por el administrador.',
     title: 'Rutas',
     myRoutes: 'Mis rutas',
     routeNumber: 'Número de ruta',
+    routeNumberOptional: 'Opcional. Si lo dejas vacío, se asignará automáticamente.',
     originLocationId: 'ID de ubicación de origen',
     driverId: 'ID del conductor',
     vehicleId: 'ID del vehículo',
@@ -455,6 +481,9 @@ export const es: DeepTranslation<typeof en> = {
       'Indica un código de moneda de tres letras mayúsculas, una zona horaria y un motivo.',
   },
   errors: {
+    DRIVER_ASSIGNED:
+      'Este vendedor ya tiene una ruta activa. Cierra esa ruta o selecciona otro vendedor.',
+    ROUTE_ASSIGNMENT_INVALID: 'Selecciona una sucursal, un vendedor y un vehículo activos.',
     USER_ACTIVE_ROUTE: 'Cierra o reasigna la ruta activa antes de modificar a este chofer.',
     BUSINESS_TIMEZONE_INVALID: 'Usa una zona horaria IANA válida, por ejemplo America/Hermosillo.',
     BUSINESS_SETTING_INVALID: 'La configuración del negocio no es válida.',

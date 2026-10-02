@@ -30,7 +30,7 @@ it('preserves CSRF and idempotency on an explicit generation retry', async () =>
     return failure(500);
   });
   await mount('DocumentCenter', { source });
-  fireEvent.click(screen.getByRole('button', { name: /generate pdf/i }));
+  fireEvent.click(screen.getByRole('button', { name: /prepare ticket/i }));
   fireEvent.click(await screen.findByRole('button', { name: /^retry$/i }));
   await waitFor(() => expect(headers).toHaveLength(2));
   expect(headers[0]!.get('Idempotency-Key')).toHaveLength(36);
@@ -43,7 +43,7 @@ it('stops polling after a status denial and removes output actions', async () =>
     init.method === 'POST' ? json({ data: { ...document, state: 'PENDING' } }, 202) : failure(403),
   );
   await mount('DocumentCenter', { source });
-  fireEvent.click(screen.getByRole('button', { name: /generate pdf/i }));
+  fireEvent.click(screen.getByRole('button', { name: /prepare ticket/i }));
   expect(await screen.findByText(/do not have access/i)).toBeVisible();
   const count = s.calls.length;
   await new Promise((resolve) => setTimeout(resolve, 650));
@@ -124,7 +124,7 @@ it('localizes document controls and safely translates unknown server errors', as
     json({ status: 500, title: 'private server stack trace', code: 'UNKNOWN_SERVER_CODE' }, 500),
   );
   await mount('DocumentCenter', { source: { ...source, driverId: actor.id } });
-  fireEvent.click(screen.getByRole('button', { name: /generar pdf/i }));
+  fireEvent.click(screen.getByRole('button', { name: /preparar ticket/i }));
   expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo completar la solicitud');
   expect(screen.queryByText(/private server/i)).not.toBeInTheDocument();
 });

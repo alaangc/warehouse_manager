@@ -9,7 +9,7 @@ import {
 } from '../../support/document-harness.js';
 
 describe('T119 document OpenAPI contract', () => {
-  it('documents all four pairs, the sole TICKET sale type and portable content', async () => {
+  it('documents all five pairs, the sole TICKET sale type and portable content', async () => {
     const contract = await readFile(
       new URL('../../../../../packages/contracts/openapi.yaml', import.meta.url),
       'utf8',
@@ -24,8 +24,10 @@ describe('T119 document OpenAPI contract', () => {
       'getDocumentPrintData',
     ])
       expect(contract).toContain(`operationId: ${operation}`);
-    expect(contract).toContain('enum: [TICKET, ROUTE_LOAD, CASH_CLOSE, REPORT]');
-    for (const source of ['SALE', 'ROUTE_LOAD', 'CASH_CLOSE', 'REPORT_SNAPSHOT'])
+    expect(contract).toMatch(
+      /DocumentType:\s+type: string\s+enum:\s+- TICKET\s+- ROUTE_LOAD\s+- ROUTE_RETURN\s+- CASH_CLOSE\s+- REPORT/,
+    );
+    for (const source of ['SALE', 'ROUTE_LOAD', 'ROUTE_RETURN', 'CASH_CLOSE', 'REPORT_SNAPSHOT'])
       expect(contract).toContain(`const: ${source}`);
     expect(contract).toContain('application/pdf:');
     expect(contract).toContain('ROUTE_LOAD_NOT_CONFIRMED');
@@ -132,23 +134,25 @@ describe('T119 document HTTP contract (red until T127)', () => {
       expect(response.body.code).toBe('ROUTE_LOAD_NOT_CONFIRMED');
     }
   });
-  it.each(['PRINT', 'REPRINT'])(
-    'authorizes REPORT before rejecting %s capability',
-    async (mode) => {
-      const doc = await h.create(h.reportSource);
-      const body = {
-        documentId: doc.id,
-        mode,
-        printerProfileId: h.printerProfileId,
-        state: 'STARTED',
-      };
-      problem(await h.command(h.driver, '/output-attempts', body), 403);
-      problem(await h.command(h.admin, '/output-attempts', body), 422);
-      problem(await h.send(h.admin, 'get', `/documents/${doc.id}/print-data`), 422);
-    },
-  );
-  it('does not persist an accepted attempt for forbidden or non-printable sources', async () => {
-    const doc = await h.create(h.reportSource);
+  it.each(['PRINT', 'REPRINT'])('authorizes REPORT %s for administrators', async (mode) => {
+    const doc = await h.ready(h.reportSource);
+    const body = {
+      documentId: doc.id,
+      mode,
+      printerProfileId: h.printerProfileId,
+      state: 'STARTED',
+    };
+    problem(await h.command(h.driver, '/output-attempts', body), 403);
+    expect((await h.command(h.admin, '/output-attempts', body)).status).toBe(201);
+    expect((await h.send(h.admin, 'get', `/documents/${doc.id}/print-data`)).status).toBe(200);
+  });
+  it('does not persist an accepted attempt for forbidden or unready sources', async () => {
+    const doc = await h.ready(h.reportSource);
+    await h.database
+      .updateTable('document_output')
+      .set({ state: 'FAILED' })
+      .where('id', '=', doc.id)
+      .execute();
     const before = await h.database.selectFrom('output_attempt').selectAll().execute();
     const body = {
       documentId: doc.id,
@@ -157,7 +161,7 @@ describe('T119 document HTTP contract (red until T127)', () => {
       state: 'STARTED',
     };
     problem(await h.command(h.driver, '/output-attempts', body), 403);
-    problem(await h.command(h.admin, '/output-attempts', body), 422);
+    problem(await h.command(h.admin, '/output-attempts', body), 409);
     const after = await h.database.selectFrom('output_attempt').selectAll().execute();
     expect(after).toEqual(before);
   });

@@ -35,6 +35,8 @@ type Bluetooth = {
     optionalServices: Array<string | number>;
   }): Promise<Device>;
 };
+// Keep granted handles within this page session; no device identity is sent to the API.
+const rememberedDevices = new WeakMap<Bluetooth, Map<string, Device>>();
 function bluetooth() {
   return (navigator as Navigator & { bluetooth?: Bluetooth }).bluetooth;
 }
@@ -92,7 +94,7 @@ export class WebBluetoothPrinterAdapter implements PrinterAdapter {
     device?.gatt?.disconnect();
     this.publish('DISCONNECTED');
   }
-  async connect(raw: PrinterProfile) {
+  async connect(raw: PrinterProfile, chooseDevice = false) {
     if (this.testing || this.snapshot.state === 'CONNECTING') throw new PrinterError('BUSY');
     const capability = this.capability();
     if (capability !== 'AVAILABLE') throw new PrinterError(capability);
@@ -102,6 +104,14 @@ export class WebBluetoothPrinterAdapter implements PrinterAdapter {
     const profile = parsed.data;
     const serviceUuid = uuid(profile.serviceUuid),
       characteristicUuid = uuid(profile.writeCharacteristicUuid);
+    const radio = bluetooth()!;
+    let devices = rememberedDevices.get(radio);
+    if (!devices) {
+      devices = new Map();
+      rememberedDevices.set(radio, devices);
+    }
+    const profileKey = `${profile.id}:${profile.version}`;
+    if (chooseDevice) devices.delete(profileKey);
     this.disconnect();
     const generation = this.generation;
     this.publish('CONNECTING');
@@ -110,10 +120,12 @@ export class WebBluetoothPrinterAdapter implements PrinterAdapter {
       // Some printers expose the service only after connecting, not in advertising.
       // Let the operator select the device, granting access only to the profile's
       // service. The service and characteristic are still required below.
-      const device = await bluetooth()!.requestDevice({
-        acceptAllDevices: true,
-        optionalServices: [serviceUuid],
-      });
+      const device =
+        devices.get(profileKey) ??
+        (await radio.requestDevice({
+          acceptAllDevices: true,
+          optionalServices: [serviceUuid],
+        }));
       if (generation !== this.generation) {
         device.gatt?.disconnect();
         throw new PrinterError('CANCELLED');
@@ -135,8 +147,10 @@ export class WebBluetoothPrinterAdapter implements PrinterAdapter {
       if (!write) throw new PrinterError('PROFILE_INVALID');
       this.profile = profile;
       this.characteristic = characteristic;
+      devices.set(profileKey, device);
       this.publish('CONNECTED');
     } catch (error) {
+      devices.delete(profileKey);
       if (generation === this.generation) this.disconnect();
       if (error instanceof PrinterError) throw error;
       const name = error instanceof Error || error instanceof DOMException ? error.name : '';

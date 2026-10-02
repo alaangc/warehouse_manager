@@ -8,6 +8,16 @@ import i18n from '../../src/i18n/index.js';
 afterEach(() => changeAppLanguage('en'));
 
 describe('exact localized presentation', () => {
+  it.each(['en', 'es'] as const)('explains route assignment errors in %s', async (language) => {
+    await changeAppLanguage(language);
+    for (const code of ['DRIVER_ASSIGNED', 'VEHICLE_ASSIGNED', 'ROUTE_ASSIGNMENT_INVALID']) {
+      const error = new ApiProblem({ type: 'about:blank', title: 'Conflict', status: 409, code });
+      const message = localizedErrorMessage(error, i18n.t.bind(i18n));
+      expect(i18n.exists(`errors.${code}`)).toBe(true);
+      expect(message).toBe(i18n.t(`errors.${code}`));
+      expect(message).not.toBe(i18n.t('errors.generic'));
+    }
+  });
   it.each(['en', 'es'] as const)('retains all API digits and scale in %s', async (language) => {
     await changeAppLanguage(language);
     expect(formatDecimal('9007199254740993.2100')).toBe('9,007,199,254,740,993.2100');

@@ -28,6 +28,22 @@ export interface RouteLoad {
 }
 
 export interface RouteDetail {
+  returnDeclaration?: {
+    id: string;
+    recordedBy: string;
+    createdAt: string;
+    kind: 'DECLARED' | 'APPROVED';
+    routeNumber: string;
+    lines: Array<{
+      productId: string;
+      productName: string;
+      unitCode: string;
+      quantity: string;
+      expectedQuantity: string;
+      differenceQuantity: string;
+      differenceReason: string | null;
+    }>;
+  } | null;
   route: RouteResource;
   load: RouteLoad | null;
   balances: Array<{

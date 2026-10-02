@@ -72,7 +72,7 @@ describe('reporting UI', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Run report' }));
     await screen.findByText('No activity matches this period.');
     fireEvent.change(screen.getByLabelText('Anchor date'), { target: { value: '2026-09-05' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Save report snapshot' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Prepare report for printing or download' }));
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Report snapshot saved: 00000000-0000-4000-8000-000000000130',
     );

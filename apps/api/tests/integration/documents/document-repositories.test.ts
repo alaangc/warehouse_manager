@@ -185,21 +185,21 @@ describe('T124 document repositories, independent of document HTTP routes', () =
     ).not.toContain(row.id);
   });
 
-  it('rejects REPORT printing after source authorization and requires a printer for tickets', async () => {
+  it('accepts Administrator REPORT printing after source authorization and requires a printer for tickets', async () => {
     const report = await h.insertDocument(h.reportSource);
     const ticket = await h.insertDocument(h.ticket);
-    const before = await h.outputState();
+    const business = await h.businessState();
     for (const mode of ['PRINT', 'REPRINT'] as const) {
       const input = {
         documentId: report,
         mode,
         state: 'UNKNOWN' as const,
         printerProfileId: h.printerProfileId,
-        attemptNumber: 992,
+        attemptNumber: mode === 'PRINT' ? 992 : 993,
         requestId: randomUUID(),
       };
       await expect(attempts.append(driver(), input)).rejects.toMatchObject({ status: 403 });
-      await expect(attempts.append(admin(), input)).rejects.toMatchObject({ status: 422 });
+      await expect(attempts.append(admin(), input)).resolves.toMatchObject({ document_type: 'REPORT' });
       await expect(
         attempts.append(driver(), {
           ...input,
@@ -208,7 +208,7 @@ describe('T124 document repositories, independent of document HTTP routes', () =
         }),
       ).rejects.toMatchObject({ status: 422 });
     }
-    expect(await h.outputState()).toEqual(before);
+    expect(await h.businessState()).toEqual(business);
   });
 
   it.each(['documents', 'attempts'] as const)(

@@ -1,11 +1,11 @@
-import { Alert, Button, CircularProgress, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, CircularProgress, Stack, Typography } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   DocumentCreateSchema,
   type DocumentCreateRequest,
   type SessionUser,
 } from '@warehouse/contracts';
-import { FilePlus2, RefreshCw } from 'lucide-react';
+import { FilePlus2, RefreshCw, Printer } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatDateTime } from '../../i18n/format.js';
@@ -30,9 +30,11 @@ function allowed(source: DocumentSource, user: SessionUser): boolean {
     return false;
   if (source.documentType === 'CASH_CLOSE' && source.sourceState !== 'CLOSED') return false;
   if (source.documentType === 'REPORT' && source.sourceState !== 'READY') return false;
+  if (source.documentType === 'ROUTE_RETURN' && source.sourceState !== 'READY') return false;
   return (
     user.role === 'ADMINISTRATOR' ||
-    (['TICKET', 'ROUTE_LOAD'].includes(source.documentType) && source.driverId === user.id)
+    (['TICKET', 'ROUTE_LOAD', 'ROUTE_RETURN'].includes(source.documentType) &&
+      source.driverId === user.id)
   );
 }
 export function DocumentCenter({
@@ -109,27 +111,35 @@ function Output({
       {id && status.isLoading && <CircularProgress size={24} aria-label={t('documents.loading')} />}
       {document && (
         <>
-          <Typography>
-            {t(`documents.${document.documentType}`)} / {document.id}
-          </Typography>
-          <Typography>
-            {t('documents.state')}: {t(`documents.${document.state}`)}
-          </Typography>
-          <Typography variant="body2">
-            {t('documents.contentVersion')}: {document.contentVersion}
-          </Typography>
-          <Typography variant="body2">
-            {t('documents.sourceType')}: {t(`documents.${document.sourceType}`)}
-          </Typography>
-          <Typography variant="body2">
-            {t('documents.sourceId')}: {document.sourceId}
-          </Typography>
-          <Typography variant="body2">
-            {t('documents.createdBy')}: {document.createdBy}
-          </Typography>
-          <Typography variant="body2">
-            {t('documents.createdAt')}: {formatDateTime(document.createdAt)}
-          </Typography>
+          <Box
+            component="details"
+            sx={{
+              '& summary': { cursor: 'pointer', color: 'text.secondary', py: 1, minHeight: 44 },
+            }}
+          >
+            <Box component="summary">{t('ui.technicalDetails')}</Box>
+            <Typography>
+              {t(`documents.${document.documentType}`)} / {document.id}
+            </Typography>
+            <Typography>
+              {t('documents.state')}: {t(`documents.${document.state}`)}
+            </Typography>
+            <Typography variant="body2">
+              {t('documents.contentVersion')}: {document.contentVersion}
+            </Typography>
+            <Typography variant="body2">
+              {t('documents.sourceType')}: {t(`documents.${document.sourceType}`)}
+            </Typography>
+            <Typography variant="body2">
+              {t('documents.sourceId')}: {document.sourceId}
+            </Typography>
+            <Typography variant="body2">
+              {t('documents.createdBy')}: {document.createdBy}
+            </Typography>
+            <Typography variant="body2">
+              {t('documents.createdAt')}: {formatDateTime(document.createdAt)}
+            </Typography>
+          </Box>
           {document.state === 'PENDING' && <Alert severity="info">{t('documents.pending')}</Alert>}
           {document.state === 'FAILED' && <Alert severity="error">{t('documents.failed')}</Alert>}
         </>
@@ -159,7 +169,9 @@ function Output({
             {t(
               document?.state === 'FAILED' || generate.isError
                 ? 'documents.retry'
-                : 'documents.generate',
+                : source?.documentType === 'TICKET'
+                  ? 'ui.prepareTicket'
+                  : 'documents.generate',
             )}
           </Button>
         )}
@@ -186,7 +198,13 @@ function Output({
           />
           {user && canOfferPrint(document, user, source) && (
             <>
-              <Button disabled={busy || status.isFetching} onClick={() => setPrinting(true)}>
+              <Button
+                variant="contained"
+                size="large"
+                startIcon={<Printer size={22} />}
+                disabled={busy || status.isFetching}
+                onClick={() => setPrinting(true)}
+              >
                 {t('printers.print')}
               </Button>
               <PrintDialog

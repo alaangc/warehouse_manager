@@ -482,10 +482,11 @@ remains selected.
   access or expose unauthorized metadata.
 - **FR-032**: Users MUST be able to save or share each generated portable document.
 - **FR-033**: Authorized users MUST be able to print sale tickets, confirmed route
-  loads, and cash closes on a configured Bluetooth thermal printer. Administrators MUST
-  be able to print all three types. Drivers MUST be limited to sale tickets for their
+  loads, cash closes, and saved reports on a configured Bluetooth thermal printer. Administrators MUST
+  be able to print all four types. Drivers MUST be limited to sale tickets for their
   own sales and confirmed route loads for routes assigned to them. Draft route loads
-  and reports MUST NOT be eligible for Bluetooth thermal printing.
+  MUST NOT be eligible for Bluetooth thermal printing. Report printing requires a ready
+  document generated from an immutable report snapshot (owner revision, 2026-09-30).
 - **FR-034**: Output failure MUST be shown to the user and MUST NOT reverse, duplicate,
   or alter a committed business record.
 - **FR-035**: Users MUST be able to retry failed document generation or printing without

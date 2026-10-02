@@ -12,7 +12,7 @@ import {
 } from '@warehouse/contracts';
 import { Router, type Request, type RequestHandler } from 'express';
 import type { Selectable } from 'kysely';
-import type { ZodType } from 'zod';
+import { z, type ZodType } from 'zod';
 import { requireAuthenticated, requireRole } from '../../auth/authorization.js';
 import type { AppDatabase } from '../../db/database.js';
 import type { ProductTable } from '../../db/types.js';
@@ -22,6 +22,11 @@ import { CatalogService } from './catalog-service.js';
 function pathId(value: string | string[] | undefined): string {
   if (typeof value !== 'string') throw new HttpProblem(422, 'ID_INVALID', 'Validation Failed');
   return value;
+}
+
+function activeFilter(request: Request): boolean | undefined {
+  const value = z.enum(['true', 'false']).optional().parse(request.query.active);
+  return value === undefined ? undefined : value === 'true';
 }
 
 function requestIdentifier(request: Request): string {
@@ -117,12 +122,14 @@ export function createCatalogRouter(database: AppDatabase): Router {
   const catalogService = new CatalogService(database);
   router.use(requireAuthenticated);
 
-  router.get('/locations', async (_request, response, next) => {
+  router.get('/locations', async (request, response, next) => {
     try {
+      const active = activeFilter(request);
       response.json({
         data: await database
           .selectFrom('location')
           .select(['id', 'code', 'name', 'active', 'version'])
+          .$if(active !== undefined, (query) => query.where('active', '=', active!))
           .orderBy('name')
           .execute(),
       });
@@ -157,9 +164,15 @@ export function createCatalogRouter(database: AppDatabase): Router {
     ),
   );
 
-  router.get('/categories', async (_request, response, next) => {
+  router.get('/categories', async (request, response, next) => {
     try {
-      const rows = await database.selectFrom('category').selectAll().orderBy('name').execute();
+      const active = activeFilter(request);
+      const rows = await database
+        .selectFrom('category')
+        .selectAll()
+        .$if(active !== undefined, (query) => query.where('active', '=', active!))
+        .orderBy('name')
+        .execute();
       response.json({
         data: rows.map((row) => ({
           id: row.id,
@@ -200,9 +213,15 @@ export function createCatalogRouter(database: AppDatabase): Router {
     ),
   );
 
-  router.get('/units', async (_request, response, next) => {
+  router.get('/units', async (request, response, next) => {
     try {
-      const rows = await database.selectFrom('unit').selectAll().orderBy('name').execute();
+      const active = activeFilter(request);
+      const rows = await database
+        .selectFrom('unit')
+        .selectAll()
+        .$if(active !== undefined, (query) => query.where('active', '=', active!))
+        .orderBy('name')
+        .execute();
       response.json({
         data: rows.map((row) => ({
           id: row.id,
@@ -244,12 +263,18 @@ export function createCatalogRouter(database: AppDatabase): Router {
     ),
   );
 
-  router.get('/vehicles', async (_request, response, next) => {
+  router.get('/vehicles', async (request, response, next) => {
     try {
+      const active = activeFilter(request);
       response.json({
-        data: (await database.selectFrom('vehicle').selectAll().orderBy('name').execute()).map(
-          mapCatalog,
-        ),
+        data: (
+          await database
+            .selectFrom('vehicle')
+            .selectAll()
+            .$if(active !== undefined, (query) => query.where('active', '=', active!))
+            .orderBy('name')
+            .execute()
+        ).map(mapCatalog),
       });
     } catch (error) {
       next(error);
@@ -284,7 +309,19 @@ export function createCatalogRouter(database: AppDatabase): Router {
 
   router.get('/products', async (request, response, next) => {
     try {
-      let query = database.selectFrom('product').selectAll().orderBy('name').limit(100);
+      const cursor = request.query.cursor;
+      if (cursor !== undefined && (typeof cursor !== 'string' || !/^\d{1,9}$/.test(cursor)))
+        throw new HttpProblem(422, 'INVALID_CURSOR', 'Invalid product cursor');
+      const offset = Number(cursor ?? 0);
+      const active = activeFilter(request);
+      let query = database
+        .selectFrom('product')
+        .selectAll()
+        .$if(active !== undefined, (query) => query.where('active', '=', active!))
+        .orderBy('name')
+        .orderBy('id')
+        .offset(offset)
+        .limit(101);
       const search = request.query.search;
       if (typeof search === 'string')
         query = query.where((eb) =>
@@ -292,8 +329,11 @@ export function createCatalogRouter(database: AppDatabase): Router {
         );
       const rows = await query.execute();
       response.json({
-        data: rows.map((row) => mapProduct(row)),
-        page: { hasNextPage: false, nextCursor: null },
+        data: rows.slice(0, 100).map((row) => mapProduct(row)),
+        page: {
+          hasNextPage: rows.length > 100,
+          nextCursor: rows.length > 100 ? String(offset + 100) : null,
+        },
       });
     } catch (error) {
       next(error);

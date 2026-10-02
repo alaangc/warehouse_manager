@@ -1,3 +1,4 @@
+import { CatalogPicker } from '../catalog/catalog-picker.js';
 import {
   Alert,
   CircularProgress,
@@ -69,16 +70,20 @@ export function MovementHistory({ routeId }: { routeId?: string }) {
       <Typography variant="h4">{t('inventory.movementHistory')}</Typography>
       <Alert severity="info">{t('inventory.immutableHistory')}</Alert>
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={1}>
-        <TextField
-          label={t('common.productId')}
+        <CatalogPicker
+          kind="products"
+          includeArchived
+          label={t('common.product')}
           value={productId}
-          onChange={(event) => setProductId(event.target.value)}
+          onChange={setProductId}
         />
         {!routeId && (
-          <TextField
-            label={t('inventory.branchId')}
+          <CatalogPicker
+            kind="locations"
+            includeArchived
+            label={t('workflow.branch')}
             value={branchId}
-            onChange={(event) => setBranchId(event.target.value)}
+            onChange={setBranchId}
           />
         )}
         <TextField

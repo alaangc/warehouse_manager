@@ -1,6 +1,7 @@
 import type { AppDatabase } from '../../db/database.js';
 import { HttpProblem } from '../../http/problem-handler.js';
 import { RouteRepository } from './route-repository.js';
+import { getReturnDeclaration } from './route-return.js';
 
 type Principal = { id: string; role: 'ADMINISTRATOR' | 'DRIVER' };
 
@@ -127,6 +128,7 @@ export async function getRouteProjection(database: AppDatabase, id: string, prin
     : [];
   return {
     route,
+    returnDeclaration: await getReturnDeclaration(database, id),
     load: load
       ? {
           id: load.id,

@@ -104,13 +104,6 @@ export class OutputAttemptRepository {
     if (['PRINT', 'REPRINT', 'TEST_PRINT'].includes(data.mode) && !data.printerProfileId) {
       throw new HttpProblem(422, 'PRINTER_REQUIRED', 'A printer profile is required');
     }
-    if (['PRINT', 'REPRINT'].includes(data.mode) && document?.document_type === 'REPORT') {
-      throw new HttpProblem(
-        422,
-        'DOCUMENT_NOT_PRINTABLE',
-        'Reports do not support thermal printing',
-      );
-    }
     if (document && ['PRINT', 'REPRINT'].includes(data.mode) && data.state === 'STARTED') {
       if (document.state !== 'READY')
         throw new HttpProblem(409, 'DOCUMENT_NOT_READY', 'Document is not ready');

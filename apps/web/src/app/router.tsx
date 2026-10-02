@@ -48,6 +48,7 @@ export const router = createBrowserRouter([
       { path: 'inventory/operations/new', element: <InventoryOperationForm /> },
       { path: 'inventory/movements', element: <MovementHistory /> },
       { path: 'catalog', element: <CatalogPages /> },
+      { path: 'vehicles', element: <CatalogPages only="vehicles" /> },
       { path: 'routes', element: <RoutesPage /> },
       { path: 'customers', element: <CustomerPages /> },
       { path: 'cash-closes', element: <CashClosePages /> },

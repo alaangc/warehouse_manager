@@ -1,4 +1,6 @@
+import { RouteReturnSnapshotSchema } from './route-schemas.js';
 import { z } from 'zod';
+import { ReportResourceSchema } from './report-schemas.js';
 import { DocumentPrintMetadataSchema } from './document-schemas.js';
 
 const decimal = z.string().regex(/^\d+(?:\.\d+)?$/);
@@ -30,7 +32,18 @@ const cash = z.object({
   supersedesCashCloseId: z.uuid().nullable().optional(),
   lines: z.array(z.object({ reportingGroup: text, total: decimal })).optional(),
 });
+const report = z.object({
+  reportType: z.string(),
+  businessTimezone: z.string(),
+  filters: z.record(z.string(), z.unknown()),
+  result: ReportResourceSchema,
+});
 export const ThermalDocumentSchema = z.discriminatedUnion('documentType', [
+  DocumentPrintMetadataSchema.extend({
+    documentType: z.literal('ROUTE_RETURN'),
+    snapshot: RouteReturnSnapshotSchema,
+  }),
+  DocumentPrintMetadataSchema.extend({ documentType: z.literal('REPORT'), snapshot: report }),
   DocumentPrintMetadataSchema.extend({ documentType: z.literal('TICKET'), snapshot: ticket }),
   DocumentPrintMetadataSchema.extend({ documentType: z.literal('ROUTE_LOAD'), snapshot: load }),
   DocumentPrintMetadataSchema.extend({ documentType: z.literal('CASH_CLOSE'), snapshot: cash }),

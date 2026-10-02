@@ -1,7 +1,11 @@
+import { workflowEn } from '../workflow.js';
 import { reportsEn } from '../../features/reports/translations.js';
+import { redesignEn } from '../redesign.js';
 import { printersEn } from '../../features/printers/translations.js';
 import { documentsEn } from '../../features/documents/translations.js';
 export const en = {
+  workflow: workflowEn,
+  ui: redesignEn,
   documents: documentsEn,
   printers: printersEn,
   reports: reportsEn,
@@ -109,6 +113,11 @@ export const en = {
     saleRequiresActiveRoute: 'A route must be en route before a sale can be recorded.',
   },
   catalog: {
+    deleteRecord: 'Delete',
+    deleteTitle: 'Delete {{name}}',
+    deleteHelp:
+      'This record will leave the active catalog. Its sales, movements, and history will be preserved, and you can restore it from deleted records.',
+    showDeleted: 'Show deleted records',
     title: 'Product catalog',
     driverReadOnly: 'Driver access is read only.',
     locations: 'Locations',
@@ -272,9 +281,26 @@ export const en = {
     from: 'from',
   },
   routes: {
+    activeRoutes: 'Active routes',
+    closedRoutes: 'Route history',
+    noActiveRoutes: 'No active routes.',
+    noClosedRoutes: 'No closed routes.',
+    declareReturn: 'Record physical return',
+    declareReturnHelp:
+      'Count the products you are returning and explain any difference. The administrator will review and approve the return.',
+    saveReturn: 'Save return',
+    reasonRequiredHelp: 'Explain why the returned quantity differs from the expected quantity.',
+    noDifferenceHelp:
+      'The quantity matches the expected return. Change the quantity to enter a difference reason.',
+    reviewDeclaredReturn:
+      'Quantities and reasons declared by the seller. Review the count before approving.',
+    returnReceipt: 'Return receipt',
+    returnDeclared: 'Declared by the seller; pending reconciliation.',
+    returnApproved: 'Return approved by the administrator.',
     title: 'Routes',
     myRoutes: 'My routes',
     routeNumber: 'Route number',
+    routeNumberOptional: 'Optional. Leave blank to generate it automatically.',
     originLocationId: 'Origin location ID',
     driverId: 'Driver ID',
     vehicleId: 'Vehicle ID',
@@ -442,6 +468,9 @@ export const en = {
       'Enter a three-letter uppercase currency code, a business timezone, and a reason.',
   },
   errors: {
+    DRIVER_ASSIGNED:
+      'This seller already has an active route. Close that route or select another seller.',
+    ROUTE_ASSIGNMENT_INVALID: 'Select an active branch, seller, and vehicle.',
     USER_ACTIVE_ROUTE: 'Close or reassign the active route before changing this Driver.',
     BUSINESS_TIMEZONE_INVALID:
       'Use a valid IANA business timezone, for example America/Hermosillo.',

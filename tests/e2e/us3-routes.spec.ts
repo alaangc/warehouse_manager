@@ -261,12 +261,14 @@ test('route lifecycle remains retry-safe, reconciled, scoped, and immutable', as
   const driverCsrf = await login(driverPage, assignedDriver.username);
   await driverPage.goto(`/routes?routeId=${createdRoute.id}`);
   await expect(driverPage.getByRole('heading', { name: routeNumber })).toBeVisible();
-  const productFields = driverPage.getByLabel('Product ID');
+  const productFields = driverPage.getByRole('combobox', { name: 'Product', exact: true });
   const quantityFields = driverPage.getByLabel('Load quantity');
-  await productFields.first().fill(shortageProduct.id);
+  await productFields.first().click();
+  await driverPage.getByRole('option', { name: new RegExp(`Shortage product ${suffix}`) }).click();
   await quantityFields.first().fill('5');
   await driverPage.getByRole('button', { name: 'Add product' }).click();
-  await productFields.nth(1).fill(overageProduct.id);
+  await productFields.nth(1).click();
+  await driverPage.getByRole('option', { name: new RegExp(`Overage product ${suffix}`) }).click();
   await quantityFields.nth(1).fill('5');
   const draftResponse = driverPage.waitForResponse(
     (response) =>
@@ -348,6 +350,20 @@ test('route lifecycle remains retry-safe, reconciled, scoped, and immutable', as
     201,
     newIdempotencyKey('sale'),
   );
+  await driverPage.reload();
+  const driverShortage = driverPage.getByRole('group', {
+    name: `Shortage product ${suffix}`,
+    exact: true,
+  });
+  const driverOverage = driverPage.getByRole('group', {
+    name: `Overage product ${suffix}`,
+    exact: true,
+  });
+  await driverShortage.getByLabel(/Physical return/).fill('3');
+  await expect(driverShortage.getByLabel('Difference reason')).toBeEnabled();
+  await driverShortage.getByLabel('Difference reason').fill(`Shortage ${suffix}`);
+  await driverOverage.getByLabel(/Physical return/).fill('6');
+  await driverOverage.getByLabel('Difference reason').fill(`Overage ${suffix}`);
   const returnResponse = driverPage.waitForResponse(
     (response) =>
       new URL(response.url()).pathname === `/api/v1/routes/${createdRoute.id}/return` &&
@@ -355,32 +371,52 @@ test('route lifecycle remains retry-safe, reconciled, scoped, and immutable', as
   );
   await driverPage.getByRole('button', { name: 'Mark returned' }).click();
   expect((await returnResponse).status()).toBe(200);
+  await expect(
+    driverPage.getByText('Declared by the seller; pending reconciliation.'),
+  ).toBeVisible();
+  await driverPage
+    .getByRole('region', { name: 'Return receipt' })
+    .getByRole('button', { name: 'Generate PDF', exact: true })
+    .click();
+  const downloadReturn = driverPage.waitForEvent('download');
+  await driverPage.getByRole('button', { name: 'Download PDF', exact: true }).click();
+  expect(await (await downloadReturn).failure()).toBeNull();
+  await expect(driverPage.getByRole('button', { name: 'Print', exact: true })).toBeVisible();
 
   await administratorPage.goto(`/routes?routeId=${createdRoute.id}`);
   await expect(administratorPage.getByRole('heading', { name: routeNumber })).toBeVisible();
   const physicalReturns = administratorPage.getByLabel(/Physical return/);
   const differenceReasons = administratorPage.getByLabel('Difference reason');
-  const reconciliationProducts = administratorPage.getByLabel('Product');
   await expect(physicalReturns).toHaveCount(2);
   await administratorPage.setViewportSize({ width: 390, height: 844 });
   const reconciliationForm = administratorPage.getByRole('form', { name: 'Route reconciliation' });
+  const adminShortage = reconciliationForm.getByRole('group', {
+    name: `Shortage product ${suffix}`,
+    exact: true,
+  });
+  const adminOverage = reconciliationForm.getByRole('group', {
+    name: `Overage product ${suffix}`,
+    exact: true,
+  });
+  await expect(adminShortage.getByLabel(/Physical return/)).toHaveValue('3.000');
+  await expect(adminShortage.getByLabel('Difference reason')).toHaveValue(`Shortage ${suffix}`);
+  await expect(adminOverage.getByLabel(/Physical return/)).toHaveValue('6.000');
   await expect(reconciliationForm.getByRole('group')).toHaveCount(2);
   expect(
     await reconciliationForm.evaluate((element) => element.scrollWidth <= element.clientWidth),
   ).toBe(true);
   await physicalReturns.first().fill('0');
+  await differenceReasons.first().fill('');
   await administratorPage.getByRole('button', { name: 'Approve reconciliation' }).click();
   await expect(differenceReasons.first()).toBeFocused();
   await physicalReturns.first().focus();
   await administratorPage.keyboard.press('Tab');
   await expect(differenceReasons.first()).toBeFocused();
   await administratorPage.setViewportSize({ width: 1280, height: 800 });
-  for (let index = 0; index < 2; index += 1) {
-    const isShortage =
-      (await reconciliationProducts.nth(index).inputValue()) === shortageProduct.id;
-    await physicalReturns.nth(index).fill(isShortage ? '3' : '6');
-    await differenceReasons.nth(index).fill(`${isShortage ? 'Shortage' : 'Overage'} ${suffix}`);
-  }
+  await adminShortage.getByLabel(/Physical return/).fill('3');
+  await adminShortage.getByLabel('Difference reason').fill(`Shortage ${suffix}`);
+  await adminOverage.getByLabel(/Physical return/).fill('6');
+  await adminOverage.getByLabel('Difference reason').fill(`Overage ${suffix}`);
   const reconciliationResponse = administratorPage.waitForResponse(
     (response) =>
       new URL(response.url()).pathname === `/api/v1/routes/${createdRoute.id}/reconciliation` &&
@@ -390,6 +426,14 @@ test('route lifecycle remains retry-safe, reconciled, scoped, and immutable', as
   await administratorPage.keyboard.press('Enter');
   expect((await reconciliationResponse).status()).toBe(200);
   await expect(administratorPage.getByRole('button', { name: 'Close route' })).toBeVisible();
+  await expect(administratorPage.getByText('Return approved by the administrator.')).toBeVisible();
+  await administratorPage
+    .getByRole('region', { name: 'Return receipt' })
+    .getByRole('button', { name: 'Generate PDF', exact: true })
+    .click();
+  const approvedDownload = administratorPage.waitForEvent('download');
+  await administratorPage.getByRole('button', { name: 'Download PDF', exact: true }).click();
+  expect(await (await approvedDownload).failure()).toBeNull();
   const closeResponse = administratorPage.waitForResponse(
     (response) =>
       new URL(response.url()).pathname === `/api/v1/routes/${createdRoute.id}/close` &&
@@ -397,6 +441,13 @@ test('route lifecycle remains retry-safe, reconciled, scoped, and immutable', as
   );
   await administratorPage.getByRole('button', { name: 'Close route' }).click();
   expect((await closeResponse).status()).toBe(200);
+  await expect(
+    administratorPage.getByRole('tab', { name: 'Active routes', exact: true }),
+  ).toHaveAttribute('aria-selected', 'true');
+  await expect(administratorPage.getByRole('heading', { name: routeNumber })).toHaveCount(0);
+  await administratorPage.getByRole('tab', { name: 'Route history', exact: true }).click();
+  await administratorPage.getByLabel('Open route').click();
+  await administratorPage.getByRole('option', { name: new RegExp(routeNumber) }).click();
   await expect(administratorPage.getByText('Read only').first()).toBeVisible();
   const administratorTimeline = administratorPage.getByRole('list', { name: 'Route timeline' });
   await expect(administratorTimeline.getByText(`Sale ${completedSale.saleNumber}`)).toBeVisible();

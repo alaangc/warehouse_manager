@@ -222,8 +222,9 @@ export function ReportPages() {
             disabled={snapshot.isPending || snapshot.isSuccess}
             onClick={() => snapshot.mutate(result)}
           >
-            {t('reports.saveSnapshot')}
+            {t('workflow.printSnapshot')}
           </Button>
+          <Typography color="text.secondary">{t('workflow.printSnapshotHelp')}</Typography>
           {snapshot.isError && <Alert severity="error">{reportingError(snapshot.error, t)}</Alert>}
           {snapshot.isSuccess && (
             <Alert severity="success">

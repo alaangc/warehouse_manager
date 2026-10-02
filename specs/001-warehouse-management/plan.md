@@ -77,7 +77,7 @@ load; Administrators may access all document types, while Drivers may generate,
 download, share, print, or reprint only Sale Tickets for their own sales and confirmed
 route loads for assigned routes; Driver cash-close/report and unrelated-document access
 is denied; the same source predicates govern document lists and OutputAttempt history;
-reports may be generated, downloaded, and shared but never thermally printed;
+Administrators may generate, download, share, and thermally print saved reports;
 reporting periods use configured-timezone local midnight, Monday-based weeks, calendar
 months, and `[start,end)` boundaries; only one CashClose is current per exact period,
 with idempotent reuse, conflicting independent duplicates, and immutable linked

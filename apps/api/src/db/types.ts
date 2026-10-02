@@ -1,4 +1,15 @@
 import type { ColumnType, Generated } from 'kysely';
+import type { RouteReturnSnapshotSchema } from '@warehouse/contracts';
+
+export type RouteReturnSnapshot = ReturnType<typeof RouteReturnSnapshotSchema.parse>;
+export interface RouteReturnTable {
+  id: Generated<string>;
+  route_id: string;
+  kind: 'DECLARED' | 'APPROVED';
+  recorded_by: string;
+  created_at: Timestamp;
+  snapshot: RouteReturnSnapshot;
+}
 
 export type Timestamp = ColumnType<Date, Date | string | undefined, Date | string>;
 export type JsonValue =
@@ -378,8 +389,9 @@ export interface UserPrinterPreferenceTable {
   created_at: Timestamp;
   updated_at: Timestamp;
 }
-export type DocumentType = 'TICKET' | 'ROUTE_LOAD' | 'CASH_CLOSE' | 'REPORT';
-export type DocumentSourceType = 'SALE' | 'ROUTE_LOAD' | 'CASH_CLOSE' | 'REPORT_SNAPSHOT';
+export type DocumentType = 'TICKET' | 'ROUTE_LOAD' | 'ROUTE_RETURN' | 'CASH_CLOSE' | 'REPORT';
+export type DocumentSourceType =
+  'SALE' | 'ROUTE_LOAD' | 'ROUTE_RETURN' | 'CASH_CLOSE' | 'REPORT_SNAPSHOT';
 export interface DocumentOutputTable {
   id: Generated<string>;
   document_type: DocumentType;
@@ -408,6 +420,7 @@ export interface OutputAttemptTable {
   created_at: Timestamp;
 }
 export interface Database {
+  route_return: RouteReturnTable;
   document_output: DocumentOutputTable;
   printer_profile: PrinterProfileTable;
   user_printer_preference: UserPrinterPreferenceTable;

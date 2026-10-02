@@ -3,8 +3,10 @@ import {
   RouteLoadDraftSchema,
   RouteReconciliationSchema,
   RouteTransitionSchema,
+  RouteReturnSchema,
 } from '@warehouse/contracts';
 import { Router, type Request } from 'express';
+import { z } from 'zod';
 import { requireAuthenticated, requireRole } from '../../auth/authorization.js';
 import type { AppDatabase } from '../../db/database.js';
 import { HttpProblem } from '../../http/problem-handler.js';
@@ -13,6 +15,7 @@ import { getRouteProjection } from './route-projection.js';
 import { RouteReconciliationService } from './route-reconciliation-service.js';
 import { RouteRepository, toRouteResource } from './route-repository.js';
 import { RouteTransitionService } from './route-transition-service.js';
+import { getReturnDeclaration } from './route-return.js';
 
 function pathId(value: string | string[] | undefined): string {
   if (typeof value !== 'string') throw new HttpProblem(422, 'ID_INVALID', 'Validation Failed');
@@ -42,6 +45,17 @@ function stockReference(
 function mapRouteError(error: unknown): never {
   if (error && typeof error === 'object' && 'code' in error) {
     const code = String(error.code);
+    if (code === '23505') {
+      const constraint = 'constraint' in error ? String(error.constraint) : '';
+      const conflicts: Record<string, string> = {
+        route_active_driver_uq: 'DRIVER_ASSIGNED',
+        route_active_vehicle_uq: 'VEHICLE_ASSIGNED',
+        route_route_number_key: 'RESOURCE_DUPLICATE',
+      };
+      const conflict = conflicts[constraint];
+      if (conflict) throw new HttpProblem(409, conflict, 'Conflict');
+      throw new HttpProblem(500, 'INTERNAL_ERROR', 'Internal Server Error');
+    }
     if (code === 'RESOURCE_NOT_FOUND') throw new HttpProblem(404, code, 'Not Found');
     if (code === 'ROUTE_FORBIDDEN') throw new HttpProblem(403, code, 'Forbidden');
     if (
@@ -78,10 +92,29 @@ export function createRouteRouter(database: AppDatabase): Router {
   router.use(requireAuthenticated);
   router.get('/routes', async (request, response, next) => {
     try {
-      const data = await database
-        .transaction()
-        .execute((transaction) => new RouteRepository(transaction).list(request.principal!));
-      response.json({ data, page: { hasNextPage: false, nextCursor: null } });
+      const filters = z
+        .object({
+          active: z.enum(['true', 'false']).optional(),
+          cursor: z
+            .string()
+            .regex(/^\d{1,9}$/)
+            .optional(),
+        })
+        .parse(request.query);
+      const offset = Number(filters.cursor ?? 0);
+      const data = await database.transaction().execute((transaction) =>
+        new RouteRepository(transaction).list(request.principal!, {
+          active: filters.active === undefined ? undefined : filters.active === 'true',
+          offset,
+        }),
+      );
+      response.json({
+        data: data.slice(0, 100),
+        page: {
+          hasNextPage: data.length > 100,
+          nextCursor: data.length > 100 ? String(offset + 100) : null,
+        },
+      });
     } catch (error) {
       try {
         mapRouteError(error);
@@ -197,6 +230,7 @@ export function createRouteRouter(database: AppDatabase): Router {
       response.json({
         data: {
           route,
+          returnDeclaration: await getReturnDeclaration(database, id),
           load: load
             ? {
                 id: load.id,
@@ -375,7 +409,7 @@ export function createRouteRouter(database: AppDatabase): Router {
   });
   router.post('/routes/:routeId/return', requireRole('DRIVER'), async (request, response, next) => {
     try {
-      const input = RouteTransitionSchema.parse(request.body);
+      const input = RouteReturnSchema.parse(request.body);
       response.json({
         data: toRouteResource(
           await transitions.transition(
@@ -387,6 +421,7 @@ export function createRouteRouter(database: AppDatabase): Router {
               idempotencyKey: idempotencyKey(request),
               requestId: requestId(request),
             },
+            input.lines,
           ),
         ),
       });
@@ -398,6 +433,33 @@ export function createRouteRouter(database: AppDatabase): Router {
       }
     }
   });
+  router.post(
+    '/routes/:routeId/return-declaration',
+    requireRole('DRIVER'),
+    async (request, response, next) => {
+      try {
+        const input = RouteReconciliationSchema.parse(request.body);
+        const route = await transitions.transition(
+          pathId(request.params.routeId),
+          'DECLARE_RETURN',
+          input.expectedVersion,
+          {
+            actorId: request.principal!.id,
+            idempotencyKey: idempotencyKey(request),
+            requestId: requestId(request),
+          },
+          input.lines,
+        );
+        response.json({ data: toRouteResource(route) });
+      } catch (error) {
+        try {
+          mapRouteError(error);
+        } catch (mapped) {
+          next(mapped);
+        }
+      }
+    },
+  );
   router.put(
     '/routes/:routeId/reconciliation',
     requireRole('ADMINISTRATOR'),

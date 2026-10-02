@@ -223,6 +223,7 @@ describe('customer management', () => {
     const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const url = new URL(String(input), 'http://warehouse.test');
       const method = init?.method ?? 'GET';
+      if (url.pathname === '/api/v1/products') return jsonResponse({ data: [{ id: productId, name: 'Price product', sku: 'PRICE', active: true }] });
       if (url.pathname.endsWith(`/customer-prices/${originalId}/deactivation`)) {
         rows = rows.map((price) => ({ ...price, active: false }));
         return jsonResponse({ data: rows[0] });
@@ -271,7 +272,8 @@ describe('customer management', () => {
     );
 
     const replacementValidFrom = '2026-09-04T10:30';
-    fireEvent.change(screen.getByLabelText('Product ID'), { target: { value: productId } });
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: /^Product/ }));
+    fireEvent.click(await screen.findByRole('option', { name: 'Price product (PRICE)' }));
     fireEvent.change(screen.getByLabelText('Exact unit price'), {
       target: { value: '16.5000' },
     });

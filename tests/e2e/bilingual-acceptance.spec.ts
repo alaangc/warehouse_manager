@@ -190,7 +190,12 @@ function review(
   });
 }
 for (const role of ['admin', 'driver'] as const) {
-  review(`${role}-overview`, role, '/', ['printers.availableActions', 'dashboard.quickActions']);
+  review(`${role}-overview`, role, '/', ['printers.availableActions', 'ui.summary'], async (p) => {
+    await p
+      .locator('summary')
+      .filter({ hasText: label('printers.overview') })
+      .click();
+  });
   review(
     `${role}-inventory`,
     role,
@@ -352,7 +357,8 @@ review(
   (w) => `/routes?routeId=${w.preparing.route.id}`,
   ['routes.myRoutes', 'routes.saveFullLoad'],
   async (p, w) => {
-    await field(p, 'common.productId').fill(w.preparing.product.id);
+    await p.getByRole('combobox', { name: label('common.product'), exact: true }).click();
+    await p.getByRole('option').filter({ hasText: w.preparing.product.name }).click();
     await field(p, 'routes.loadQuantity').fill('12.340');
   },
 );
@@ -432,11 +438,11 @@ for (const type of [
     `admin-report-${type}`,
     'admin',
     '/reports',
-    ['reports.title', `reports.${type}`, 'reports.saveSnapshot'],
+    ['reports.title', `reports.${type}`, 'workflow.printSnapshot'],
     async (p) => {
       await select(p, 'reports.reportType', label(`reports.${type}`));
       await button(p, 'reports.run').click();
-      await expect(button(p, 'reports.saveSnapshot')).toBeVisible();
+      await expect(button(p, 'workflow.printSnapshot')).toBeVisible();
     },
   );
 }
@@ -454,7 +460,7 @@ for (const stage of ['customer', 'products', 'review', 'result']) {
       await select(p, 'common.product', 'Carbón El Sol');
       await field(p, 'common.quantity').fill('1');
       if (stage === 'products') return;
-      await button(p, 'sales.reviewQuote').click();
+      await button(p, 'ui.review').click();
       await expect(button(p, 'sales.confirmSale')).toBeEnabled();
       if (stage === 'result') {
         await button(p, 'sales.confirmSale').click();
@@ -484,7 +490,7 @@ for (const role of ['admin', 'driver'] as const) {
     role + '-navigation',
     role,
     '/',
-    ['nav.overview', 'nav.settings', 'auth.signOut'],
+    ['ui.home', 'nav.settings', 'auth.signOut'],
     async (p) => {
       await p.setViewportSize({ width: 390, height: 844 });
       await button(p, 'nav.openMenu').click();

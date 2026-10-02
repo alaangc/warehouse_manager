@@ -300,6 +300,29 @@ describe('route lifecycle HTTP contract', () => {
     });
 
     const adminList = await authed(admin).get('/api/v1/routes');
+    expectProblem(
+      await authed(admin)
+        .post('/api/v1/routes')
+        .send({ ...assignment, routeNumber: undefined }),
+      409,
+      'DRIVER_ASSIGNED',
+    );
+    expectProblem(
+      await authed(admin)
+        .post('/api/v1/routes')
+        .send({
+          ...assignment,
+          routeNumber: undefined,
+          driverId: anotherDriver.id,
+        }),
+      409,
+      'VEHICLE_ASSIGNED',
+    );
+    expectProblem(
+      await authed(admin).post('/api/v1/routes').send(assignment),
+      409,
+      'RESOURCE_DUPLICATE',
+    );
     expect(adminList.status).toBe(200);
     expect(adminList.body.page).toEqual({ hasNextPage: false, nextCursor: null });
     expect(adminList.body.data).toEqual(
@@ -441,13 +464,92 @@ describe('route lifecycle HTTP contract', () => {
       403,
       'ROUTE_FORBIDDEN',
     );
-    const returnedResponse = await command(driver, `/api/v1/routes/${created.id}/return`, {
+    const returnInput = {
       expectedVersion: started.version,
-    });
+      lines: [{ productId, physicalReturnQuantity: '4.000', differenceReason: 'One damaged unit' }],
+    };
+    expectProblem(
+      await command(driver, `/api/v1/routes/${created.id}/return`, {
+        ...returnInput,
+        lines: [{ productId, physicalReturnQuantity: '4.000' }],
+      }),
+      422,
+      'DIFFERENCE_REASON_REQUIRED',
+    );
+    expectProblem(
+      await command(driver, `/api/v1/routes/${created.id}/return`, {
+        ...returnInput,
+        lines: [...returnInput.lines, ...returnInput.lines],
+      }),
+      422,
+      'RECONCILIATION_LINES_INVALID',
+    );
+    const returnKey = crypto.randomUUID();
+    const returnedResponse = await authed(driver)
+      .post(`/api/v1/routes/${created.id}/return`)
+      .set('Idempotency-Key', returnKey)
+      .send(returnInput);
+    const replay = await authed(driver)
+      .post(`/api/v1/routes/${created.id}/return`)
+      .set('Idempotency-Key', returnKey)
+      .send(returnInput);
+    expect(replay.body).toEqual(returnedResponse.body);
     expect(returnedResponse.status).toBe(200);
     const returned = returnedResponse.body.data as RouteResource;
     expect(returned).toMatchObject({ id: created.id, state: 'RETURNED', version: 3 });
     await assignedDetail('RETURNED');
+    const declaredDetail = await authed(admin).get(`/api/v1/routes/${created.id}`);
+    const declaration = declaredDetail.body.data.returnDeclaration;
+    expect(declaration).toMatchObject({
+      recordedBy: driver.id,
+      kind: 'DECLARED',
+      lines: [
+        {
+          productId,
+          quantity: '4.000',
+          expectedQuantity: '5.000',
+          differenceReason: 'One damaged unit',
+        },
+      ],
+    });
+    expect(declaredDetail.body.data.balances).toEqual(
+      expect.arrayContaining([expect.objectContaining({ productId, quantity: '5.000' })]),
+    );
+    const docResponse = await authed(driver)
+      .post('/api/v1/documents')
+      .set('Idempotency-Key', crypto.randomUUID())
+      .send({ documentType: 'ROUTE_RETURN', sourceType: 'ROUTE_RETURN', sourceId: declaration.id });
+    expect(docResponse.status).toBe(202);
+    const returnDocumentId = docResponse.body.data.id;
+    const printData = await authed(driver).get(`/api/v1/documents/${returnDocumentId}/print-data`);
+    expect(printData.status).toBe(200);
+    expect(printData.body.data.snapshot).toMatchObject({
+      kind: 'DECLARED',
+      lines: declaration.lines,
+    });
+    expect((await authed(driver).get(`/api/v1/documents/${returnDocumentId}/content`)).status).toBe(
+      200,
+    );
+    expectProblem(
+      await authed(anotherDriver).get(`/api/v1/documents/${returnDocumentId}/print-data`),
+      403,
+      'DOCUMENT_FORBIDDEN',
+    );
+    expectProblem(
+      await authed(anotherDriver).get(
+        `/api/v1/documents?sourceType=ROUTE_RETURN&sourceId=${declaration.id}`,
+      ),
+      403,
+      'DOCUMENT_FORBIDDEN',
+    );
+    expectProblem(
+      await command(driver, `/api/v1/routes/${created.id}/return-declaration`, {
+        ...returnInput,
+        expectedVersion: returned.version,
+      }),
+      409,
+      'INVALID_ROUTE_TRANSITION',
+    );
 
     const reconciliationRequest = {
       expectedVersion: returned.version,
@@ -490,6 +592,20 @@ describe('route lifecycle HTTP contract', () => {
         ],
       });
     expect(reconciliationResponse.status).toBe(200);
+    const approvedDocument = await authed(admin)
+      .post('/api/v1/documents')
+      .set('Idempotency-Key', crypto.randomUUID())
+      .send({
+        documentType: 'ROUTE_RETURN',
+        sourceType: 'ROUTE_RETURN',
+        sourceId: reconciliationResponse.body.data.id,
+      });
+    expect(approvedDocument.status).toBe(202);
+    const approvedPrint = await authed(driver).get(
+      `/api/v1/documents/${approvedDocument.body.data.id}/print-data`,
+    );
+    expect(approvedPrint.status).toBe(200);
+    expect(approvedPrint.body.data.snapshot.kind).toBe('APPROVED');
     expect(reconciliationResponse.body.data).toMatchObject({
       routeId: created.id,
       state: 'APPROVED',
@@ -521,6 +637,32 @@ describe('route lifecycle HTTP contract', () => {
     expect(closedResponse.status).toBe(200);
     const closed = closedResponse.body.data as RouteResource;
     expect(closed).toMatchObject({ id: created.id, state: 'CLOSED', version: 4 });
+    const activeRoutes = await authed(admin).get('/api/v1/routes?active=true');
+    expect(activeRoutes.body.data).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: created.id })]),
+    );
+    const historicalRoutes = await authed(driver).get('/api/v1/routes?active=false');
+    expect(historicalRoutes.body.data).toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: created.id })]),
+    );
+    const otherHistory = await authed(anotherDriver).get('/api/v1/routes?active=false');
+    expect(otherHistory.body.data).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: created.id })]),
+    );
+    const overviewBalances = await authed(admin).get('/api/v1/inventory/balances');
+    expect(overviewBalances.body.data).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          stockLocation: expect.objectContaining({ routeId: created.id }),
+        }),
+      ]),
+    );
+    const branchBalances = await authed(admin).get(
+      '/api/v1/inventory/balances?locationKind=BRANCH',
+    );
+    expect(branchBalances.status).toBe(200);
+    for (const balance of branchBalances.body.data)
+      expect(balance.stockLocation.kind).toBe('BRANCH');
 
     const closedDetail = await assignedDetail('CLOSED');
     expect(closedDetail.load).toMatchObject({ state: 'CONFIRMED' });

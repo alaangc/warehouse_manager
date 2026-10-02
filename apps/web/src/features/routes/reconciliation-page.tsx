@@ -1,40 +1,35 @@
-import { Alert, Button, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Button, Stack, Typography } from '@mui/material';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { apiRequest } from '../../lib/api/client.js';
 import { localizedErrorMessage } from '../../lib/api/localized-error.js';
 import { idempotencyKey } from '../../lib/api/idempotency.js';
-import { scaledQuantity } from '../inventory/inventory-quantity.js';
+import {
+  initialReturnValues,
+  ReturnFields,
+  returnLines,
+  type ReturnValue,
+} from './return-fields.js';
 import type { RouteDetail, RouteResource } from './route-types.js';
 
-interface ReturnValue {
-  physicalReturnQuantity: string;
-  differenceReason: string;
-}
-
-const returnQuantityPattern = /^\d+(?:\.\d{1,3})?$/;
-
-function quantitiesMatch(actual: string, expected: string) {
-  return returnQuantityPattern.test(actual) && scaledQuantity(actual) === scaledQuantity(expected);
-}
-
-export function ReconciliationPage({ detail }: { detail: RouteDetail }) {
+export function ReconciliationPage({
+  detail,
+  onClosed,
+}: {
+  detail: RouteDetail;
+  onClosed?: () => void;
+}) {
   const { t } = useTranslation();
   const client = useQueryClient();
-  const [values, setValues] = useState<Record<string, ReturnValue>>({});
+  const initial = JSON.stringify(initialReturnValues(detail));
+  const [values, setValues] = useState<Record<string, ReturnValue>>(() =>
+    initialReturnValues(detail),
+  );
+  // Preserve edits when polling returns identical server values.
   useEffect(() => {
-    setValues(
-      Object.fromEntries(
-        (detail.load?.lines ?? []).map((line) => {
-          const expected =
-            detail.balances.find((balance) => balance.productId === line.productId)?.quantity ??
-            line.quantity;
-          return [line.productId, { physicalReturnQuantity: expected, differenceReason: '' }];
-        }),
-      ),
-    );
-  }, [detail.balances, detail.load]);
+    setValues(JSON.parse(initial) as Record<string, ReturnValue>);
+  }, [initial, detail.route.id]);
   const reconcile = useMutation({
     mutationFn: () =>
       apiRequest(`/routes/${detail.route.id}/reconciliation`, {
@@ -42,22 +37,7 @@ export function ReconciliationPage({ detail }: { detail: RouteDetail }) {
         idempotencyKey: idempotencyKey(crypto.randomUUID()),
         body: {
           expectedVersion: detail.route.version,
-          lines: (detail.load?.lines ?? []).map((line) => {
-            const expected =
-              detail.balances.find((balance) => balance.productId === line.productId)?.quantity ??
-              line.quantity;
-            const current = values[line.productId] ?? {
-              physicalReturnQuantity: '0',
-              differenceReason: '',
-            };
-            return {
-              productId: line.productId,
-              physicalReturnQuantity: current.physicalReturnQuantity,
-              ...(quantitiesMatch(current.physicalReturnQuantity, expected)
-                ? {}
-                : { differenceReason: current.differenceReason }),
-            };
-          }),
+          lines: returnLines(detail, values),
         },
       }),
     onSuccess: () => client.invalidateQueries({ queryKey: ['routes', detail.route.id] }),
@@ -70,6 +50,7 @@ export function ReconciliationPage({ detail }: { detail: RouteDetail }) {
         body: { expectedVersion: detail.route.version },
       }),
     onSuccess: async () => {
+      onClosed?.();
       await client.invalidateQueries({ queryKey: ['routes'] });
       await client.invalidateQueries({ queryKey: ['routes', detail.route.id] });
     },
@@ -91,65 +72,19 @@ export function ReconciliationPage({ detail }: { detail: RouteDetail }) {
       {(reconcile.error || close.error) && (
         <Alert severity="error">{localizedErrorMessage(reconcile.error ?? close.error, t)}</Alert>
       )}
-      {!detail.reconciliation &&
-        detail.load?.lines.map((line) => {
-          const current = values[line.productId] ?? {
-            physicalReturnQuantity:
-              detail.balances.find((balance) => balance.productId === line.productId)?.quantity ??
-              line.quantity,
-            differenceReason: '',
-          };
-          const expected =
-            detail.balances.find((balance) => balance.productId === line.productId)?.quantity ??
-            line.quantity;
-          const differs = !quantitiesMatch(current.physicalReturnQuantity, expected);
-          const productName =
-            detail.balances.find((balance) => balance.productId === line.productId)?.productName ??
-            line.productId;
-          return (
-            <Stack
-              key={line.productId}
-              component="fieldset"
-              direction={{ xs: 'column', md: 'row' }}
-              spacing={1}
-              sx={{ minWidth: 0, border: 0, p: 0, m: 0 }}
-            >
-              <Typography component="legend">{productName}</Typography>
-              <TextField
-                label={t('common.product')}
-                value={line.productId}
-                slotProps={{ input: { readOnly: true } }}
-              />
-              <TextField
-                label={t('routes.physicalReturn', { expected })}
-                required
-                slotProps={{
-                  htmlInput: { inputMode: 'decimal', pattern: returnQuantityPattern.source },
-                }}
-                value={current.physicalReturnQuantity}
-                onChange={(event) =>
-                  setValues((previous) => ({
-                    ...previous,
-                    [line.productId]: { ...current, physicalReturnQuantity: event.target.value },
-                  }))
-                }
-              />
-              <TextField
-                label={t('routes.differenceReason')}
-                required={differs}
-                slotProps={{ htmlInput: { pattern: '.*\\S.*' } }}
-                disabled={!differs}
-                value={current.differenceReason}
-                onChange={(event) =>
-                  setValues((previous) => ({
-                    ...previous,
-                    [line.productId]: { ...current, differenceReason: event.target.value },
-                  }))
-                }
-              />
-            </Stack>
-          );
-        })}
+      {!detail.reconciliation && (
+        <>
+          {detail.returnDeclaration && (
+            <Alert severity="info">{t('routes.reviewDeclaredReturn')}</Alert>
+          )}
+          <ReturnFields
+            detail={detail}
+            values={values}
+            disabled={reconcile.isPending}
+            onChange={(id, value) => setValues((previous) => ({ ...previous, [id]: value }))}
+          />
+        </>
+      )}
       {!detail.reconciliation ? (
         <Button variant="contained" type="submit" disabled={reconcile.isPending}>
           {t('routes.approveReconciliation')}

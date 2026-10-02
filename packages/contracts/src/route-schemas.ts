@@ -36,3 +36,25 @@ export const RouteReconciliationSchema = z
     lines: z.array(RouteReconciliationLineSchema).min(1).max(200),
   })
   .strict();
+
+export const RouteReturnSchema = RouteTransitionSchema.extend({
+  lines: z.array(RouteReconciliationLineSchema).min(1).max(200).optional(),
+}).strict();
+
+export const RouteReturnSnapshotSchema = z.object({
+  routeNumber: z.string(),
+  kind: z.enum(['DECLARED', 'APPROVED']),
+  lines: z
+    .array(
+      z.object({
+        productId: z.uuid(),
+        productName: z.string(),
+        unitCode: z.string(),
+        quantity: QuantitySchema,
+        expectedQuantity: QuantitySchema,
+        differenceQuantity: z.string().regex(/^-?\d+(?:\.\d{1,3})?$/),
+        differenceReason: z.string().nullable(),
+      }),
+    )
+    .min(1),
+});

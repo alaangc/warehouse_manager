@@ -11,6 +11,7 @@ import {
   failure,
   json,
   printData,
+  printProfile,
 } from './document-ui-harness.js';
 import { changeAppLanguage } from '../../src/i18n/index.js';
 import { PrinterError } from '../../src/features/printers/printer-adapter.js';
@@ -206,4 +207,26 @@ it('translates the print controls and result into Spanish', async () => {
   fireEvent.click(await startButton(/^imprimir$/i));
   expect(await screen.findByText(/Datos enviados/)).toBeVisible();
   expect(screen.getByRole('button', { name: /^reimprimir$/i })).toBeVisible();
+});
+
+it('prints a ready Administrator report from its server snapshot with the approved printer', async () => {
+  const report = { ...document, documentType: 'REPORT', sourceType: 'REPORT_SNAPSHOT' };
+  const data = { ...report, sourceState: 'READY', snapshot: {
+    reportType: 'INVENTORY_BY_BRANCH', filters: {}, businessTimezone: 'America/Hermosillo',
+    result: { reportType: 'INVENTORY_BY_BRANCH', generatedAt: '2026-09-30T12:00:00Z', businessTimezone: 'America/Hermosillo', filters: {}, rows: [{ branchName: 'Magdalena', productName: 'Agua', unitCode: 'PZA', quantity: '3.000' }] }
+  } };
+  const calls = network((url, init, body) => {
+    if (init.method === 'POST') return acceptedAttempt(body);
+    if (url.pathname.endsWith('/print-data')) return json({ data });
+    if (url.pathname.endsWith('/printer-profiles')) return json({ data: [printProfile] });
+    if (url.pathname.endsWith('/me/printer-preference')) return json({ data: { printerProfileId: null } });
+    if (url.pathname.endsWith('/output-attempts')) return json({ data: [] });
+    return failure(500);
+  });
+  const adapter = printer();
+  await mount('PrintDialog', { open: true, document: report, source: { ...report, sourceState: 'READY' }, adapter, onClose: vi.fn() }, 'ADMINISTRATOR');
+  fireEvent.click(await startButton());
+  await waitFor(() => expect(adapter.print).toHaveBeenCalledTimes(1));
+  expect(calls.calls.filter(c => c.method === 'POST').map(c => c.body.state)).toEqual(['STARTED', 'SUCCEEDED']);
+  expect(adapter.print.mock.calls[0]).toEqual([expect.objectContaining({ snapshot: data.snapshot }), expect.objectContaining({ bytes: expect.any(Uint8Array), mode: 'PRINT' })]);
 });

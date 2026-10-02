@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SessionContext } from '../../src/app/session.js';
@@ -67,6 +67,60 @@ afterEach(() => {
 });
 
 describe('catalog management', () => {
+  it('removes a catalog record from the active list and keeps it available in deleted records', async () => {
+    const location = {
+      id: crypto.randomUUID(),
+      code: 'OLD',
+      name: 'Old branch',
+      active: true,
+      version: 1,
+    };
+    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      const path = new URL(String(input), 'http://test').pathname;
+      if (init?.method === 'PATCH') {
+        expect(JSON.parse(String(init.body))).toEqual({
+          code: 'OLD',
+          name: 'Old branch',
+          active: false,
+          expectedVersion: 1,
+          reason: 'Branch closed',
+        });
+        location.active = false;
+        location.version++;
+        return Promise.resolve(jsonResponse({ data: location }));
+      }
+      return Promise.resolve(jsonResponse({ data: path.endsWith('/locations') ? [location] : [] }));
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    renderWithQuery(
+      <SessionContext.Provider
+        value={{
+          user: {
+            id: crypto.randomUUID(),
+            username: 'admin',
+            displayName: 'Admin',
+            role: 'ADMINISTRATOR',
+          },
+          loading: false,
+          error: null,
+        }}
+      >
+        <CatalogPages only="locations" />
+      </SessionContext.Provider>,
+    );
+    await screen.findByText('Old branch');
+    fireEvent.click(screen.getByRole('button', { name: 'Delete', exact: true }));
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByRole('button', { name: 'Delete', exact: true })).toBeDisabled();
+    fireEvent.change(within(dialog).getByLabelText(/Archive reason/), {
+      target: { value: 'Branch closed' },
+    });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Delete', exact: true }));
+    await waitFor(() => expect(screen.queryByText('Old branch')).not.toBeInTheDocument());
+    fireEvent.click(screen.getByRole('switch', { name: 'Show deleted records' }));
+    expect(await screen.findByText('Old branch')).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'Delete', exact: true })).not.toBeInTheDocument();
+  });
   it('requires an archive reason and submits an optimistic location update', async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       jsonResponse({
@@ -148,7 +202,7 @@ describe('catalog management', () => {
   it('shows all catalog lists but hides management forms from drivers', async () => {
     const fetchMock = vi.fn((input: RequestInfo | URL) => {
       const url = String(input);
-      if (url.endsWith('/products')) return Promise.resolve(jsonResponse({ data: [product] }));
+      if (url.includes('/products')) return Promise.resolve(jsonResponse({ data: [product] }));
       if (url.endsWith('/categories')) return Promise.resolve(jsonResponse({ data: [category] }));
       if (url.endsWith('/units')) return Promise.resolve(jsonResponse({ data: [unit] }));
       if (url.endsWith('/locations'))

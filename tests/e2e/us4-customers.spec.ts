@@ -245,7 +245,8 @@ test('customer pricing falls back safely while history and role boundaries remai
   await expect(administratorPage.getByRole('heading', { name: customerName })).toBeVisible();
   await expect(administratorPage.getByText(customer.customerNumber).first()).toBeVisible();
 
-  await administratorPage.getByLabel('Product ID').fill(product.id);
+  await administratorPage.getByRole('combobox', { name: /^Product/ }).fill(productName);
+  await administratorPage.getByRole('option', { name: `${productName} (PRICE-${suffix})`, exact: true }).click();
   await administratorPage.getByLabel('Exact unit price').fill('17.2500');
   const priceResponsePromise = matchingResponse(
     administratorPage,
@@ -342,7 +343,7 @@ test('customer pricing falls back safely while history and role boundaries remai
   await driverPage.getByRole('combobox', { name: 'Product' }).click();
   await driverPage.getByRole('option', { name: productName, exact: true }).click();
   await driverPage.getByLabel('Quantity').fill('1');
-  await driverPage.getByRole('button', { name: 'Review authoritative quote' }).click();
+  await driverPage.getByRole('button', { name: 'Review sale' }).click();
   await expect(driverPage.getByText('Customer-specific price')).toBeVisible();
   await expect(driverPage.getByText('MXN 17.25').last()).toBeVisible();
   const saleResponsePromise = matchingResponse(driverPage, '/sales');
@@ -368,7 +369,7 @@ test('customer pricing falls back safely while history and role boundaries remai
   await driverPage.getByRole('combobox', { name: 'Product' }).click();
   await driverPage.getByRole('option', { name: productName, exact: true }).click();
   await driverPage.getByLabel('Quantity').fill('1');
-  await driverPage.getByRole('button', { name: 'Review authoritative quote' }).click();
+  await driverPage.getByRole('button', { name: 'Review sale' }).click();
   await expect(driverPage.getByText('Standard price')).toBeVisible();
   await expect(driverPage.getByText('MXN 20').last()).toBeVisible();
 

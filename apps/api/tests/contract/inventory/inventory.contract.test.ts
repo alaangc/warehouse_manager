@@ -190,6 +190,56 @@ describe('inventory and catalog HTTP contract', () => {
     expect(missingKey.body.code).toBe('IDEMPOTENCY_KEY_INVALID');
   });
 
+  it('archives catalogs without deleting their records and honors active filters', async () => {
+    const admin = await login('admin');
+    const suffix = crypto.randomUUID().slice(0, 8);
+    const categoryInput = { name: `Archive category ${suffix}`, reportingGroup: 'OTHER' };
+    const unitInput = { code: `AU-${suffix}`, name: 'Archive unit', quantityScale: 0 };
+    const category = (await authed(admin).post('/api/v1/categories').send(categoryInput)).body.data;
+    const unit = (await authed(admin).post('/api/v1/units').send(unitInput)).body.data;
+    const productInput = {
+      sku: `AP-${suffix}`,
+      name: 'Archive product',
+      categoryId: category.id,
+      unitId: unit.id,
+      standardUnitPrice: '10.0000',
+      lowStockThreshold: '0.000',
+    };
+    const product = (await authed(admin).post('/api/v1/products').send(productInput)).body.data;
+    const locationInput = { code: `AL-${suffix}`, name: 'Archive branch' };
+    const location = (await authed(admin).post('/api/v1/locations').send(locationInput)).body.data;
+    const vehicleInput = { code: `AV-${suffix}`, name: 'Archive van', registration: null };
+    const vehicle = (await authed(admin).post('/api/v1/vehicles').send(vehicleInput)).body.data;
+    for (const [kind, record, input] of [
+      ['products', product, productInput],
+      ['locations', location, locationInput],
+      ['vehicles', vehicle, vehicleInput],
+      ['categories', category, categoryInput],
+      ['units', unit, unitInput],
+    ] as const) {
+      const updated = await authed(admin)
+        .patch(`/api/v1/${kind}/${record.id}`)
+        .send({
+          ...input,
+          expectedVersion: record.version,
+          active: false,
+          reason: 'Retired from catalog',
+        });
+      expect(updated.status).toBe(200);
+      expect(updated.body.data).toMatchObject({ id: record.id, active: false });
+      const active = await authed(admin).get(`/api/v1/${kind}?active=true`);
+      expect(active.status).toBe(200);
+      expect(active.body.data).not.toEqual(
+        expect.arrayContaining([expect.objectContaining({ id: record.id })]),
+      );
+      const archived = await authed(admin).get(`/api/v1/${kind}?active=false`);
+      expect(archived.body.data).toEqual(
+        expect.arrayContaining([expect.objectContaining({ id: record.id, active: false })]),
+      );
+    }
+    expect((await authed(admin).get(`/api/v1/products/${product.id}`)).status).toBe(200);
+  });
+
   it('lets administrators create and update catalog records with optimistic versions', async () => {
     const admin = await login('admin');
     const unit = await authed(admin)
@@ -337,6 +387,7 @@ describe('inventory and catalog HTTP contract', () => {
 
   it('creates branch locations with stock positions and rejects duplicate codes', async () => {
     const admin = await login('admin');
+    const before = await authed(admin).get('/api/v1/locations');
     const code = `LOC-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
     const created = await authed(admin).post('/api/v1/locations').send({
       code,
@@ -359,7 +410,7 @@ describe('inventory and catalog HTTP contract', () => {
     expect(denied.body.code).toBe('ROLE_FORBIDDEN');
 
     const listed = await authed(admin).get('/api/v1/locations');
-    expect(listed.body.data).toHaveLength(3);
+    expect(listed.body.data).toHaveLength(before.body.data.length + 1);
   });
 
   it('denies driver catalog mutations but allows reading', async () => {

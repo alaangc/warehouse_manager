@@ -66,109 +66,21 @@ function VisibilityIcon({ hidden }: { hidden: boolean }) {
 
 function BrandPanel() {
   const { t } = useTranslation();
-  const features = [
-    t('auth.featureInventory'),
-    t('auth.featureTraceability'),
-    t('auth.featureAccess'),
-  ];
-
   return (
-    <Box
-      sx={{
-        background:
-          'radial-gradient(circle at 15% 10%, rgba(82, 145, 255, 0.55), transparent 38%), linear-gradient(145deg, #123e66 0%, #0b2742 100%)',
-        color: 'common.white',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        minHeight: { xs: 210, md: 640 },
-        overflow: 'hidden',
-        p: { xs: 3, sm: 4, md: 6 },
-        position: 'relative',
-      }}
-    >
+    <Stack spacing={1} sx={{ alignItems: 'center', textAlign: 'center', pt: 4, pb: 3, px: 3 }}>
       <Box
-        aria-hidden="true"
-        sx={{
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '50%',
-          height: 360,
-          position: 'absolute',
-          right: -170,
-          top: -170,
-          width: 360,
-        }}
+        component="img"
+        src="/stock-control-logo.png"
+        alt=""
+        sx={{ width: 76, height: 76, objectFit: 'contain', mb: 1 }}
       />
-      <Stack spacing={2.5} sx={{ position: 'relative' }}>
-        <Box
-          component="img"
-          src="/stock-control-logo.png"
-          alt=""
-          aria-hidden="true"
-          sx={{
-            bgcolor: 'common.white',
-            borderRadius: 3,
-            boxShadow: '0 12px 30px rgba(0,0,0,0.2)',
-            height: { xs: 58, md: 76 },
-            objectFit: 'contain',
-            p: 1,
-            width: { xs: 58, md: 76 },
-          }}
-        />
-        <Box>
-          <Typography component="p" variant="overline" sx={{ color: '#a9d1ff' }}>
-            {t('auth.secureAccess')}
-          </Typography>
-          <Typography
-            component="h1"
-            variant="h3"
-            sx={{
-              fontSize: { xs: '2rem', sm: '2.4rem', md: '3rem' },
-              fontWeight: 750,
-              letterSpacing: -1,
-              lineHeight: 1.16,
-            }}
-          >
-            {t('app.name')}
-          </Typography>
-          <Typography
-            sx={{
-              color: 'rgba(255,255,255,0.74)',
-              fontSize: { xs: '0.92rem', md: '1rem' },
-              mt: 1.5,
-              maxWidth: 390,
-            }}
-          >
-            {t('auth.brandDescription')}
-          </Typography>
-        </Box>
-      </Stack>
-
-      <Stack spacing={1.5} sx={{ display: { xs: 'none', md: 'flex' }, position: 'relative' }}>
-        {features.map((feature) => (
-          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }} key={feature}>
-            <Box
-              aria-hidden="true"
-              sx={{
-                alignItems: 'center',
-                bgcolor: 'rgba(255,255,255,0.12)',
-                borderRadius: '50%',
-                display: 'flex',
-                fontSize: 12,
-                height: 26,
-                justifyContent: 'center',
-                width: 26,
-              }}
-            >
-              ✓
-            </Box>
-            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.82)' }}>
-              {feature}
-            </Typography>
-          </Stack>
-        ))}
-      </Stack>
-    </Box>
+      <Typography component="h1" variant="h4">
+        Stock Control
+      </Typography>
+      <Typography color="text.secondary" variant="body2">
+        {t('auth.brandDescription')}
+      </Typography>
+    </Stack>
   );
 }
 
@@ -235,23 +147,22 @@ export function LoginPage() {
       component="main"
       sx={{
         alignItems: 'center',
-        background:
-          'radial-gradient(circle at 10% 10%, rgba(62, 127, 187, 0.12), transparent 32%), #eef4f9',
+        background: '#f5f6fa',
         display: 'flex',
         minHeight: '100vh',
         py: { xs: 0, sm: 4 },
       }}
     >
-      <Container maxWidth="lg" disableGutters sx={{ px: { xs: 0, sm: 3 } }}>
+      <Container maxWidth="sm" sx={{ px: 2, py: 4 }}>
         <Paper
           elevation={0}
           sx={{
-            border: { sm: '1px solid', xs: 0 },
+            border: '1px solid',
             borderColor: 'rgba(18, 62, 102, 0.12)',
-            borderRadius: { xs: 0, sm: 4 },
+            borderRadius: 4,
             display: 'grid',
-            gridTemplateColumns: { xs: '1fr', md: 'minmax(360px, 0.9fr) minmax(460px, 1.1fr)' },
-            minHeight: { xs: '100vh', sm: 640 },
+            gridTemplateColumns: '1fr',
+            minHeight: 0,
             overflow: 'hidden',
             width: '100%',
           }}
@@ -263,7 +174,9 @@ export function LoginPage() {
               bgcolor: 'common.white',
               display: 'flex',
               justifyContent: 'center',
-              p: { xs: 3, sm: 5, md: 7 },
+              px: { xs: 3, sm: 5 },
+              pb: 4,
+              pt: 7,
               position: 'relative',
             }}
           >
