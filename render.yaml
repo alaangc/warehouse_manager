@@ -6,7 +6,7 @@ services:
     runtime: node
     plan: free
     region: oregon
-    buildCommand: corepack enable && pnpm install --frozen-lockfile --prod=false && pnpm build
+    buildCommand: corepack pnpm install --frozen-lockfile --prod=false && corepack pnpm build
     startCommand: corepack pnpm demo:start
     healthCheckPath: /api/v1/health
     autoDeployTrigger: off

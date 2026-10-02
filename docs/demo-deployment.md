@@ -74,7 +74,7 @@ la base de la demo actual. El servicio debe seguir conectado a `demo/render-neon
    el historial de migraciones completo. No ejecutar `down`, borrar tablas, usar
    `pnpm db:seed`, ni eliminar `demo_initialization`.
 4. En Render > servicio existente > Settings, confirmar la rama `demo/render-neon`,
-   el build `corepack enable && pnpm install --frozen-lockfile --prod=false && pnpm build`,
+   el build `corepack pnpm install --frozen-lockfile --prod=false && corepack pnpm build`,
    el start `corepack pnpm demo:start` y el health check `/api/v1/health`.
    Mantener las variables existentes y agregar el `TRUST_PROXY` verificado. Conservar
    `SESSION_SECRET` y `DEMO_PASSWORD`; cambiar esta ultima variable no restablece
