@@ -2,7 +2,7 @@
 services:
   - type: web
     name: warehouse-manager-demo
-    branch: demo/render-neon
+    branch: design/intuitive-sales-redesign
     runtime: node
     plan: free
     region: oregon

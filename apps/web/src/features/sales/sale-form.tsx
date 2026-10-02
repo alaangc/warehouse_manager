@@ -161,7 +161,16 @@ function SaleWorkflow({ onNextSale }: { onNextSale: () => void }) {
   if (saleMutation.data)
     return <SaleResult sale={saleMutation.data.data} onNextSale={onNextSale} />;
 
-  const requestQuote = form.handleSubmit((values) => quoteMutation.mutate(values));
+  const requestQuote = form.handleSubmit((values) => {
+    const invalidIndex = values.lines.findIndex(
+      (line) => !quantityPattern.test(line.quantity) || scaledQuantity(line.quantity) <= 0n,
+    );
+    if (invalidIndex >= 0) {
+      form.setError(`lines.${invalidIndex}.quantity`, { type: 'validate' }, { shouldFocus: true });
+      return;
+    }
+    quoteMutation.mutate(values);
+  });
   const submitSale = form.handleSubmit((values) => {
     if (step === 2 && quote?.lines.every((line) => line.available)) saleMutation.mutate(values);
   });
@@ -479,7 +488,8 @@ function SaleWorkflow({ onNextSale }: { onNextSale: () => void }) {
                       startIcon={<Trash2 size={17} />}
                       disabled={lines.fields.length === 1 && !productId}
                       onClick={() => {
-                        if (lines.fields.length === 1) lines.update(0, { productId: '', quantity: '1' });
+                        if (lines.fields.length === 1)
+                          lines.update(0, { productId: '', quantity: '1' });
                         else lines.remove(index);
                         clearQuote();
                       }}
