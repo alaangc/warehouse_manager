@@ -293,7 +293,7 @@ describe('sale pricing', () => {
     });
   });
 
-  it.each(['CASH', 'BANK_TRANSFER', 'CARD'] as const)(
+  it.each(['CASH', 'BANK_TRANSFER'] as const)(
     'preserves the %s payment method through request validation',
     (paymentMethod) => {
       const parsed = SaleCreateRequestSchema.parse({
@@ -307,4 +307,16 @@ describe('sale pricing', () => {
       expect(parsed.paymentMethod).toBe(paymentMethod);
     },
   );
+});
+
+it.each(['CARD', 'OTHER'])('rejects %s for new sales', (paymentMethod) => {
+  expect(
+    SaleCreateRequestSchema.safeParse({
+      clientOperationId: '66666666-6666-4666-8666-666666666666',
+      customerId,
+      routeId,
+      paymentMethod,
+      lines: [{ productId: sodaId, quantity: '1' }],
+    }).success,
+  ).toBe(false);
 });

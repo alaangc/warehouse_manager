@@ -441,6 +441,24 @@ describe('sales HTTP contract', () => {
     expectProblem(repeated, 409, 'SALE_ALREADY_CANCELLED');
   });
 
+  it('rejects card payments over HTTP without creating a sale', async () => {
+    const command = {
+      ...saleCommand({ customerId, routeId: driverRouteId, productId }),
+      paymentMethod: 'CARD',
+    };
+    const response = await authed(driver)
+      .post('/api/v1/sales')
+      .set('Idempotency-Key', crypto.randomUUID())
+      .send(command);
+    expectProblem(response, 422, 'VALIDATION_FAILED');
+    const persisted = await database
+      .selectFrom('sale')
+      .select('id')
+      .where('client_operation_id', '=', command.clientOperationId)
+      .execute();
+    expect(persisted).toEqual([]);
+  });
+
   it('returns RFC 9457 Problem Details for missing and invalid sales requests', async () => {
     const missing = await authed(admin).get(`/api/v1/sales/${crypto.randomUUID()}`);
     expectProblem(missing, 404, 'SALE_NOT_FOUND');

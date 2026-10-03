@@ -2,6 +2,8 @@ import { z } from 'zod';
 import { PaginationSchema, PositiveQuantitySchema } from './common-schemas.js';
 
 export const PaymentMethodSchema = z.enum(['CASH', 'BANK_TRANSFER', 'CARD']);
+// Historical resources may still contain CARD; new sales accept only these methods.
+export const SalePaymentMethodSchema = z.enum(['CASH', 'BANK_TRANSFER']);
 export const SaleLineRequestSchema = z
   .object({ productId: z.uuid(), quantity: PositiveQuantitySchema })
   .strict();
@@ -14,7 +16,7 @@ export const SaleQuoteRequestSchema = z
   .strict();
 export const SaleCreateRequestSchema = SaleQuoteRequestSchema.extend({
   clientOperationId: z.uuid(),
-  paymentMethod: PaymentMethodSchema,
+  paymentMethod: SalePaymentMethodSchema,
 }).strict();
 export const SaleCancellationRequestSchema = z
   .object({ reason: z.string().trim().min(1).max(500) })

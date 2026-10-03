@@ -200,3 +200,17 @@ it.each(['text/html', 'application/pdf'])(
     );
   },
 );
+
+it.each(['Android', 'iPhone'])('offers system sharing for printing on %s', async (userAgent) => {
+  const share = vi.fn(async () => {});
+  vi.stubGlobal('navigator', { userAgent, share, canShare: () => true });
+  const s = network(() => pdf());
+  await mount('DocumentActions', { document });
+  const button = await screen.findByRole('button', { name: 'Share / print ticket' });
+  expect(screen.getByText(/Choose RawBT/)).toBeVisible();
+  fireEvent.click(button);
+  expect(share).toHaveBeenCalledTimes(1);
+  expect(share.mock.calls[0]).toBeDefined();
+  expect(s.calls).toHaveLength(1);
+  expect(await screen.findByRole('status')).toHaveTextContent(/handed to the share target/i);
+});

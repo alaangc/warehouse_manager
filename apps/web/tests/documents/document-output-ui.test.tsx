@@ -201,3 +201,19 @@ describe('T121 print acceptance and uncertainty UI', () => {
     expect(adapter.print).not.toHaveBeenCalled();
   });
 });
+
+it('uses the share sheet instead of the Bluetooth selector for Android tickets', async () => {
+  const share = vi.fn(async () => {});
+  vi.stubGlobal('navigator', { userAgent: 'Android', share, canShare: () => true });
+  const s = network((url) =>
+    url.pathname.endsWith('/content')
+      ? new Response('%PDF-ticket', { headers: { 'Content-Type': 'application/pdf' } })
+      : json({ data: document }),
+  );
+  await mount('DocumentCenter', { documentId: document.id });
+  const button = await screen.findByRole('button', { name: 'Share / print ticket' });
+  expect(screen.queryByRole('button', { name: /^Print$/ })).not.toBeInTheDocument();
+  fireEvent.click(button);
+  expect(share).toHaveBeenCalledTimes(1);
+  expect(s.calls.some((call) => call.url.pathname.includes('printer-profiles'))).toBe(false);
+});

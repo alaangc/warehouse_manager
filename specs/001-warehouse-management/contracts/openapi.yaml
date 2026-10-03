@@ -5108,6 +5108,10 @@ components:
     PaymentMethod:
       type: string
       enum: [ CASH, BANK_TRANSFER, CARD ]
+    SalePaymentMethod:
+      type: string
+      description: Payment methods accepted for new sales.
+      enum: [ CASH, BANK_TRANSFER ]
     SaleStatus:
       type: string
       enum: [ COMPLETED, CANCELLED ]
@@ -5212,7 +5216,7 @@ components:
         routeId:
           $ref: '#/components/schemas/Uuid'
         paymentMethod:
-          $ref: '#/components/schemas/PaymentMethod'
+          $ref: '#/components/schemas/SalePaymentMethod'
         lines:
           type: array
           minItems: 1

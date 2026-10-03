@@ -48,7 +48,7 @@ interface SaleValues {
   routeId: string;
   customerId: string;
   lines: SaleLineValues[];
-  paymentMethod: 'CASH' | 'BANK_TRANSFER' | 'CARD';
+  paymentMethod: 'CASH' | 'BANK_TRANSFER';
 }
 
 interface QuoteLine {
@@ -601,7 +601,6 @@ function SaleWorkflow({ onNextSale }: { onNextSale: () => void }) {
               >
                 <MenuItem value="CASH">{t('sales.cash')}</MenuItem>
                 <MenuItem value="BANK_TRANSFER">{t('sales.bankTransfer')}</MenuItem>
-                <MenuItem value="CARD">{t('sales.card')}</MenuItem>
               </TextField>
               <Box sx={{ textAlign: { sm: 'right' } }}>
                 <Typography color="text.secondary">{t('common.total')}</Typography>

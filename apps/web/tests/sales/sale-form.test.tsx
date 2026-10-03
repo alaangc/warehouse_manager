@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { SaleForm } from '../../src/features/sales/sale-form.js';
@@ -184,18 +184,22 @@ describe('sale form', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Add Cola 600 ml' }));
     expect(screen.getByRole('button', { name: 'Add Cola 600 ml' })).toBeDisabled();
     fireEvent.click(screen.getByRole('button', { name: 'Increase Cola 600 ml' }));
-    expect(screen.getByLabelText('Quantity')).toHaveValue('2.000');
+    expect(screen.getByLabelText(/^Quantity/)).toHaveValue('2.000');
     fireEvent.click(screen.getByRole('button', { name: 'Decrease Cola 600 ml' }));
-    expect(screen.getByLabelText('Quantity')).toHaveValue('1.000');
-    expect(screen.getByLabelText('Quantity')).toHaveAttribute('inputmode', 'decimal');
-    fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '-1' } });
+    expect(screen.getByLabelText(/^Quantity/)).toHaveValue('1.000');
+    expect(screen.getByLabelText(/^Quantity/)).toHaveAttribute('inputmode', 'decimal');
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText(/^Quantity/), { target: { value: '-1' } });
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Review sale' }));
-    await waitFor(() => expect(screen.getByLabelText('Quantity')).toHaveFocus());
+    await waitFor(() => expect(screen.getByLabelText(/^Quantity/)).toHaveFocus());
     expect(requestBodies).toHaveLength(0);
-    fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '1.5' } });
-    fireEvent.change(screen.getByLabelText('Search route products'), { target: { value: 'Charcoal' } });
+    fireEvent.change(screen.getByLabelText(/^Quantity/), { target: { value: '1.5' } });
+    fireEvent.change(screen.getByLabelText('Search route products'), {
+      target: { value: 'Charcoal' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Add Charcoal 3 kg' }));
-    const quantityInputs = screen.getAllByLabelText('Quantity');
+    const quantityInputs = screen.getAllByLabelText(/^Quantity/);
     fireEvent.change(quantityInputs[1]!, { target: { value: '2' } });
     fireEvent.click(screen.getByRole('button', { name: 'Review sale' }));
 
@@ -203,6 +207,12 @@ describe('sale form', () => {
     expect(screen.getByText('MXN 100.00')).toBeVisible();
     expect(screen.getByText('Customer-specific price')).toBeVisible();
     expect(screen.getByRole('combobox', { name: 'Payment method' })).toHaveTextContent('Cash');
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Payment method' }));
+    expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
+      'Cash',
+      'Bank transfer',
+    ]);
+    fireEvent.click(screen.getByRole('option', { name: 'Cash', exact: true }));
     fireEvent.click(screen.getByRole('button', { name: 'Confirm sale' }));
 
     expect(await screen.findByRole('heading', { name: 'Sale ticket' })).toBeVisible();
@@ -333,12 +343,12 @@ describe('sale form', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Next: products' }));
     fireEvent.mouseDown(await screen.findByLabelText('Product'));
     fireEvent.click(await screen.findByRole('option', { name: 'Cola 600 ml' }));
-    fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '1' } });
+    fireEvent.change(screen.getByLabelText(/^Quantity/), { target: { value: '1' } });
     fireEvent.click(screen.getByRole('button', { name: 'Review sale' }));
     expect((await screen.findAllByText('MXN 16.00')).length).toBeGreaterThan(0);
 
     fireEvent.click(screen.getByRole('button', { name: 'Back to products' }));
-    fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '2' } });
+    fireEvent.change(screen.getByLabelText(/^Quantity/), { target: { value: '2' } });
     expect(screen.queryAllByText('MXN 16.00')).toHaveLength(0);
     fireEvent.click(screen.getByRole('button', { name: 'Review sale' }));
     expect((await screen.findAllByText('MXN 32.00')).length).toBeGreaterThan(0);

@@ -12,7 +12,7 @@ export interface SaleCommand {
   clientOperationId: string;
   customerId: string;
   routeId: string;
-  paymentMethod: 'CASH' | 'BANK_TRANSFER' | 'CARD';
+  paymentMethod: 'CASH' | 'BANK_TRANSFER';
   lines: { productId: string; quantity: string }[];
 }
 export interface SaleContext {

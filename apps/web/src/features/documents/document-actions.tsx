@@ -7,18 +7,8 @@ import { useSession } from '../../app/session.js';
 import { ApiProblem } from '../../lib/api/problem.js';
 import { documentError, fetchDocumentFile, saveDocumentFile } from './document-api.js';
 
-function canShare(file: File): boolean {
-  try {
-    return (
-      window.isSecureContext !== false &&
-      typeof navigator.share === 'function' &&
-      typeof navigator.canShare === 'function' &&
-      navigator.canShare({ files: [file] })
-    );
-  } catch {
-    return false;
-  }
-}
+import { canShare, prefersSystemSharing } from './document-sharing.js';
+
 type Props = {
   document: DocumentResource;
   disabled?: boolean;
@@ -42,6 +32,7 @@ export function DocumentActions(props: Props) {
 function FileActions({ document, disabled = false, onDenied }: Props) {
   const { t } = useTranslation();
   const ready = document.state === 'READY';
+  const mobilePrinting = document.documentType === 'TICKET' && prefersSystemSharing();
   const [shareSupported] = useState(
     () => ready && canShare(new File([], 'document.pdf', { type: 'application/pdf' })),
   );
@@ -149,8 +140,14 @@ function FileActions({ document, disabled = false, onDenied }: Props) {
           </Button>
         )}
         {!denied && file && canShare(file) && (
-          <Button startIcon={<Share2 size={18} />} disabled={blocked} onClick={() => void share()}>
-            {t('documents.share')}
+          <Button
+            startIcon={<Share2 size={18} />}
+            variant={mobilePrinting ? 'contained' : 'text'}
+            size={mobilePrinting ? 'large' : 'medium'}
+            disabled={blocked}
+            onClick={() => void share()}
+          >
+            {t(mobilePrinting ? 'documents.sharePrintTicket' : 'documents.share')}
           </Button>
         )}
         {preparing && <CircularProgress size={24} aria-label={t('documents.preparingShare')} />}
@@ -168,6 +165,7 @@ function FileActions({ document, disabled = false, onDenied }: Props) {
           </Button>
         )}
       </Stack>
+      {mobilePrinting && <Typography variant="body2">{t('documents.mobilePrintHelp')}</Typography>}
       {message && <Typography role="status">{t(message)}</Typography>}
     </Stack>
   );

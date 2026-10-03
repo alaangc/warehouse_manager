@@ -61,12 +61,12 @@ describe('atomic sale confirmation in PostgreSQL 18', () => {
         productId: scenario.product.id,
         quantity: '2.000',
       }),
-      paymentMethod: 'CARD' as const,
+      paymentMethod: 'BANK_TRANSFER' as const,
     };
     const result = await new SaleService(database).confirm(command, context(scenario.driver.id));
 
     expect(result).toMatchObject({
-      paymentMethod: 'CARD',
+      paymentMethod: 'BANK_TRANSFER',
       total: '8.50',
       ticketNumber: expect.any(String),
     });

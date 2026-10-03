@@ -12,6 +12,7 @@ import { formatDateTime } from '../../i18n/format.js';
 import { useSession } from '../../app/session.js';
 import { ApiProblem } from '../../lib/api/problem.js';
 import { documentError, readDocument, requestDocument } from './document-api.js';
+import { prefersSystemSharing } from './document-sharing.js';
 import { DocumentActions } from './document-actions.js';
 import { canOfferPrint, PrintDialog } from '../printers/print-dialog.js';
 
@@ -196,25 +197,27 @@ function Output({
             disabled={busy || status.isFetching}
             onDenied={setOutputError}
           />
-          {user && canOfferPrint(document, user, source) && (
-            <>
-              <Button
-                variant="contained"
-                size="large"
-                startIcon={<Printer size={22} />}
-                disabled={busy || status.isFetching}
-                onClick={() => setPrinting(true)}
-              >
-                {t('printers.print')}
-              </Button>
-              <PrintDialog
-                open={printing}
-                document={document}
-                {...(source ? { source } : {})}
-                onClose={() => setPrinting(false)}
-              />
-            </>
-          )}
+          {user &&
+            !(document.documentType === 'TICKET' && prefersSystemSharing()) &&
+            canOfferPrint(document, user, source) && (
+              <>
+                <Button
+                  variant="contained"
+                  size="large"
+                  startIcon={<Printer size={22} />}
+                  disabled={busy || status.isFetching}
+                  onClick={() => setPrinting(true)}
+                >
+                  {t('printers.print')}
+                </Button>
+                <PrintDialog
+                  open={printing}
+                  document={document}
+                  {...(source ? { source } : {})}
+                  onClose={() => setPrinting(false)}
+                />
+              </>
+            )}
         </>
       )}
     </Stack>

@@ -1913,6 +1913,11 @@ export interface components {
     };
     /** @enum {string} */
     PaymentMethod: 'CASH' | 'BANK_TRANSFER' | 'CARD';
+    /**
+     * @description Payment methods accepted for new sales.
+     * @enum {string}
+     */
+    SalePaymentMethod: 'CASH' | 'BANK_TRANSFER';
     /** @enum {string} */
     SaleStatus: 'COMPLETED' | 'CANCELLED';
     SaleCreateLineRequest: {
@@ -1956,7 +1961,7 @@ export interface components {
       clientOperationId: components['schemas']['Uuid'];
       customerId: components['schemas']['Uuid'];
       routeId: components['schemas']['Uuid'];
-      paymentMethod: components['schemas']['PaymentMethod'];
+      paymentMethod: components['schemas']['SalePaymentMethod'];
       lines: components['schemas']['SaleCreateLineRequest'][];
     };
     SaleLine: {
