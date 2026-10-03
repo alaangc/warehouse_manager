@@ -361,6 +361,13 @@ describe('58 mm receipt PDFs', () => {
       (match) => ({ width: Number(match[1]), height: Number(match[2]) }),
     );
 
+  it.each(sources)('renders $documentType on thermal paper', async (source) => {
+    const pages = mediaBoxes((await render(source)).bytes);
+    for (const page of pages) {
+      expect(page.width).toBeCloseTo((58 * 72) / 25.4, 4);
+      expect(page.height).toBeLessThanOrEqual((280 * 72) / 25.4 + 0.001);
+    }
+  });
   it('uses 58 mm paper and grows with the content instead of leaving an A4 page', async () => {
     const short = await render(sources[0]!);
     const longer = await render({
@@ -379,7 +386,7 @@ describe('58 mm receipt PDFs', () => {
     expect(longerPages[0]!.height).toBeGreaterThan(shortPages[0]!.height);
   });
 
-  it('keeps long receipts within the mobile page limit and preserves A4 for reports', async () => {
+  it('keeps long receipts within the mobile page limit and uses thermal paper for reports', async () => {
     const long = await render({
       ...sources[0],
       snapshot: {
@@ -394,14 +401,15 @@ describe('58 mm receipt PDFs', () => {
       expect(page.height).toBeLessThanOrEqual((280 * 72) / 25.4 + 0.001);
     }
     const report = mediaBoxes((await render(sources[3]!)).bytes);
-    expect(report[0]!.width).toBeCloseTo(595.28, 2);
-    expect(report[0]!.height).toBeCloseTo(841.89, 2);
+    expect(report[0]!.width).toBeCloseTo((58 * 72) / 25.4, 4);
+    expect(report[0]!.height).toBeLessThanOrEqual((280 * 72) / 25.4 + 0.001);
   });
 
-  it('invalidates old ticket cache keys without invalidating other document types', async () => {
+  it('invalidates old A4 and ticket cache keys for all document types', async () => {
     const { documentContentVersion } = await import(rendererPath);
     expect(documentContentVersion('1', 'TICKET')).not.toBe('1:pdf-v1');
-    expect(documentContentVersion('1', 'REPORT')).toBe('1:pdf-v1');
+    expect(documentContentVersion('1', 'REPORT')).not.toBe('1:pdf-v1');
+    expect(documentContentVersion('1', 'TICKET')).not.toBe('1:pdf-ticket-58mm-v2');
     expect(documentContentVersion('2', 'TICKET')).not.toBe(documentContentVersion('1', 'TICKET'));
   });
 });

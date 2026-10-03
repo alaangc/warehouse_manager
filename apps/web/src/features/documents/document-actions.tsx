@@ -1,13 +1,13 @@
 import { Alert, Button, CircularProgress, Stack, Typography } from '@mui/material';
 import type { DocumentResource } from '@warehouse/contracts';
-import { Download, RefreshCw, Share2 } from 'lucide-react';
+import { Download, Printer, RefreshCw, Share2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSession } from '../../app/session.js';
 import { ApiProblem } from '../../lib/api/problem.js';
 import { documentError, fetchDocumentFile, saveDocumentFile } from './document-api.js';
 
-import { canShare, prefersSystemSharing } from './document-sharing.js';
+import { canShare } from './document-sharing.js';
 
 type Props = {
   document: DocumentResource;
@@ -32,7 +32,6 @@ export function DocumentActions(props: Props) {
 function FileActions({ document, disabled = false, onDenied }: Props) {
   const { t } = useTranslation();
   const ready = document.state === 'READY';
-  const mobilePrinting = document.documentType === 'TICKET' && prefersSystemSharing();
   const [shareSupported] = useState(
     () => ready && canShare(new File([], 'document.pdf', { type: 'application/pdf' })),
   );
@@ -139,15 +138,26 @@ function FileActions({ document, disabled = false, onDenied }: Props) {
             {t('documents.download')}
           </Button>
         )}
+        {!denied && shareSupported && (
+          <Button
+            startIcon={<Printer size={18} />}
+            variant="contained"
+            size="large"
+            disabled={blocked || preparing || !file}
+            onClick={() => void share()}
+          >
+            {t('documents.printTicket')}
+          </Button>
+        )}
         {!denied && file && canShare(file) && (
           <Button
             startIcon={<Share2 size={18} />}
-            variant={mobilePrinting ? 'contained' : 'text'}
-            size={mobilePrinting ? 'large' : 'medium'}
+            variant="text"
+            size="medium"
             disabled={blocked}
             onClick={() => void share()}
           >
-            {t(mobilePrinting ? 'documents.sharePrintTicket' : 'documents.share')}
+            {t('documents.share')}
           </Button>
         )}
         {preparing && <CircularProgress size={24} aria-label={t('documents.preparingShare')} />}
@@ -165,7 +175,7 @@ function FileActions({ document, disabled = false, onDenied }: Props) {
           </Button>
         )}
       </Stack>
-      {mobilePrinting && <Typography variant="body2">{t('documents.mobilePrintHelp')}</Typography>}
+      {shareSupported && <Typography variant="body2">{t('documents.mobilePrintHelp')}</Typography>}
       {message && <Typography role="status">{t(message)}</Typography>}
     </Stack>
   );

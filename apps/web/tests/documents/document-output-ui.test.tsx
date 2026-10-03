@@ -202,18 +202,41 @@ describe('T121 print acceptance and uncertainty UI', () => {
   });
 });
 
-it('uses the share sheet instead of the Bluetooth selector for Android tickets', async () => {
-  const share = vi.fn(async () => {});
-  vi.stubGlobal('navigator', { userAgent: 'Android', share, canShare: () => true });
-  const s = network((url) =>
-    url.pathname.endsWith('/content')
-      ? new Response('%PDF-ticket', { headers: { 'Content-Type': 'application/pdf' } })
-      : json({ data: document }),
-  );
-  await mount('DocumentCenter', { documentId: document.id });
-  const button = await screen.findByRole('button', { name: 'Share / print ticket' });
-  expect(screen.queryByRole('button', { name: /^Print$/ })).not.toBeInTheDocument();
-  fireEvent.click(button);
-  expect(share).toHaveBeenCalledTimes(1);
-  expect(s.calls.some((call) => call.url.pathname.includes('printer-profiles'))).toBe(false);
-});
+it.each(['TICKET', 'ROUTE_LOAD', 'ROUTE_RETURN', 'CASH_CLOSE', 'REPORT'])(
+  'prints %s through the share sheet without a Bluetooth selector',
+  async (documentType) => {
+    const share = vi.fn(async () => {});
+    const requestDevice = vi.fn();
+    vi.stubGlobal('navigator', {
+      userAgent: 'Windows',
+      share,
+      canShare: () => true,
+      bluetooth: { requestDevice },
+    });
+    const s = network((url) =>
+      url.pathname.endsWith('/content')
+        ? new Response('%PDF-ticket', { headers: { 'Content-Type': 'application/pdf' } })
+        : json({
+            data: {
+              ...document,
+              documentType,
+              sourceType:
+                documentType === 'TICKET'
+                  ? 'SALE'
+                  : documentType === 'REPORT'
+                    ? 'REPORT_SNAPSHOT'
+                    : documentType,
+            },
+          }),
+    );
+    await mount('DocumentCenter', { documentId: document.id }, 'ADMINISTRATOR');
+    const button = await screen.findByRole('button', { name: 'Print ticket' });
+    expect(screen.queryByRole('button', { name: /^Print$/ })).not.toBeInTheDocument();
+    await waitFor(() => expect(button).toBeEnabled());
+    fireEvent.click(button);
+    expect(share).toHaveBeenCalledTimes(1);
+    expect(share.mock.calls[0]![0]).toMatchObject({ files: [expect.any(File)] });
+    expect(requestDevice).not.toHaveBeenCalled();
+    expect(s.calls.some((call) => call.url.pathname.includes('printer-profiles'))).toBe(false);
+  },
+);

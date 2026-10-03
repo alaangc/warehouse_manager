@@ -5,16 +5,14 @@ import {
   type DocumentCreateRequest,
   type SessionUser,
 } from '@warehouse/contracts';
-import { FilePlus2, RefreshCw, Printer } from 'lucide-react';
+import { FilePlus2, RefreshCw } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatDateTime } from '../../i18n/format.js';
 import { useSession } from '../../app/session.js';
 import { ApiProblem } from '../../lib/api/problem.js';
 import { documentError, readDocument, requestDocument } from './document-api.js';
-import { prefersSystemSharing } from './document-sharing.js';
 import { DocumentActions } from './document-actions.js';
-import { canOfferPrint, PrintDialog } from '../printers/print-dialog.js';
 
 export type DocumentSource = DocumentCreateRequest & { sourceState: string; driverId?: string };
 function allowed(source: DocumentSource, user: SessionUser): boolean {
@@ -68,8 +66,6 @@ function Output({
   documentId: string | undefined;
 }) {
   const { t } = useTranslation();
-  const { user } = useSession();
-  const [printing, setPrinting] = useState(false);
   const client = useQueryClient();
   const [id, setId] = useState(documentId);
   const [outputError, setOutputError] = useState<unknown>(null);
@@ -101,7 +97,7 @@ function Output({
   const document = status.isError || generate.isError || denied ? undefined : status.data;
   const busy = generate.isPending;
   const createInput = source ?? status.data;
-  const canGenerate = !denied && createInput && (!document || document.state === 'FAILED');
+  const canGenerate = !denied && createInput && (!document || document.state !== 'PENDING');
   return (
     <Stack spacing={2} sx={{ minWidth: 0, overflowWrap: 'anywhere' }}>
       <Typography variant="h6" component="h2">
@@ -197,27 +193,6 @@ function Output({
             disabled={busy || status.isFetching}
             onDenied={setOutputError}
           />
-          {user &&
-            !(document.documentType === 'TICKET' && prefersSystemSharing()) &&
-            canOfferPrint(document, user, source) && (
-              <>
-                <Button
-                  variant="contained"
-                  size="large"
-                  startIcon={<Printer size={22} />}
-                  disabled={busy || status.isFetching}
-                  onClick={() => setPrinting(true)}
-                >
-                  {t('printers.print')}
-                </Button>
-                <PrintDialog
-                  open={printing}
-                  document={document}
-                  {...(source ? { source } : {})}
-                  onClose={() => setPrinting(false)}
-                />
-              </>
-            )}
         </>
       )}
     </Stack>

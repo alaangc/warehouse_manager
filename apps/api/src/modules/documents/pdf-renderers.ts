@@ -94,7 +94,9 @@ export interface RenderedDocumentPdf {
 }
 
 export function documentContentVersion(sourceVersion: string, documentType?: string): string {
-  return `${sourceVersion}:${documentType === 'TICKET' ? 'pdf-ticket-58mm-v2' : 'pdf-v1'}`;
+  // The same thermal layout version applies to every supported source type.
+  void documentType;
+  return `${sourceVersion}:pdf-thermal-58mm-v3`;
 }
 
 export function documentPdfFilename(source: {
@@ -205,8 +207,11 @@ const labels = {
   },
 } as const;
 type Label = keyof typeof labels.es;
+interface ThermalLayout {
+  field(key: Label, value: string | null | undefined, emphasized?: boolean): void;
+  table(columns: Column[], rows: Array<Partial<Record<Label, string | undefined>>>): void;
+}
 type Column = { key: Label; width: number; numeric?: boolean };
-const margin = 44;
 const contentWidth = 507.28;
 
 function parse<T extends z.ZodType>(schema: T, value: unknown): z.output<T> {
@@ -222,103 +227,11 @@ function literal(value: string): string {
   return value.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '');
 }
 
-class Layout {
-  constructor(
-    private readonly doc: PDFKit.PDFDocument,
-    private readonly lang: typeof labels.es | typeof labels.en,
-  ) {}
-  private room(height: number) {
-    if (this.doc.y + height > this.doc.page.height - 60) this.doc.addPage();
-  }
-  field(key: Label, value: string | null | undefined, emphasized = false) {
-    if (value === undefined || value === null) return;
-    this.room(30);
-    this.doc
-      .font(emphasized ? 'Helvetica-Bold' : 'Helvetica')
-      .fontSize(emphasized ? 13 : 10)
-      .fillColor('#172B3A')
-      .text(`${this.lang[key]}: ${literal(value)}`, margin, this.doc.y, { width: contentWidth });
-    this.doc.moveDown(0.45);
-  }
-  table(columns: Column[], rows: Array<Partial<Record<Label, string | undefined>>>) {
-    if (!rows.length) {
-      this.doc
-        .font('Helvetica')
-        .fontSize(10)
-        .text(this.lang.empty, margin, this.doc.y, { width: contentWidth });
-      this.doc.moveDown();
-      return;
-    }
-    const header = () => {
-      this.room(48);
-      const y = this.doc.y;
-      this.doc.rect(margin, y, contentWidth, 28).fill('#EAF0F4');
-      let x = margin;
-      for (const column of columns) {
-        this.doc
-          .font('Helvetica-Bold')
-          .fontSize(9)
-          .fillColor('#172B3A')
-          .text(this.lang[column.key], x + 6, y + 8, {
-            width: column.width - 12,
-            lineBreak: false,
-            align: column.numeric ? 'right' : 'left',
-          });
-        x += column.width;
-      }
-      this.doc.y = y + 34;
-    };
-    header();
-    for (const row of rows) {
-      this.doc.font('Helvetica').fontSize(9);
-      const height =
-        Math.max(
-          ...columns.map((column) =>
-            this.doc.heightOfString(literal(row[column.key] ?? ''), { width: column.width - 12 }),
-          ),
-          12,
-        ) + 14;
-      // Oversized records use normal flowing text so no field is clipped or discarded.
-      if (height > this.doc.page.height - 180) {
-        for (const column of columns) this.field(column.key, row[column.key]);
-        header();
-        continue;
-      }
-      if (this.doc.y + height > this.doc.page.height - 60) {
-        this.doc.addPage();
-        header();
-      }
-      const y = this.doc.y;
-      let x = margin;
-      for (const column of columns) {
-        this.doc
-          .font('Helvetica')
-          .fontSize(9)
-          .fillColor('#172B3A')
-          .text(literal(row[column.key] ?? ''), x + 6, y + 4, {
-            width: column.width - 12,
-            align: column.numeric ? 'right' : 'left',
-          });
-        x += column.width;
-      }
-      this.doc
-        .moveTo(margin, y + height - 3)
-        .lineTo(margin + contentWidth, y + height - 3)
-        .strokeColor('#DFE5EA')
-        .lineWidth(0.5)
-        .stroke();
-      this.doc.y = y + height;
-    }
-    this.doc.x = margin;
-    this.doc.moveDown();
-  }
-}
-
 /** Roll-paper layout: 58 mm media, 48 mm printable area, black text and measured height. */
-function renderThermalTicket(
+function renderThermalDocument(
   doc: PDFKit.PDFDocument,
   source: z.output<typeof sourceSchema>,
-  ticket: z.output<typeof ticketSchema>,
+  content: (layout: ThermalLayout) => void,
 ) {
   const lang = labels[source.locale];
   const mm = 72 / 25.4;
@@ -365,36 +278,22 @@ function renderThermalTicket(
       remaining = remaining.slice(length);
     }
   };
-  const field = (key: Label, value: string | undefined, bold = false) => {
-    if (value !== undefined) add(lang[key] + ': ' + value, bold ? 11 : 9, bold);
+  const field = (key: Label, value: string | null | undefined, bold = false) => {
+    if (value !== undefined && value !== null) add(lang[key] + ': ' + value, bold ? 11 : 9, bold);
   };
-  add(lang.TICKET, 12, true);
+  add(lang[source.documentType], 12, true);
   add('Warehouse Manager', 9);
-  field('createdAt', new Date(source.createdAt).toISOString());
-  field('businessTimezone', source.businessTimezone);
-  field('currencyCode', ticket.currencyCode ?? source.currencyCode);
-  field('ticketNumber', ticket.ticketNumber);
-  field('saleNumber', ticket.saleNumber);
-  field('paymentMethod', ticket.paymentMethod);
-  if (!ticket.lines.length) add(lang.empty);
-  for (const line of ticket.lines) {
-    const details = line.quantity + ' ' + line.unitCode + ' x ' + line.unitPrice;
-    const amount = lang.lineAmount + ': ' + line.lineAmount;
-    const itemHeight =
-      measure(literal(line.productName), 10, true) +
-      measure(literal(details), 9, false) +
-      measure(literal(amount), 9, false) +
-      12;
-    // Keep a product and its amounts together whenever the complete item fits on a page.
-    if (itemHeight <= maxBodyHeight && heights[pages.length - 1]! + itemHeight > maxBodyHeight) {
-      pages.push([]);
-      heights.push(0);
-    }
-    add(line.productName, 10, true);
-    add(details);
-    add(amount);
-  }
-  field('total', ticket.total, true);
+  content({
+    field,
+    table(columns, rows) {
+      if (!rows.length) add(lang.empty);
+      for (const row of rows) {
+        for (const column of columns)
+          field(column.key, row[column.key], column.key === 'productName');
+        add('------------------------', 8);
+      }
+    },
+  });
   pages.forEach((blocks, index) => {
     const height = Math.max(50 * mm, heights[index]! + padding * 2 + footerHeight);
     doc.addPage({
@@ -447,8 +346,6 @@ export async function renderDocumentPdf(input: unknown): Promise<RenderedDocumen
   const lang = labels[source.locale];
   const createdAt = new Date(source.createdAt);
   const doc = new PDFDocument({
-    size: 'A4',
-    margins: { top: 100, bottom: 60, left: margin, right: margin },
     autoFirstPage: false,
     bufferPages: true,
     compress: true,
@@ -471,30 +368,7 @@ export async function renderDocumentPdf(input: unknown): Promise<RenderedDocumen
   // Attach rejection observation before rendering, including synchronous writer failures.
   void output.catch(() => undefined);
   try {
-    if (ticket) {
-      renderThermalTicket(doc, source, ticket);
-    } else {
-      doc.on('pageAdded', () => {
-        doc
-          .font('Helvetica-Bold')
-          .fontSize(18)
-          .fillColor('#172B3A')
-          .text(lang[source.documentType], margin, 35, { width: contentWidth });
-        doc
-          .font('Helvetica')
-          .fontSize(8)
-          .fillColor('#546575')
-          .text(`Warehouse Manager  |  ${source.sourceId}`, margin, 61, { width: contentWidth });
-        doc
-          .moveTo(margin, 80)
-          .lineTo(margin + contentWidth, 80)
-          .strokeColor('#DFE5EA')
-          .stroke();
-        doc.x = margin;
-        doc.y = 100;
-      });
-      doc.addPage();
-      const layout = new Layout(doc, lang);
+    renderThermalDocument(doc, source, (layout) => {
       layout.field('createdAt', createdAt.toISOString());
       layout.field(
         'businessTimezone',
@@ -502,8 +376,27 @@ export async function renderDocumentPdf(input: unknown): Promise<RenderedDocumen
       );
       layout.field(
         'currencyCode',
-        cash?.currencyCode ?? report?.totals?.currencyCode ?? source.currencyCode,
+        ticket?.currencyCode ??
+          cash?.currencyCode ??
+          report?.totals?.currencyCode ??
+          source.currencyCode,
       );
+      if (ticket) {
+        layout.field('ticketNumber', ticket.ticketNumber);
+        layout.field('saleNumber', ticket.saleNumber);
+        layout.field('paymentMethod', ticket.paymentMethod);
+        layout.table(
+          [
+            { key: 'productName', width: 1 },
+            { key: 'quantity', width: 1 },
+            { key: 'unitCode', width: 1 },
+            { key: 'unitPrice', width: 1 },
+            { key: 'lineAmount', width: 1 },
+          ],
+          ticket.lines,
+        );
+        layout.field('total', ticket.total, true);
+      }
       if (load) {
         layout.field('loadNumber', load.loadNumber);
         layout.field('routeNumber', load.routeNumber);
@@ -535,7 +428,6 @@ export async function renderDocumentPdf(input: unknown): Promise<RenderedDocumen
           layout.field('expectedQuantity', item.expectedQuantity);
           layout.field('differenceQuantity', item.differenceQuantity);
           if (item.differenceReason) layout.field('differenceReason', item.differenceReason);
-          doc.moveDown();
         }
       }
       if (cash) {
@@ -589,7 +481,6 @@ export async function renderDocumentPdf(input: unknown): Promise<RenderedDocumen
         if (present.length > 5) {
           for (const row of report.rows) {
             for (const key of present) layout.field(key, row[key]);
-            doc.moveDown();
           }
         } else {
           const weights = present.map((key) =>
@@ -617,23 +508,7 @@ export async function renderDocumentPdf(input: unknown): Promise<RenderedDocumen
           ] as const)
             layout.field(key, report.totals[key], key === 'grossTotal');
       }
-      const pages = doc.bufferedPageRange();
-      for (let index = pages.start; index < pages.start + pages.count; index++) {
-        doc.switchToPage(index);
-        const bottom = doc.page.margins.bottom;
-        doc.page.margins.bottom = 0;
-        doc
-          .font('Helvetica')
-          .fontSize(8)
-          .fillColor('#546575')
-          .text(`${lang.page} ${index + 1} / ${pages.count}`, margin, doc.page.height - 38, {
-            width: contentWidth,
-            align: 'right',
-            lineBreak: false,
-          });
-        doc.page.margins.bottom = bottom;
-      }
-    }
+    });
     doc.end();
     const bytes = await output;
     return {
