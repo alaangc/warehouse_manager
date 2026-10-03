@@ -93,8 +93,8 @@ export interface RenderedDocumentPdf {
   contentType: 'application/pdf';
 }
 
-export function documentContentVersion(sourceVersion: string): string {
-  return `${sourceVersion}:pdf-v1`;
+export function documentContentVersion(sourceVersion: string, documentType?: string): string {
+  return `${sourceVersion}:${documentType === 'TICKET' ? 'pdf-ticket-58mm-v2' : 'pdf-v1'}`;
 }
 
 export function documentPdfFilename(source: {
@@ -314,6 +314,117 @@ class Layout {
   }
 }
 
+/** Roll-paper layout: 58 mm media, 48 mm printable area, black text and measured height. */
+function renderThermalTicket(
+  doc: PDFKit.PDFDocument,
+  source: z.output<typeof sourceSchema>,
+  ticket: z.output<typeof ticketSchema>,
+) {
+  const lang = labels[source.locale];
+  const mm = 72 / 25.4;
+  const width = 58 * mm;
+  const inset = 5 * mm;
+  const printableWidth = width - inset * 2;
+  const padding = 3 * mm;
+  const footerHeight = 14;
+  // Bound page length for mobile rasterizers; long sales continue on another 58 mm page.
+  const maxBodyHeight = 280 * mm - padding * 2 - footerHeight;
+  type Block = { text: string; size: number; bold: boolean; height: number };
+  const pages: Block[][] = [[]];
+  const heights = [0];
+  const measure = (value: string, size: number, bold: boolean) => {
+    doc.font(bold ? 'Helvetica-Bold' : 'Helvetica').fontSize(size);
+    return doc.heightOfString(value, { width: printableWidth, lineGap: 1 });
+  };
+  const add = (value: string, size = 9, bold = false) => {
+    let remaining = literal(value);
+    while (remaining.length) {
+      let length = remaining.length;
+      if (measure(remaining, size, bold) + 4 > maxBodyHeight) {
+        let low = 1;
+        let high = length;
+        while (low < high) {
+          const middle = Math.ceil((low + high) / 2);
+          if (measure(remaining.slice(0, middle), size, bold) + 4 <= maxBodyHeight) low = middle;
+          else high = middle - 1;
+        }
+        length = low;
+        const boundary = remaining.lastIndexOf(' ', length);
+        if (boundary > 0) length = boundary + 1;
+      }
+      const value = remaining.slice(0, length);
+      const height = measure(value, size, bold) + 4;
+      let index = pages.length - 1;
+      if (heights[index]! + height > maxBodyHeight) {
+        pages.push([]);
+        heights.push(0);
+        index++;
+      }
+      pages[index]!.push({ text: value, size, bold, height });
+      heights[index] = heights[index]! + height;
+      remaining = remaining.slice(length);
+    }
+  };
+  const field = (key: Label, value: string | undefined, bold = false) => {
+    if (value !== undefined) add(lang[key] + ': ' + value, bold ? 11 : 9, bold);
+  };
+  add(lang.TICKET, 12, true);
+  add('Warehouse Manager', 9);
+  field('createdAt', new Date(source.createdAt).toISOString());
+  field('businessTimezone', source.businessTimezone);
+  field('currencyCode', ticket.currencyCode ?? source.currencyCode);
+  field('ticketNumber', ticket.ticketNumber);
+  field('saleNumber', ticket.saleNumber);
+  field('paymentMethod', ticket.paymentMethod);
+  if (!ticket.lines.length) add(lang.empty);
+  for (const line of ticket.lines) {
+    const details = line.quantity + ' ' + line.unitCode + ' x ' + line.unitPrice;
+    const amount = lang.lineAmount + ': ' + line.lineAmount;
+    const itemHeight =
+      measure(literal(line.productName), 10, true) +
+      measure(literal(details), 9, false) +
+      measure(literal(amount), 9, false) +
+      12;
+    // Keep a product and its amounts together whenever the complete item fits on a page.
+    if (itemHeight <= maxBodyHeight && heights[pages.length - 1]! + itemHeight > maxBodyHeight) {
+      pages.push([]);
+      heights.push(0);
+    }
+    add(line.productName, 10, true);
+    add(details);
+    add(amount);
+  }
+  field('total', ticket.total, true);
+  pages.forEach((blocks, index) => {
+    const height = Math.max(50 * mm, heights[index]! + padding * 2 + footerHeight);
+    doc.addPage({
+      size: [width, height],
+      margins: { top: padding, bottom: padding, left: inset, right: inset },
+    });
+    let y = padding;
+    for (const block of blocks) {
+      doc
+        .font(block.bold ? 'Helvetica-Bold' : 'Helvetica')
+        .fontSize(block.size)
+        .fillColor('#000000')
+        .text(block.text, inset, y, { width: printableWidth, lineGap: 1 });
+      y += block.height;
+    }
+    if (pages.length > 1) {
+      doc
+        .font('Helvetica')
+        .fontSize(7)
+        .fillColor('#000000')
+        .text(
+          lang.page + ' ' + (index + 1) + ' / ' + pages.length,
+          inset,
+          height - padding - footerHeight,
+          { width: printableWidth, lineBreak: false, align: 'center' },
+        );
+    }
+  });
+}
+
 /** Pure snapshot-to-bytes operation: no database, storage, clock-based IDs or source mutations. */
 export async function renderDocumentPdf(input: unknown): Promise<RenderedDocumentPdf> {
   const source = parse(sourceSchema, input);
@@ -360,183 +471,168 @@ export async function renderDocumentPdf(input: unknown): Promise<RenderedDocumen
   // Attach rejection observation before rendering, including synchronous writer failures.
   void output.catch(() => undefined);
   try {
-    doc.on('pageAdded', () => {
-      doc
-        .font('Helvetica-Bold')
-        .fontSize(18)
-        .fillColor('#172B3A')
-        .text(lang[source.documentType], margin, 35, { width: contentWidth });
-      doc
-        .font('Helvetica')
-        .fontSize(8)
-        .fillColor('#546575')
-        .text(`Warehouse Manager  |  ${source.sourceId}`, margin, 61, { width: contentWidth });
-      doc
-        .moveTo(margin, 80)
-        .lineTo(margin + contentWidth, 80)
-        .strokeColor('#DFE5EA')
-        .stroke();
-      doc.x = margin;
-      doc.y = 100;
-    });
-    doc.addPage();
-    const layout = new Layout(doc, lang);
-    layout.field('createdAt', createdAt.toISOString());
-    layout.field(
-      'businessTimezone',
-      source.businessTimezone ?? cash?.businessTimezone ?? report?.businessTimezone,
-    );
-    layout.field(
-      'currencyCode',
-      ticket?.currencyCode ??
-        cash?.currencyCode ??
-        report?.totals?.currencyCode ??
-        source.currencyCode,
-    );
     if (ticket) {
-      layout.field('ticketNumber', ticket.ticketNumber);
-      layout.field('saleNumber', ticket.saleNumber);
-      layout.field('paymentMethod', ticket.paymentMethod);
-      layout.table(
-        [
-          { key: 'productName', width: 207.28 },
-          { key: 'quantity', width: 70, numeric: true },
-          { key: 'unitCode', width: 50 },
-          { key: 'unitPrice', width: 90, numeric: true },
-          { key: 'lineAmount', width: 90, numeric: true },
-        ],
-        ticket.lines,
-      );
-      layout.field('total', ticket.total, true);
-    }
-    if (load) {
-      layout.field('loadNumber', load.loadNumber);
-      layout.field('routeNumber', load.routeNumber);
-      layout.table(
-        [
-          { key: 'productName', width: 337.28 },
-          { key: 'quantity', width: 100, numeric: true },
-          { key: 'unitCode', width: 70 },
-        ],
-        load.lines,
-      );
-    }
-    if (returned) {
-      layout.field('routeNumber', returned.routeNumber);
+      renderThermalTicket(doc, source, ticket);
+    } else {
+      doc.on('pageAdded', () => {
+        doc
+          .font('Helvetica-Bold')
+          .fontSize(18)
+          .fillColor('#172B3A')
+          .text(lang[source.documentType], margin, 35, { width: contentWidth });
+        doc
+          .font('Helvetica')
+          .fontSize(8)
+          .fillColor('#546575')
+          .text(`Warehouse Manager  |  ${source.sourceId}`, margin, 61, { width: contentWidth });
+        doc
+          .moveTo(margin, 80)
+          .lineTo(margin + contentWidth, 80)
+          .strokeColor('#DFE5EA')
+          .stroke();
+        doc.x = margin;
+        doc.y = 100;
+      });
+      doc.addPage();
+      const layout = new Layout(doc, lang);
+      layout.field('createdAt', createdAt.toISOString());
       layout.field(
-        'returnKind',
-        returned.kind === 'APPROVED'
-          ? source.locale === 'es'
-            ? 'Aprobada'
-            : 'Approved'
-          : source.locale === 'es'
-            ? 'Declarada por el vendedor; pendiente de conciliación'
-            : 'Declared by seller; pending reconciliation',
+        'businessTimezone',
+        source.businessTimezone ?? cash?.businessTimezone ?? report?.businessTimezone,
       );
-      for (const item of returned.lines) {
-        layout.field('productName', item.productName);
-        layout.field('quantity', item.quantity);
-        layout.field('unitCode', item.unitCode);
-        layout.field('expectedQuantity', item.expectedQuantity);
-        layout.field('differenceQuantity', item.differenceQuantity);
-        if (item.differenceReason) layout.field('differenceReason', item.differenceReason);
-        doc.moveDown();
-      }
-    }
-    if (cash) {
-      layout.field('closeNumber', cash.closeNumber);
-      for (const key of [
-        'periodKind',
-        'anchorDate',
-        'periodStart',
-        'periodEnd',
-        'supersedesCashCloseId',
-        'correctionReason',
-      ] as const)
-        layout.field(key, cash[key]);
-      if (cash.lines)
+      layout.field(
+        'currencyCode',
+        cash?.currencyCode ?? report?.totals?.currencyCode ?? source.currencyCode,
+      );
+      if (load) {
+        layout.field('loadNumber', load.loadNumber);
+        layout.field('routeNumber', load.routeNumber);
         layout.table(
           [
-            { key: 'reportingGroup', width: 337.28 },
-            { key: 'total', width: 170, numeric: true },
+            { key: 'productName', width: 337.28 },
+            { key: 'quantity', width: 100, numeric: true },
+            { key: 'unitCode', width: 70 },
           ],
-          cash.lines,
-        );
-      for (const key of [
-        'grossTotal',
-        'expensesTotal',
-        'netTotal',
-        'partnerRate',
-        'partnerShare',
-        'ownerShare',
-      ] as const)
-        layout.field(key, cash[key], key === 'grossTotal');
-    }
-    if (report) {
-      layout.field('reportType', report.reportType);
-      for (const key of ['periodKind', 'anchorDate', 'periodStart', 'periodEnd'] as const)
-        layout.field(key, report.filters?.[key]);
-      const keys = [
-        'branchName',
-        'branchCode',
-        'driverName',
-        'productName',
-        'reportingGroup',
-        'saleCount',
-        'quantity',
-        'unitCode',
-        'unitPrice',
-        'lineAmount',
-        'total',
-      ] as const;
-      const present = keys.filter((key) => report.rows.some((row) => row[key] !== undefined));
-      // Wide or heterogeneous snapshots remain readable as flowing records instead of shrinking text.
-      if (present.length > 5) {
-        for (const row of report.rows) {
-          for (const key of present) layout.field(key, row[key]);
-          doc.moveDown();
-        }
-      } else {
-        const weights = present.map((key) =>
-          ['productName', 'branchName', 'driverName', 'reportingGroup'].includes(key) ? 2.5 : 1,
-        );
-        const weight = weights.reduce((sum, value) => sum + value, 0);
-        layout.table(
-          present.map((key, index) => ({
-            key,
-            width: (contentWidth * weights[index]!) / weight,
-            numeric: ['saleCount', 'quantity', 'unitPrice', 'lineAmount', 'total'].includes(key),
-          })),
-          report.rows,
+          load.lines,
         );
       }
-      layout.field('grossTotal', report.grossTotal, true);
-      if (report.totals)
+      if (returned) {
+        layout.field('routeNumber', returned.routeNumber);
+        layout.field(
+          'returnKind',
+          returned.kind === 'APPROVED'
+            ? source.locale === 'es'
+              ? 'Aprobada'
+              : 'Approved'
+            : source.locale === 'es'
+              ? 'Declarada por el vendedor; pendiente de conciliación'
+              : 'Declared by seller; pending reconciliation',
+        );
+        for (const item of returned.lines) {
+          layout.field('productName', item.productName);
+          layout.field('quantity', item.quantity);
+          layout.field('unitCode', item.unitCode);
+          layout.field('expectedQuantity', item.expectedQuantity);
+          layout.field('differenceQuantity', item.differenceQuantity);
+          if (item.differenceReason) layout.field('differenceReason', item.differenceReason);
+          doc.moveDown();
+        }
+      }
+      if (cash) {
+        layout.field('closeNumber', cash.closeNumber);
+        for (const key of [
+          'periodKind',
+          'anchorDate',
+          'periodStart',
+          'periodEnd',
+          'supersedesCashCloseId',
+          'correctionReason',
+        ] as const)
+          layout.field(key, cash[key]);
+        if (cash.lines)
+          layout.table(
+            [
+              { key: 'reportingGroup', width: 337.28 },
+              { key: 'total', width: 170, numeric: true },
+            ],
+            cash.lines,
+          );
         for (const key of [
           'grossTotal',
+          'expensesTotal',
+          'netTotal',
           'partnerRate',
           'partnerShare',
-          'partnerAmount',
           'ownerShare',
-          'remainingAmount',
         ] as const)
-          layout.field(key, report.totals[key], key === 'grossTotal');
-    }
-    const pages = doc.bufferedPageRange();
-    for (let index = pages.start; index < pages.start + pages.count; index++) {
-      doc.switchToPage(index);
-      const bottom = doc.page.margins.bottom;
-      doc.page.margins.bottom = 0;
-      doc
-        .font('Helvetica')
-        .fontSize(8)
-        .fillColor('#546575')
-        .text(`${lang.page} ${index + 1} / ${pages.count}`, margin, doc.page.height - 38, {
-          width: contentWidth,
-          align: 'right',
-          lineBreak: false,
-        });
-      doc.page.margins.bottom = bottom;
+          layout.field(key, cash[key], key === 'grossTotal');
+      }
+      if (report) {
+        layout.field('reportType', report.reportType);
+        for (const key of ['periodKind', 'anchorDate', 'periodStart', 'periodEnd'] as const)
+          layout.field(key, report.filters?.[key]);
+        const keys = [
+          'branchName',
+          'branchCode',
+          'driverName',
+          'productName',
+          'reportingGroup',
+          'saleCount',
+          'quantity',
+          'unitCode',
+          'unitPrice',
+          'lineAmount',
+          'total',
+        ] as const;
+        const present = keys.filter((key) => report.rows.some((row) => row[key] !== undefined));
+        // Wide or heterogeneous snapshots remain readable as flowing records instead of shrinking text.
+        if (present.length > 5) {
+          for (const row of report.rows) {
+            for (const key of present) layout.field(key, row[key]);
+            doc.moveDown();
+          }
+        } else {
+          const weights = present.map((key) =>
+            ['productName', 'branchName', 'driverName', 'reportingGroup'].includes(key) ? 2.5 : 1,
+          );
+          const weight = weights.reduce((sum, value) => sum + value, 0);
+          layout.table(
+            present.map((key, index) => ({
+              key,
+              width: (contentWidth * weights[index]!) / weight,
+              numeric: ['saleCount', 'quantity', 'unitPrice', 'lineAmount', 'total'].includes(key),
+            })),
+            report.rows,
+          );
+        }
+        layout.field('grossTotal', report.grossTotal, true);
+        if (report.totals)
+          for (const key of [
+            'grossTotal',
+            'partnerRate',
+            'partnerShare',
+            'partnerAmount',
+            'ownerShare',
+            'remainingAmount',
+          ] as const)
+            layout.field(key, report.totals[key], key === 'grossTotal');
+      }
+      const pages = doc.bufferedPageRange();
+      for (let index = pages.start; index < pages.start + pages.count; index++) {
+        doc.switchToPage(index);
+        const bottom = doc.page.margins.bottom;
+        doc.page.margins.bottom = 0;
+        doc
+          .font('Helvetica')
+          .fontSize(8)
+          .fillColor('#546575')
+          .text(`${lang.page} ${index + 1} / ${pages.count}`, margin, doc.page.height - 38, {
+            width: contentWidth,
+            align: 'right',
+            lineBreak: false,
+          });
+        doc.page.margins.bottom = bottom;
+      }
     }
     doc.end();
     const bytes = await output;

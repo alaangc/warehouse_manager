@@ -58,7 +58,10 @@ export class DocumentService {
     requestIdSchema.parse(requestId);
     // Authorization and confirmed-source checks precede canonical reuse and every side effect.
     const loaded = await this.documents.loadSource(principal, source);
-    const snapshot = { ...loaded, contentVersion: documentContentVersion(loaded.contentVersion) };
+    const snapshot = {
+      ...loaded,
+      contentVersion: documentContentVersion(loaded.contentVersion, loaded.documentType),
+    };
     const document = await this.documents.createOrReuse(
       principal,
       source,

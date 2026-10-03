@@ -143,7 +143,10 @@ export function createDocumentRouter(database: AppDatabase, environment: Environ
       sourceType: document.source_type,
       sourceId: document.source_id,
     });
-    if (documentContentVersion(source.contentVersion) !== document.content_version)
+    if (
+      documentContentVersion(source.contentVersion, source.documentType) !==
+      document.content_version
+    )
       throw new HttpProblem(409, 'DOCUMENT_VERSION_CONFLICT', 'Document version changed');
     response.set('Cache-Control', 'private, no-store').json({
       data: output(ThermalDocumentSchema, {
