@@ -38,7 +38,9 @@ it('prepares only authorized bytes and calls native share synchronously from the
   vi.stubGlobal('navigator', { share, canShare });
   const s = network(() => pdf());
   await mount('DocumentActions', { document });
-  const button = await screen.findByRole('button', { name: 'Share PDF' });
+  const button = await screen.findByRole('button', { name: 'Print ticket' });
+  expect(screen.queryByRole('button', { name: 'Share PDF' })).not.toBeInTheDocument();
+  expect(screen.getAllByRole('button')).toHaveLength(2);
   expect(share).not.toHaveBeenCalled();
   expect(s.calls).toHaveLength(1);
   await waitFor(() => expect(button).toBeEnabled());
@@ -100,7 +102,7 @@ it.each(['AbortError', 'NotAllowedError', 'DataError'])(
     const { click } = downloadMocks();
     network(() => pdf());
     await mount('DocumentActions', { document });
-    fireEvent.click(await screen.findByRole('button', { name: 'Share PDF' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Print ticket' }));
     expect(await screen.findByRole('status')).toHaveTextContent(
       name === 'AbortError' ? 'Sharing cancelled.' : 'Sharing is unavailable.',
     );
@@ -121,7 +123,7 @@ it('prevents simultaneous native share dialogs', async () => {
   vi.stubGlobal('navigator', { share, canShare: () => true });
   network(() => pdf());
   await mount('DocumentActions', { document });
-  const button = await screen.findByRole('button', { name: 'Share PDF' });
+  const button = await screen.findByRole('button', { name: 'Print ticket' });
   fireEvent.click(button);
   fireEvent.click(button);
   expect(share).toHaveBeenCalledTimes(1);

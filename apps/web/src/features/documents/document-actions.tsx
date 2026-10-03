@@ -1,6 +1,6 @@
 import { Alert, Button, CircularProgress, Stack, Typography } from '@mui/material';
 import type { DocumentResource } from '@warehouse/contracts';
-import { Download, Printer, RefreshCw, Share2 } from 'lucide-react';
+import { Download, Printer, RefreshCw } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSession } from '../../app/session.js';
@@ -147,17 +147,6 @@ function FileActions({ document, disabled = false, onDenied }: Props) {
             onClick={() => void share()}
           >
             {t('documents.printTicket')}
-          </Button>
-        )}
-        {!denied && file && canShare(file) && (
-          <Button
-            startIcon={<Share2 size={18} />}
-            variant="text"
-            size="medium"
-            disabled={blocked}
-            onClick={() => void share()}
-          >
-            {t('documents.share')}
           </Button>
         )}
         {preparing && <CircularProgress size={24} aria-label={t('documents.preparingShare')} />}
