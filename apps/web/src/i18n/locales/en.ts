@@ -463,7 +463,8 @@ export const en = {
     saveSettings: 'Save business settings',
     settingsHelp:
       'Currency and timezone changes apply to future operations. Historical sales and cash closes keep their original values.',
-    fixedRules: 'Fixed rules: 50% partner share, two decimal places, half-away-from-zero rounding.',
+    fixedRules:
+      'Fixed rules: 50% of charcoal sales for the partner, two decimal places, half-away-from-zero rounding.',
     settingsValidation:
       'Enter a three-letter uppercase currency code, a business timezone, and a reason.',
   },

@@ -476,7 +476,7 @@ export const es: DeepTranslation<typeof en> = {
     settingsHelp:
       'Los cambios de moneda y zona horaria se aplican a operaciones futuras. Las ventas y cortes históricos conservan sus valores originales.',
     fixedRules:
-      'Reglas fijas: 50% para el socio, dos decimales y redondeo de mitades alejándose de cero.',
+      'Reglas fijas: 50% de las ventas de carbón para el socio, dos decimales y redondeo de mitades alejándose de cero.',
     settingsValidation:
       'Indica un código de moneda de tres letras mayúsculas, una zona horaria y un motivo.',
   },

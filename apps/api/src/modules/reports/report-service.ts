@@ -3,8 +3,8 @@ import type { AppDatabase } from '../../db/database.js';
 import type { Database, JsonValue, ReportType } from '../../db/types.js';
 import { runSerializable } from '../../db/serializable-transaction.js';
 import { AuditWriter } from '../../shared/audit/audit-service.js';
-import { calculatePartnerShare, sumMoney } from '../../shared/money.js';
-import { REPORTING_GROUPS } from './financial-calculations.js';
+import { sumMoney } from '../../shared/money.js';
+import { calculateCharcoalShare, REPORTING_GROUPS } from './financial-calculations.js';
 import { reportingInstant } from './cash-close-service.js';
 import { ReportRepository } from './report-repository.js';
 import { ReportingError, runReportCommand, type ReportCommandContext } from './report-command.js';
@@ -144,7 +144,10 @@ export class ReportService {
           currencyCode: settings.currency_code,
           grossTotal,
           partnerRate: '0.500000',
-          ...calculatePartnerShare(grossTotal),
+          ...calculateCharcoalShare(
+            grossTotal,
+            lines.find((line) => line.reportingGroup === 'CHARCOAL')!.total,
+          ),
         },
       },
       sourceWatermark: await repository.saleSourceWatermark(period),

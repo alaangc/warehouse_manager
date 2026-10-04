@@ -1,4 +1,18 @@
-import { calculateLineAmount, calculatePartnerShare, sumMoney } from '../../shared/money.js';
+import {
+  calculateLineAmount,
+  calculatePartnerShare,
+  sumMoney,
+  canonicalDecimal,
+  parseExactDecimal,
+} from '../../shared/money.js';
+
+export function calculateCharcoalShare(grossTotal: string, charcoalTotal: string) {
+  const { partnerAmount } = calculatePartnerShare(charcoalTotal);
+  return {
+    partnerAmount,
+    remainingAmount: canonicalDecimal(parseExactDecimal(grossTotal).minus(partnerAmount), 2),
+  };
+}
 
 export const REPORTING_GROUPS = ['SODAS', 'CHARCOAL', 'TOSTADAS', 'OTHER'] as const;
 export type ReportingGroup = (typeof REPORTING_GROUPS)[number];
@@ -39,7 +53,7 @@ export function calculateFinancialSummary(inputs: readonly FinancialLineInput[])
     ]),
   ) as Record<ReportingGroup, string>;
   const grossTotal = sumMoney(REPORTING_GROUPS.map((group) => groupTotals[group]));
-  const share = calculatePartnerShare(grossTotal);
+  const share = calculateCharcoalShare(grossTotal, groupTotals.CHARCOAL);
   return {
     lines,
     groupTotals,

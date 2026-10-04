@@ -27,16 +27,16 @@ describe('cash-close financial calculations', () => {
     expect(result.grossTotal).toBe('17.12');
     expect(result).toMatchObject({
       partnerRate: '0.500000',
-      partnerAmount: '8.56',
-      remainingAmount: '8.56',
+      partnerAmount: '2.50',
+      remainingAmount: '14.62',
       roundingMode: 'HALF_AWAY_FROM_ZERO',
     });
   });
 
   it('uses decimal half-away rounding and subtracts the rounded share from gross', () => {
     const result = calculateFinancialSummary([
-      { reportingGroup: 'OTHER', unitPrice: '1.0050', quantity: '1' },
-      { reportingGroup: 'OTHER', unitPrice: '2.6750', quantity: '1' },
+      { reportingGroup: 'CHARCOAL', unitPrice: '1.0050', quantity: '1' },
+      { reportingGroup: 'CHARCOAL', unitPrice: '2.6750', quantity: '1' },
     ]);
     expect(result.lines.map((line) => line.lineAmount)).toEqual(['1.01', '2.68']);
     expect(result.grossTotal).toBe('3.69');
@@ -56,16 +56,18 @@ describe('cash-close financial calculations', () => {
       OTHER: '0.00',
     });
     expect(result.grossTotal).toBe('0.30');
-    expect(result.partnerAmount).toBe('0.15');
-    expect(result.remainingAmount).toBe('0.15');
+    expect(result.partnerAmount).toBe('0.00');
+    expect(result.remainingAmount).toBe('0.30');
   });
 
   it('rejects malformed, negative, and unknown financial inputs', () => {
     expect(() =>
-      calculateFinancialSummary([{ reportingGroup: 'OTHER', unitPrice: '1e2', quantity: '1' }]),
+      calculateFinancialSummary([{ reportingGroup: 'CHARCOAL', unitPrice: '1e2', quantity: '1' }]),
     ).toThrow('Invalid decimal string');
     expect(() =>
-      calculateFinancialSummary([{ reportingGroup: 'OTHER', unitPrice: '-1.0000', quantity: '1' }]),
+      calculateFinancialSummary([
+        { reportingGroup: 'CHARCOAL', unitPrice: '-1.0000', quantity: '1' },
+      ]),
     ).toThrow('Money cannot be negative');
     expect(() =>
       calculateFinancialSummary([

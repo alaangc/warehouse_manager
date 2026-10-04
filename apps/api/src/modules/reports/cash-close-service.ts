@@ -5,9 +5,9 @@ import type { AppDatabase } from '../../db/database.js';
 import type { Database } from '../../db/types.js';
 import { runSerializable } from '../../db/serializable-transaction.js';
 import { AuditWriter } from '../../shared/audit/audit-service.js';
-import { calculatePartnerShare, sumMoney } from '../../shared/money.js';
+import { sumMoney } from '../../shared/money.js';
 import { CashCloseRepository, type CashCloseProjection } from './cash-close-repository.js';
-import { REPORTING_GROUPS } from './financial-calculations.js';
+import { calculateCharcoalShare, REPORTING_GROUPS } from './financial-calculations.js';
 import { ReportRepository } from './report-repository.js';
 import { ReportingError, runReportCommand, type ReportCommandContext } from './report-command.js';
 import {
@@ -165,7 +165,10 @@ export class CashCloseService {
       currencyCode,
       grossTotal,
       partnerRate: '0.500000',
-      ...calculatePartnerShare(grossTotal),
+      ...calculateCharcoalShare(
+        grossTotal,
+        lines.find((line) => line.reportingGroup === 'CHARCOAL')!.total,
+      ),
       roundingMode: 'HALF_AWAY_FROM_ZERO',
       createdBy: context.actorId,
       idempotencyRequestId,

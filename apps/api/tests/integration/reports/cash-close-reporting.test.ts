@@ -201,8 +201,8 @@ describe('cash-close snapshots and transaction rollback', () => {
       periodStart: '2026-09-04T07:00:00Z',
       periodEnd: '2026-09-05T07:00:00Z',
       grossTotal: '10.01',
-      partnerAmount: '5.01',
-      remainingAmount: '5.00',
+      partnerAmount: '0.00',
+      remainingAmount: '10.01',
       contributingSaleIds: [included.sale.id],
     });
     expect(created.contributingSaleIds).not.toContain(cancelled.sale.id);
@@ -244,6 +244,26 @@ describe('cash-close snapshots and transaction rollback', () => {
       select sale_id, included_amount from cash_close_sale where cash_close_id = ${created.id}
     `.execute(database);
     expect(linkedSales.rows).toEqual([{ sale_id: included.sale.id, included_amount: '10.01' }]);
+  });
+
+  it('splits only charcoal in mixed-sale reports, new closes, and corrections', async () => {
+    await createCompletedSale({ unitPrice: '1000.0000', reportingGroup: 'CHARCOAL' });
+    await createCompletedSale({ unitPrice: '500.0000', reportingGroup: 'TOSTADAS' });
+    const expected = { grossTotal: '1510.01', partnerAmount: '500.00', remainingAmount: '1010.01' };
+    const report = await command('/report-snapshots', {
+      reportType: 'FINANCIAL_SUMMARY',
+      filters: { periodKind: 'DAY', anchorDate: '2026-09-04' },
+    });
+    expect(report.status).toBe(201);
+    expect(report.body.data.result.totals).toMatchObject(expected);
+    const close = await command('/cash-closes', { periodKind: 'MONTH', anchorDate: '2026-09-04' });
+    expect(close.status).toBe(201);
+    expect(close.body.data).toMatchObject(expected);
+    const correction = await command(`/cash-closes/${close.body.data.id}/corrections`, {
+      reason: 'Verify charcoal-only partner share',
+    });
+    expect(correction.status).toBe(201);
+    expect(correction.body.data).toMatchObject(expected);
   });
 
   it('stores resolved report snapshots with exact filters and source results', async () => {
