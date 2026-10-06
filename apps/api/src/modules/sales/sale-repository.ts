@@ -17,7 +17,7 @@ function summary(row: {
   customer_id: string;
   driver_id: string;
   route_id: string;
-  payment_method: 'CASH' | 'BANK_TRANSFER' | 'CARD';
+  payment_method: 'CASH' | 'BANK_TRANSFER' | 'CARD' | 'CHECK' | 'CREDIT';
   total: string;
   completed_at: Date;
   cancelled_at: Date | null;

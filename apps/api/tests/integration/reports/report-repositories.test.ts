@@ -75,7 +75,7 @@ describe('report repositories and database history constraints', () => {
     return {
       ...period,
       closeNumber: `CC-${crypto.randomUUID()}`,
-      currencyCode: 'MXN',
+      currencyCode: 'USD',
       grossTotal: '10.01',
       partnerRate: '0.500000',
       partnerAmount: '5.01',
@@ -241,7 +241,7 @@ describe('report repositories and database history constraints', () => {
       const input = await closeInput(database, { anchorDate: '2027-01-01' });
       const inserted = await sql<{ id: string }>`insert into cash_close
         (close_number, period_kind, anchor_date, business_timezone, period_start, period_end, currency_code, gross_total, partner_rate, partner_amount, remaining_amount, rounding_mode, created_by, idempotency_request_id, created_at)
-        values (${input.closeNumber}, 'DAY', '2027-01-01', 'America/Hermosillo', '2027-01-01T07:00:00Z', '2027-01-02T07:00:00Z', 'MXN', 0, 0.5, 0, 0, 'HALF_AWAY_FROM_ZERO', ${actorId}, ${input.idempotencyRequestId}, '2027-01-02T00:00:00.123456Z') returning id`.execute(
+        values (${input.closeNumber}, 'DAY', '2027-01-01', 'America/Hermosillo', '2027-01-01T07:00:00Z', '2027-01-02T07:00:00Z', 'USD', 0, 0.5, 0, 0, 'HALF_AWAY_FROM_ZERO', ${actorId}, ${input.idempotencyRequestId}, '2027-01-02T00:00:00.123456Z') returning id`.execute(
         database,
       );
       ids.push(inserted.rows[0]!.id);

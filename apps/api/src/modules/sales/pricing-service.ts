@@ -113,7 +113,7 @@ export class PricingService {
     return {
       customerId,
       routeId,
-      currencyCode: 'MXN',
+      currencyCode: 'USD',
       lines,
       total: sumMoney(lines.map((line) => line.lineAmount)),
       quotedAt: at.toISOString(),

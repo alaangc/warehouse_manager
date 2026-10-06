@@ -8,6 +8,7 @@ export type AuditAction =
   | 'CATALOG_CHANGED'
   | 'INVENTORY_CHANGED'
   | 'ROUTE_CHANGED'
+  | 'CREDIT_PAID'
   | 'SALE_CONFIRMED'
   | 'SALE_CANCELLED'
   | 'CASH_CLOSE_CREATED'

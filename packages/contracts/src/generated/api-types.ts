@@ -1132,6 +1132,50 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/customers/{customerId}/credits': {
+    parameters: {
+      query?: {
+        cursor?: components['parameters']['Cursor'];
+        limit?: components['parameters']['Limit'];
+      };
+      header?: never;
+      path: {
+        customerId: components['parameters']['CustomerId'];
+      };
+      cookie?: never;
+    };
+    /** List outstanding notes and credit payment receipts */
+    get: operations['getCustomerCredits'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/customers/{customerId}/credit-payments': {
+    parameters: {
+      query?: {
+        cursor?: components['parameters']['Cursor'];
+        limit?: components['parameters']['Limit'];
+      };
+      header?: never;
+      path: {
+        customerId: components['parameters']['CustomerId'];
+      };
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Settle selected credit notes in full */
+    post: operations['createCreditPayment'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1230,6 +1274,7 @@ export interface components {
               lineAmount: string;
             }[];
             total: string;
+            customerName?: string;
           };
         }
       | {
@@ -1285,6 +1330,34 @@ export interface components {
               reportingGroup: string;
               total: string;
             }[];
+          };
+        }
+      | {
+          /** Format: uuid */
+          id: string;
+          /** @constant */
+          documentType: 'CREDIT_RECEIPT';
+          sourceType: string;
+          /** Format: uuid */
+          sourceId: string;
+          contentVersion: string;
+          /** @enum {string} */
+          state: 'PENDING' | 'READY' | 'FAILED';
+          sourceState: string;
+          snapshot: {
+            ticketNumber: string;
+            saleNumber: string;
+            currencyCode: string;
+            paymentMethod?: string;
+            lines: {
+              productName: string;
+              unitCode: string;
+              quantity: string;
+              unitPrice: string;
+              lineAmount: string;
+            }[];
+            total: string;
+            customerName?: string;
           };
         };
     /** Format: uuid */
@@ -1692,7 +1765,8 @@ export interface components {
       reason: string;
     };
     BusinessSetting: {
-      currencyCode: string;
+      /** @constant */
+      currencyCode: 'USD';
       /** @constant */
       currencyScale: 2;
       businessTimezone: string;
@@ -1704,7 +1778,8 @@ export interface components {
     };
     BusinessSettingUpdateRequest: {
       expectedVersion: number;
-      currencyCode: string;
+      /** @constant */
+      currencyCode: 'USD';
       businessTimezone: string;
       reason: string;
     };
@@ -1912,12 +1987,12 @@ export interface components {
       data: components['schemas']['RouteDetail'];
     };
     /** @enum {string} */
-    PaymentMethod: 'CASH' | 'BANK_TRANSFER' | 'CARD';
+    PaymentMethod: 'CASH' | 'BANK_TRANSFER' | 'CARD' | 'CHECK' | 'CREDIT';
     /**
      * @description Payment methods accepted for new sales.
      * @enum {string}
      */
-    SalePaymentMethod: 'CASH' | 'BANK_TRANSFER';
+    SalePaymentMethod: 'CASH' | 'BANK_TRANSFER' | 'CHECK' | 'CREDIT';
     /** @enum {string} */
     SaleStatus: 'COMPLETED' | 'CANCELLED';
     SaleCreateLineRequest: {
@@ -1990,6 +2065,8 @@ export interface components {
       completedAt: string;
       /** Format: date-time */
       cancelledAt?: string | null;
+      /** @constant */
+      currencyCode?: 'USD';
     };
     Sale: {
       id: components['schemas']['Uuid'];
@@ -2126,7 +2203,8 @@ export interface components {
       data: components['schemas']['ReportSnapshot'];
     };
     /** @enum {string} */
-    DocumentType: 'TICKET' | 'ROUTE_LOAD' | 'ROUTE_RETURN' | 'CASH_CLOSE' | 'REPORT';
+    DocumentType:
+      'TICKET' | 'ROUTE_LOAD' | 'ROUTE_RETURN' | 'CASH_CLOSE' | 'REPORT' | 'CREDIT_RECEIPT';
     DocumentCreateRequest:
       | {
           /** @constant */
@@ -2165,6 +2243,14 @@ export interface components {
           documentType: 'REPORT';
           /** @constant */
           sourceType: 'REPORT_SNAPSHOT';
+          /** Format: uuid */
+          sourceId: string;
+        }
+      | {
+          /** @constant */
+          documentType: 'CREDIT_RECEIPT';
+          /** @constant */
+          sourceType: 'CREDIT_PAYMENT';
           /** Format: uuid */
           sourceId: string;
         };
@@ -2278,6 +2364,68 @@ export interface components {
       recordedBy: string;
       /** Format: date-time */
       createdAt: string;
+    };
+    CustomerCreditsResponse: {
+      data: {
+        notes: {
+          /** Format: uuid */
+          id: string;
+          saleNumber: string;
+          total: string;
+          /** @constant */
+          currencyCode: 'USD';
+          /** Format: date-time */
+          completedAt: string;
+        }[];
+        noteCount: number;
+        total: string;
+        /** @constant */
+        currencyCode: 'USD';
+        payments: {
+          /** Format: uuid */
+          id: string;
+          receiptNumber: string;
+          total: string;
+          /** @constant */
+          currencyCode: 'USD';
+          /** Format: date-time */
+          createdAt: string;
+        }[];
+      };
+    };
+    CreditPaymentRequest: {
+      saleIds: string[];
+      /** @enum {string} */
+      paymentMethod: 'CASH' | 'BANK_TRANSFER' | 'CHECK';
+    };
+    CreditPaymentResponse: {
+      data: {
+        /** Format: uuid */
+        id: string;
+        receiptNumber: string;
+        total: string;
+        /** @constant */
+        currencyCode: 'USD';
+        /** Format: date-time */
+        createdAt: string;
+        /** Format: uuid */
+        customerId: string;
+        snapshot: {
+          ticketNumber: string;
+          saleNumber: string;
+          currencyCode: string;
+          paymentMethod?: string;
+          lines: {
+            productName: string;
+            unitCode: string;
+            quantity: string;
+            unitPrice: string;
+            lineAmount: string;
+          }[];
+          total: string;
+          customerName?: string;
+        };
+      };
     };
   };
   responses: {
@@ -4425,7 +4573,13 @@ export interface operations {
         limit?: components['parameters']['Limit'];
         documentType?: components['schemas']['DocumentType'];
         state?: 'PENDING' | 'READY' | 'FAILED';
-        sourceType?: 'SALE' | 'ROUTE_LOAD' | 'CASH_CLOSE' | 'REPORT_SNAPSHOT' | 'ROUTE_RETURN';
+        sourceType?:
+          | 'SALE'
+          | 'ROUTE_LOAD'
+          | 'CASH_CLOSE'
+          | 'REPORT_SNAPSHOT'
+          | 'ROUTE_RETURN'
+          | 'CREDIT_PAYMENT';
         sourceId?: components['schemas']['Uuid'];
         /** @description Optional inclusive UTC instant for history filtering */
         from?: components['parameters']['HistoryFrom'];
@@ -5013,6 +5167,77 @@ export interface operations {
       409: components['responses']['Problem'];
       422: components['responses']['Problem'];
       429: components['responses']['Problem'];
+      500: components['responses']['Problem'];
+    };
+  };
+  getCustomerCredits: {
+    parameters: {
+      query?: {
+        cursor?: components['parameters']['Cursor'];
+        limit?: components['parameters']['Limit'];
+      };
+      header?: never;
+      path: {
+        customerId: components['parameters']['CustomerId'];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Customer credit balance */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CustomerCreditsResponse'];
+        };
+      };
+      400: components['responses']['Problem'];
+      401: components['responses']['Problem'];
+      403: components['responses']['Problem'];
+      404: components['responses']['Problem'];
+      409: components['responses']['Problem'];
+      422: components['responses']['Problem'];
+      429: components['responses']['Problem'];
+      500: components['responses']['Problem'];
+    };
+  };
+  createCreditPayment: {
+    parameters: {
+      query?: {
+        cursor?: components['parameters']['Cursor'];
+        limit?: components['parameters']['Limit'];
+      };
+      header: {
+        /** @description Unique key scoped to actor and operation; reuse requires identical content */
+        'Idempotency-Key': components['parameters']['IdempotencyKey'];
+      };
+      path: {
+        customerId: components['parameters']['CustomerId'];
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreditPaymentRequest'];
+      };
+    };
+    responses: {
+      /** @description Persisted credit payment */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CreditPaymentResponse'];
+        };
+      };
+      401: components['responses']['Problem'];
+      403: components['responses']['Problem'];
+      404: components['responses']['Problem'];
+      409: components['responses']['Problem'];
+      422: components['responses']['Problem'];
       500: components['responses']['Problem'];
     };
   };

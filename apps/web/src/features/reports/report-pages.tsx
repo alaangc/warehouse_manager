@@ -101,7 +101,7 @@ export function ReportPages() {
   if (!administrator) return <Alert severity="error">{t('reports.forbidden')}</Alert>;
   const result = report.data?.data;
   const currency =
-    typeof result?.totals?.currencyCode === 'string' ? result.totals.currencyCode : 'MXN';
+    typeof result?.totals?.currencyCode === 'string' ? result.totals.currencyCode : 'USD';
   function runReport() {
     if (reportType !== 'INVENTORY_BY_BRANCH' && !anchorDate) {
       setInvalid(true);

@@ -79,7 +79,7 @@ describe('user and settings HTTP contract', () => {
       'getRoleOverview',
     ])
       expect(contract).toContain(`operationId: ${operation}`);
-    expect(contract).toContain('required: [mode, printerProfileId, state]');
+    expect(contract).toMatch(/required: \[\s*mode, printerProfileId, state\s*\]/);
   });
 
   it('creates, lists, reads and updates users with safe fields and optimistic conflicts', async () => {
@@ -163,7 +163,7 @@ describe('user and settings HTTP contract', () => {
     expect(settings.status).toBe(200);
     const body = {
       expectedVersion: settings.body.data.version,
-      currencyCode: 'MXN',
+      currencyCode: 'USD',
       businessTimezone: 'America/Hermosillo',
       reason: 'Confirmed operating timezone',
     };
@@ -171,7 +171,7 @@ describe('user and settings HTTP contract', () => {
     expect(changed.status).toBe(200);
     expect(BusinessSettingResourceSchema.safeParse(changed.body.data).success).toBe(true);
     expect(changed.body.data).toMatchObject({
-      currencyCode: 'MXN',
+      currencyCode: 'USD',
       currencyScale: 2,
       businessTimezone: 'America/Hermosillo',
       partnerShareRate: '0.500000',

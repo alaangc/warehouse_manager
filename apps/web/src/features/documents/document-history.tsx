@@ -127,10 +127,10 @@ function History({
         );
   const choices: Record<string, string[]> = {
     documentType: administrator
-      ? ['TICKET', 'ROUTE_LOAD', 'ROUTE_RETURN', 'CASH_CLOSE', 'REPORT']
+      ? ['TICKET', 'CREDIT_RECEIPT', 'ROUTE_LOAD', 'ROUTE_RETURN', 'CASH_CLOSE', 'REPORT']
       : ['TICKET', 'ROUTE_LOAD', 'ROUTE_RETURN'],
     sourceType: administrator
-      ? ['SALE', 'ROUTE_LOAD', 'ROUTE_RETURN', 'CASH_CLOSE', 'REPORT_SNAPSHOT']
+      ? ['SALE', 'CREDIT_PAYMENT', 'ROUTE_LOAD', 'ROUTE_RETURN', 'CASH_CLOSE', 'REPORT_SNAPSHOT']
       : ['SALE', 'ROUTE_LOAD', 'ROUTE_RETURN'],
     state:
       collection === 'documents'

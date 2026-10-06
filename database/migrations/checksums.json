@@ -8,5 +8,6 @@
   "007_printer_settings.ts": "b3ffe4287c3b4f8c3540261130b9642e9edc5c719d241037c4d95b7f9e1a2234",
   "008_document_output.ts": "3f54995b152e7f444941353f7efb68851f6e94260558c6bfa73e3c63b170d025",
   "009_report_thermal_printing.ts": "8c7318fe6470fde5d835d2ede366a003027d13a2f4eaa399e0f93c246cef57b2",
-  "010_route_returns.ts": "b430ef21ffca515926325cfbec5b6510e8dd7ed6ac70b13c01cc5780c3b9f2fe"
+  "010_route_returns.ts": "b430ef21ffca515926325cfbec5b6510e8dd7ed6ac70b13c01cc5780c3b9f2fe",
+  "011_customer_credit_usd_notes.ts": "c473d53afc41f1b6416b148440b3810d1e3a4b80696723e187ba0c181c2af7ca"
 }

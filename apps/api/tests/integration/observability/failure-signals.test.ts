@@ -147,7 +147,7 @@ describe('persisted workflow failure signals', () => {
         SESSION_SECRET: 'x'.repeat(32),
         APP_ORIGIN: 'https://warehouse.test',
         BUSINESS_TIMEZONE: 'America/Hermosillo',
-        BUSINESS_CURRENCY: 'MXN',
+        BUSINESS_CURRENCY: 'USD',
         PORT: 3000,
         LOG_LEVEL: 'info',
         DOCUMENT_STORAGE_PATH: h.storage,

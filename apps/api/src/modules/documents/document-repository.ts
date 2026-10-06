@@ -17,6 +17,7 @@ import {
 
 export const sourcePairs = {
   TICKET: 'SALE',
+  CREDIT_RECEIPT: 'CREDIT_PAYMENT',
   ROUTE_LOAD: 'ROUTE_LOAD',
   ROUTE_RETURN: 'ROUTE_RETURN',
   CASH_CLOSE: 'CASH_CLOSE',
@@ -70,11 +71,18 @@ export const historyFilterSchema = z.object({
 const documentFilterSchema = historyFilterSchema
   .extend({
     documentType: z
-      .enum(['TICKET', 'ROUTE_LOAD', 'ROUTE_RETURN', 'CASH_CLOSE', 'REPORT'])
+      .enum(['TICKET', 'CREDIT_RECEIPT', 'ROUTE_LOAD', 'ROUTE_RETURN', 'CASH_CLOSE', 'REPORT'])
       .optional(),
     state: z.enum(['PENDING', 'READY', 'FAILED']).optional(),
     sourceType: z
-      .enum(['SALE', 'ROUTE_LOAD', 'ROUTE_RETURN', 'CASH_CLOSE', 'REPORT_SNAPSHOT'])
+      .enum([
+        'SALE',
+        'CREDIT_PAYMENT',
+        'ROUTE_LOAD',
+        'ROUTE_RETURN',
+        'CASH_CLOSE',
+        'REPORT_SNAPSHOT',
+      ])
       .optional(),
     sourceId: z.uuid().optional(),
   })
@@ -163,6 +171,21 @@ export class DocumentRepository {
     )
       documentForbidden();
     return inTransaction(this.database, async (db) => {
+      if (source.documentType === 'CREDIT_RECEIPT') {
+        const payment = await db
+          .selectFrom('credit_payment')
+          .selectAll()
+          .where('id', '=', source.sourceId)
+          .executeTakeFirst();
+        if (!payment) throw new HttpProblem(404, 'DOCUMENT_SOURCE_NOT_FOUND', 'Not Found');
+        return {
+          ...source,
+          state: 'COMPLETED',
+          contentVersion: '1',
+          createdAt: payment.created_at.toISOString(),
+          snapshot: payment.snapshot,
+        };
+      }
       if (source.documentType === 'TICKET') {
         const sale = await db
           .selectFrom('sale')

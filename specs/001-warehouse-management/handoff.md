@@ -1,3 +1,15 @@
+## USD, customer credit and sale notes - 2026-10-05
+
+Deployment preparation is in this worktree, based on production commit 2325149 on design/intuitive-sales-redesign. Preserve thermal PDF rendering for all document types and the existing system sharing print action.
+
+Includes migration 011_customer_credit_usd_notes: existing amounts stay unchanged, USD labels, sequential sale notes with legacy references retained, immutable credit settlements and credit receipts. Startup runs pending migrations automatically. The demo seed and render.yaml now use USD. On Render, update the existing BUSINESS_CURRENCY environment variable to USD; preserve database URL, passwords, session secret, proxy and origin settings.
+
+Validation: production build, typecheck, full ESLint and OpenAPI lint passed. Full test suite: 777 passed initially; 12 failures were rerun sequentially (local tsx needs an unrestricted OS user lookup). All remaining failures passed after fixing the existing print UI test to wait for its asynchronously prepared PDF before clicking. Additional thermal credit receipt test passed. No production database mutation or Render deploy has been performed in this session.
+
+Next: push the prepared revision to design/intuitive-sales-redesign, then trigger Manual Deploy on Render service srv-dahijlks728c73b96k50 (auto deploy is off), inspect migrations/startup logs and verify https://stockcontrol.cc/api/v1/health. At preparation time there is no connected browser or Render API credential available. Do not claim the revision is live until Render confirms it.
+
+---
+
 # Project continuation — application redesign next
 
 ## Latest continuation (2026-09-30)

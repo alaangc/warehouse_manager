@@ -46,7 +46,7 @@ function document(documentType = 'TICKET') {
       loadNumber: 'L-118',
       routeNumber: 'R-118',
       closeNumber: 'C-118',
-      currencyCode: 'MXN',
+      currencyCode: 'USD',
       lines:
         documentType === 'CASH_CLOSE'
           ? []
@@ -72,6 +72,41 @@ async function format(doc: unknown = document(), options = {}) {
   const { formatEscPos } = await import(formatterPath);
   return formatEscPos(doc, { profile, mode: 'PRINT', ...options }) as Uint8Array;
 }
+it('prints the customer, paid notes, check method and exact total on credit receipts', async () => {
+  const base = document();
+  const bytes = await format({
+    ...base,
+    documentType: 'CREDIT_RECEIPT',
+    sourceType: 'CREDIT_PAYMENT',
+    snapshot: {
+      ...base.snapshot,
+      ticketNumber: 'Pago: 001',
+      saleNumber: 'Nota: 001',
+      customerName: 'Customer One',
+      paymentMethod: 'CHECK',
+      lines: [
+        {
+          productName: 'Nota: 001 - Coal',
+          unitCode: 'BAG',
+          quantity: '2',
+          unitPrice: '10.0050',
+          lineAmount: '20.01',
+        },
+      ],
+    },
+  });
+  const text = new TextDecoder().decode(bytes);
+  for (const marker of [
+    'LIQUIDACION DE CREDITO',
+    'Customer One',
+    'Pago: 001',
+    'Nota: 001',
+    'Coal',
+    'Cheque',
+    '20.01 USD',
+  ])
+    expect(text).toContain(marker);
+});
 const transportBytes = new TextEncoder().encode('COMMITTED DOCUMENT\n0123456789\n\n');
 function transport(options = {}) {
   const events = new EventTarget();
@@ -212,7 +247,7 @@ describe('T118 ESC/POS templates (T129 red phase)', () => {
       supersedesCashCloseId: '00000000-0000-4000-8000-000000000121',
     };
     const text = String.fromCharCode(...(await format({ ...doc, snapshot })));
-    expect(text).toContain('SODAS: 20.01 MXN');
+    expect(text).toContain('SODAS: 20.01 USD');
     expect(text).toContain('Conteo revisado');
     expect(text).toContain('Sustituye:');
     expect(text).not.toContain('Gastos:');
@@ -302,7 +337,7 @@ describe('T118 ESC/POS templates (T129 red phase)', () => {
           filters: { periodStart: '2026-09-30T07:00:00Z' },
           rows: [{ reportingGroup: 'SODAS', total: '20.01' }],
           totals: {
-            currencyCode: 'MXN',
+            currencyCode: 'USD',
             grossTotal: '20.01',
             partnerAmount: '10.01',
             remainingAmount: '10.00',
@@ -314,8 +349,8 @@ describe('T118 ESC/POS templates (T129 red phase)', () => {
     const output = String.fromCharCode(...(await format(doc)));
     expect(output).toContain('REPORTE');
     expect(output).toContain('Refrescos');
-    expect(output).toContain('20.01 MXN');
-    expect(output).toContain('10.01 MXN');
+    expect(output).toContain('20.01 USD');
+    expect(output).toContain('10.01 USD');
     expect(output).toContain('2026-09-30T07:00:00Z');
     expect(doc).toEqual(before);
     await expect(format({ ...doc, sourceState: 'PENDING' })).rejects.toMatchObject({ status: 409 });

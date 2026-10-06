@@ -70,7 +70,7 @@ export function validateBusinessSettingChange(settings: {
   moneyRoundingMode: string;
 }) {
   if (
-    !/^[A-Z]{3}$/.test(settings.currencyCode) ||
+    settings.currencyCode !== 'USD' ||
     settings.currencyScale !== 2 ||
     settings.partnerShareRate !== '0.500000' ||
     settings.moneyRoundingMode !== 'HALF_AWAY_FROM_ZERO'

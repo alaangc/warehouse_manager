@@ -116,6 +116,7 @@ describe('T121 document output UI (red until T130–T132)', () => {
     await mount('DocumentCenter', { source });
     fireEvent.click(await screen.findByRole('button', { name: /prepare ticket/i }));
     const button = await screen.findByRole('button', { name: 'Print ticket' });
+    await waitFor(() => expect(button).toBeEnabled());
     expect(share).not.toHaveBeenCalled();
     fireEvent.click(button);
     await waitFor(() => expect(share).toHaveBeenCalledTimes(1));

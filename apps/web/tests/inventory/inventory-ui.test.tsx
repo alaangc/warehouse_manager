@@ -347,7 +347,7 @@ describe('inventory and catalog UI', () => {
     );
 
     expect(await screen.findByRole('heading', { name: 'Low widget' })).toBeVisible();
-    expect(screen.getByText('MXN 12.3456')).toBeVisible();
+    expect(screen.getByText('USD 12.3456')).toBeVisible();
     expect(screen.getByText('Sodas')).toBeVisible();
     expect(screen.getByText('Piece')).toBeVisible();
     expect(screen.getAllByText('Magdalena')).not.toHaveLength(0);

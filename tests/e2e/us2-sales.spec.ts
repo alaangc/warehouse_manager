@@ -244,7 +244,7 @@ test('sale ticket retry, cancellation, and Driver history remain scoped', async 
   await driverPage.getByRole('option', { name: productName, exact: true }).click();
   await driverPage.getByLabel('Quantity').fill('2');
   await driverPage.getByRole('button', { name: 'Review sale' }).click();
-  await expect(driverPage.getByText('MXN 51.00').last()).toBeVisible();
+  await expect(driverPage.getByText('USD 51.00').last()).toBeVisible();
 
   await driverPage.getByRole('button', { name: 'Confirm sale' }).click();
   await expect(driverPage.getByRole('alert')).toContainText(/try again/i);

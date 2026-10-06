@@ -7,7 +7,7 @@ const valid = {
   SESSION_SECRET: 'a-secure-test-secret-that-is-long-enough',
   APP_ORIGIN: 'https://warehouse.example.test',
   BUSINESS_TIMEZONE: 'America/Hermosillo',
-  BUSINESS_CURRENCY: 'MXN',
+  BUSINESS_CURRENCY: 'USD',
   PORT: '3000',
   LOG_LEVEL: 'info',
   DOCUMENT_STORAGE_PATH: '/tmp/warehouse-test-documents',
@@ -57,7 +57,7 @@ describe('loadEnvironment', () => {
   );
 
   it('parses and normalizes a complete environment', () => {
-    expect(loadEnvironment(valid)).toMatchObject({ PORT: 3000, BUSINESS_CURRENCY: 'MXN' });
+    expect(loadEnvironment(valid)).toMatchObject({ PORT: 3000, BUSINESS_CURRENCY: 'USD' });
   });
 
   it('rejects short secrets without exposing their value', () => {

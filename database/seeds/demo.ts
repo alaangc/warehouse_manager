@@ -32,7 +32,7 @@ try {
     );
     await sql`insert into business_setting
       (id, currency_code, currency_scale, business_timezone, partner_share_rate, money_rounding_mode, updated_by)
-      values ('00000000-0000-4000-8000-000000000001', 'MXN', 2, 'America/Hermosillo',
+      values ('00000000-0000-4000-8000-000000000001', 'USD', 2, 'America/Hermosillo',
         0.5, 'HALF_AWAY_FROM_ZERO', ${admin}::uuid)`.execute(transaction);
 
     const branch = randomUUID();

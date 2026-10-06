@@ -32,7 +32,7 @@ describe('T134 migration manifest gate', () => {
   });
   it('loads every checked-in migration without starting Docker or connecting to a database', async () => {
     const migrations = await reviewedMigrations();
-    expect(Object.keys(migrations)).toHaveLength(10);
+    expect(Object.keys(migrations)).toHaveLength(11);
     expect(Object.values(migrations).every((migration) => typeof migration.up === 'function')).toBe(
       true,
     );

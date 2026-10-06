@@ -223,6 +223,7 @@ export function createCustomerRouter(database: AppDatabase): Router {
             driverId: sale.driver_id,
             routeId: sale.route_id,
             paymentMethod: sale.payment_method,
+            currencyCode: sale.currency_code,
             total: sale.total,
             completedAt: new Date(sale.completed_at).toISOString(),
             cancelledAt: sale.cancelled_at ? new Date(sale.cancelled_at).toISOString() : null,

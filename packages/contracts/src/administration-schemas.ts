@@ -66,7 +66,7 @@ export const BusinessSettingUpdateSchema = registerSchema(
   z
     .object({
       expectedVersion: version,
-      currencyCode: z.string().regex(/^[A-Z]{3}$/),
+      currencyCode: z.literal('USD'),
       businessTimezone: z.string().trim().min(1).max(100),
       reason,
     })
@@ -76,7 +76,7 @@ export const BusinessSettingResourceSchema = registerSchema(
   'BusinessSetting',
   z
     .object({
-      currencyCode: z.string().regex(/^[A-Z]{3}$/),
+      currencyCode: z.literal('USD'),
       currencyScale: z.literal(2),
       businessTimezone: z.string(),
       partnerShareRate: z.literal('0.500000'),

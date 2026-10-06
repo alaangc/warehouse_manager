@@ -106,7 +106,7 @@ try {
       SESSION_SECRET: randomUUID(),
       APP_ORIGIN: `http://127.0.0.1:${webPort}`,
       BUSINESS_TIMEZONE: 'America/Hermosillo',
-      BUSINESS_CURRENCY: 'MXN',
+      BUSINESS_CURRENCY: 'USD',
       PORT: apiPort,
       LOG_LEVEL: 'fatal',
       DOCUMENT_STORAGE_PATH: documentStorage,

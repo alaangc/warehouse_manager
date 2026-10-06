@@ -1,9 +1,11 @@
+import { creditEn } from '../../features/customers/credit-translations.js';
 import { workflowEn } from '../workflow.js';
 import { reportsEn } from '../../features/reports/translations.js';
 import { redesignEn } from '../redesign.js';
 import { printersEn } from '../../features/printers/translations.js';
 import { documentsEn } from '../../features/documents/translations.js';
 export const en = {
+  credit: creditEn,
   workflow: workflowEn,
   ui: redesignEn,
   documents: documentsEn,
@@ -233,6 +235,8 @@ export const en = {
   payment: {
     CASH: 'Cash',
     BANK_TRANSFER: 'Bank transfer',
+    CHECK: 'Check',
+    CREDIT: 'Credit',
     CARD: 'Card',
   },
   customers: {
@@ -499,5 +503,6 @@ export const en = {
     ROUTE_SCOPE_REQUIRED: 'Select one of your assigned routes to view movement history.',
     DIFFERENCE_REASON_REQUIRED: 'A reason is required for every inventory difference.',
     SALE_ALREADY_CANCELLED: 'This sale has already been cancelled.',
+    CREDIT_ALREADY_PAID: 'This credit note has already been paid and cannot be cancelled.',
   },
 } as const;

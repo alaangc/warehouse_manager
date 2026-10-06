@@ -1,3 +1,4 @@
+import { creditEs } from '../../features/customers/credit-translations.js';
 import { workflowEs } from '../workflow.js';
 import type { en } from './en.js';
 import { redesignEs } from '../redesign.js';
@@ -8,6 +9,7 @@ import { documentsEs } from '../../features/documents/translations.js';
 type DeepTranslation<T> = { [K in keyof T]: T[K] extends string ? string : DeepTranslation<T[K]> };
 
 export const es: DeepTranslation<typeof en> = {
+  credit: creditEs,
   workflow: workflowEs,
   ui: redesignEs,
   documents: documentsEs,
@@ -240,6 +242,8 @@ export const es: DeepTranslation<typeof en> = {
   payment: {
     CASH: 'Efectivo',
     BANK_TRANSFER: 'Transferencia bancaria',
+    CHECK: 'Cheque',
+    CREDIT: 'Crédito',
     CARD: 'Tarjeta',
   },
   customers: {
@@ -511,5 +515,6 @@ export const es: DeepTranslation<typeof en> = {
       'Selecciona una de tus rutas asignadas para ver el historial de movimientos.',
     DIFFERENCE_REASON_REQUIRED: 'Se requiere un motivo para cada diferencia de inventario.',
     SALE_ALREADY_CANCELLED: 'Esta venta ya fue cancelada.',
+    CREDIT_ALREADY_PAID: 'Esta nota de crédito ya fue pagada y no se puede cancelar.',
   },
 };

@@ -36,7 +36,11 @@ describe('sales request and OpenAPI contracts', () => {
     };
 
     expect(SaleCreateRequestSchema.parse(input)).toEqual(input);
-    expect(() => SaleCreateRequestSchema.parse({ ...input, paymentMethod: 'CREDIT' })).toThrow();
+    for (const paymentMethod of ['CREDIT', 'CHECK'])
+      expect(SaleCreateRequestSchema.parse({ ...input, paymentMethod }).paymentMethod).toBe(
+        paymentMethod,
+      );
+    expect(() => SaleCreateRequestSchema.parse({ ...input, paymentMethod: 'UNKNOWN' })).toThrow();
     expect(() =>
       SaleCreateRequestSchema.parse({ ...input, lines: [{ ...line, quantity: 1.5 }] }),
     ).toThrow();
@@ -86,7 +90,7 @@ describe('sales HTTP contract', () => {
     SESSION_SECRET: 'x'.repeat(32),
     APP_ORIGIN: 'https://warehouse.test',
     BUSINESS_TIMEZONE: 'America/Hermosillo',
-    BUSINESS_CURRENCY: 'MXN',
+    BUSINESS_CURRENCY: 'USD',
     PORT: 3000,
     LOG_LEVEL: 'fatal',
     DOCUMENT_STORAGE_PATH: '/tmp/warehouse-documents-sales-contract',
@@ -277,7 +281,7 @@ describe('sales HTTP contract', () => {
     expect(quote.body.data).toMatchObject({
       customerId,
       routeId: driverRouteId,
-      currencyCode: 'MXN',
+      currencyCode: 'USD',
       total: '14.25',
     });
     expect(quote.body.data.lines[0]).toMatchObject({
@@ -326,7 +330,7 @@ describe('sales HTTP contract', () => {
       driverId: driver.id,
       routeId: driverRouteId,
       paymentMethod: 'BANK_TRANSFER',
-      currencyCode: 'MXN',
+      currencyCode: 'USD',
       subtotal: '19.00',
       total: '19.00',
       roundingMode: 'HALF_AWAY_FROM_ZERO',

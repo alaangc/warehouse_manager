@@ -30,6 +30,7 @@ export function parsePrintableDocument(raw: unknown) {
   const doc = parsed.data;
   const pairs = {
     TICKET: 'SALE',
+    CREDIT_RECEIPT: 'CREDIT_PAYMENT',
     ROUTE_LOAD: 'ROUTE_LOAD',
     ROUTE_RETURN: 'ROUTE_RETURN',
     CASH_CLOSE: 'CASH_CLOSE',
@@ -40,7 +41,7 @@ export function parsePrintableDocument(raw: unknown) {
     throw new PrinterError('ROUTE_LOAD_NOT_CONFIRMED', 409);
   if (
     doc.state !== 'READY' ||
-    (doc.documentType === 'TICKET' && doc.sourceState !== 'COMPLETED') ||
+    (['TICKET', 'CREDIT_RECEIPT'].includes(doc.documentType) && doc.sourceState !== 'COMPLETED') ||
     (doc.documentType === 'CASH_CLOSE' && doc.sourceState !== 'CLOSED') ||
     (doc.documentType === 'REPORT' && doc.sourceState !== 'READY') ||
     (doc.documentType === 'ROUTE_RETURN' && doc.sourceState !== 'READY')

@@ -1,4 +1,7 @@
+import { useState } from 'react';
+import { SaleDetailDialog } from './sale-detail.js';
 import {
+  Button,
   Alert,
   Chip,
   CircularProgress,
@@ -28,6 +31,7 @@ interface SaleSummary {
 
 export function CustomerHistory({ customerId }: { customerId: string }) {
   const { t } = useTranslation();
+  const [detail, setDetail] = useState<string | null>(null);
   const history = useQuery({
     queryKey: ['customers', customerId, 'sales'],
     queryFn: () => apiRequest<{ data: SaleSummary[] }>(`/customers/${customerId}/sales`),
@@ -57,7 +61,7 @@ export function CustomerHistory({ customerId }: { customerId: string }) {
               <TableRow key={sale.id}>
                 <TableCell>{formatDateTime(sale.completedAt)}</TableCell>
                 <TableCell>
-                  <Typography sx={{ fontWeight: 650 }}>{sale.saleNumber}</Typography>
+                  <Button onClick={() => setDetail(sale.id)}>{sale.saleNumber}</Button>
                   {sale.paymentMethod && (
                     <Typography color="text.secondary" variant="caption">
                       {t(`payment.${sale.paymentMethod}`, { defaultValue: sale.paymentMethod })}
@@ -71,7 +75,7 @@ export function CustomerHistory({ customerId }: { customerId: string }) {
                     size="small"
                   />
                 </TableCell>
-                <TableCell align="right">MXN {formatDecimal(sale.total)}</TableCell>
+                <TableCell align="right">USD {formatDecimal(sale.total)}</TableCell>
               </TableRow>
             ))}
             {!history.isLoading && (history.data?.data.length ?? 0) === 0 && (
@@ -82,6 +86,7 @@ export function CustomerHistory({ customerId }: { customerId: string }) {
           </TableBody>
         </Table>
       </TableContainer>
+      {detail && <SaleDetailDialog saleId={detail} onClose={() => setDetail(null)} />}
     </section>
   );
 }

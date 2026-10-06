@@ -1,3 +1,4 @@
+import { sql } from 'kysely';
 import { randomUUID } from 'node:crypto';
 import type { AppDatabase } from '../../db/database.js';
 import type { JsonValue } from '../../db/types.js';
@@ -12,7 +13,7 @@ export interface SaleCommand {
   clientOperationId: string;
   customerId: string;
   routeId: string;
-  paymentMethod: 'CASH' | 'BANK_TRANSFER';
+  paymentMethod: 'CASH' | 'BANK_TRANSFER' | 'CHECK' | 'CREDIT';
   lines: { productId: string; quantity: string }[];
 }
 export interface SaleContext {
@@ -74,8 +75,13 @@ export class SaleService {
 
       const saleId = randomUUID();
       const inventoryOperationId = randomUUID();
-      const saleNumber = `S-${Date.now()}-${saleId.slice(0, 8).toUpperCase()}`;
-      const ticketNumber = `T-${saleNumber.slice(2)}`;
+      const counter = await sql<{
+        value: string;
+      }>`update sale_note_counter set value = value + 1 where id = 1 returning value::text`.execute(
+        transaction,
+      );
+      const saleNumber = `Nota: ${counter.rows[0]!.value.padStart(3, '0')}`;
+      const ticketNumber = saleNumber;
       await transaction
         .insertInto('inventory_operation')
         .values({

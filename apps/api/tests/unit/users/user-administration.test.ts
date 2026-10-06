@@ -75,7 +75,7 @@ describe('user administration rules', () => {
 
   it('validates IANA timezone and fixed financial settings', () => {
     const settings = {
-      currencyCode: 'MXN',
+      currencyCode: 'USD',
       currencyScale: 2,
       businessTimezone: 'America/Hermosillo',
       partnerShareRate: '0.500000',

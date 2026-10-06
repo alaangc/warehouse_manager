@@ -50,7 +50,7 @@ beforeAll(async () => {
     SESSION_SECRET: randomBytes(32).toString('hex'),
     APP_ORIGIN: 'https://demo.example.test',
     BUSINESS_TIMEZONE: 'America/Hermosillo',
-    BUSINESS_CURRENCY: 'MXN',
+    BUSINESS_CURRENCY: 'USD',
     DOCUMENT_STORAGE_PATH: '/tmp/demo-test',
     LOG_LEVEL: 'fatal',
     // Supertest connects locally; this is not a suggested Render allowlist.

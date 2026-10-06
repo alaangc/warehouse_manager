@@ -21,8 +21,22 @@ import {
 
 const sourceSchema = z
   .object({
-    documentType: z.enum(['TICKET', 'ROUTE_LOAD', 'ROUTE_RETURN', 'CASH_CLOSE', 'REPORT']),
-    sourceType: z.enum(['SALE', 'ROUTE_LOAD', 'ROUTE_RETURN', 'CASH_CLOSE', 'REPORT_SNAPSHOT']),
+    documentType: z.enum([
+      'TICKET',
+      'CREDIT_RECEIPT',
+      'ROUTE_LOAD',
+      'ROUTE_RETURN',
+      'CASH_CLOSE',
+      'REPORT',
+    ]),
+    sourceType: z.enum([
+      'SALE',
+      'CREDIT_PAYMENT',
+      'ROUTE_LOAD',
+      'ROUTE_RETURN',
+      'CASH_CLOSE',
+      'REPORT_SNAPSHOT',
+    ]),
     sourceId: z.uuid().transform((id) => id.toLowerCase()),
   })
   .strict();

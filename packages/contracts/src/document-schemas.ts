@@ -3,11 +3,18 @@ import { registerSchema } from './registry.js';
 
 export const DocumentTypeSchema = registerSchema(
   'DocumentType',
-  z.enum(['TICKET', 'ROUTE_LOAD', 'ROUTE_RETURN', 'CASH_CLOSE', 'REPORT']),
+  z.enum(['TICKET', 'CREDIT_RECEIPT', 'ROUTE_LOAD', 'ROUTE_RETURN', 'CASH_CLOSE', 'REPORT']),
 );
 export const DocumentCreateSchema = registerSchema(
   'DocumentCreateRequest',
   z.discriminatedUnion('documentType', [
+    z
+      .object({
+        documentType: z.literal('CREDIT_RECEIPT'),
+        sourceType: z.literal('CREDIT_PAYMENT'),
+        sourceId: z.uuid(),
+      })
+      .strict(),
     z
       .object({
         documentType: z.literal('ROUTE_RETURN'),
@@ -54,7 +61,7 @@ export const DocumentHistoryQuerySchema = z.object({
 export const DocumentListQuerySchema = DocumentHistoryQuerySchema.extend({
   documentType: DocumentTypeSchema.optional(),
   sourceType: z
-    .enum(['SALE', 'ROUTE_LOAD', 'ROUTE_RETURN', 'CASH_CLOSE', 'REPORT_SNAPSHOT'])
+    .enum(['SALE', 'CREDIT_PAYMENT', 'ROUTE_LOAD', 'ROUTE_RETURN', 'CASH_CLOSE', 'REPORT_SNAPSHOT'])
     .optional(),
   sourceId: z.uuid().optional(),
   state: z.enum(['PENDING', 'READY', 'FAILED']).optional(),

@@ -21,6 +21,7 @@ const ticketSchema = z.object({
   total: decimal,
   currencyCode: text.optional(),
   paymentMethod: text.optional(),
+  customerName: text.optional(),
 });
 const loadSchema = z.object({ loadNumber: text, routeNumber: text, lines: z.array(lineSchema) });
 const periodFields = {
@@ -74,8 +75,22 @@ const reportSchema = z.object({
   totals: z.object(totalsFields).optional(),
 });
 const sourceSchema = z.object({
-  documentType: z.enum(['TICKET', 'ROUTE_LOAD', 'ROUTE_RETURN', 'CASH_CLOSE', 'REPORT']),
-  sourceType: z.enum(['SALE', 'ROUTE_LOAD', 'ROUTE_RETURN', 'CASH_CLOSE', 'REPORT_SNAPSHOT']),
+  documentType: z.enum([
+    'CREDIT_RECEIPT',
+    'TICKET',
+    'ROUTE_LOAD',
+    'ROUTE_RETURN',
+    'CASH_CLOSE',
+    'REPORT',
+  ]),
+  sourceType: z.enum([
+    'CREDIT_PAYMENT',
+    'SALE',
+    'ROUTE_LOAD',
+    'ROUTE_RETURN',
+    'CASH_CLOSE',
+    'REPORT_SNAPSHOT',
+  ]),
   sourceId: z.uuid(),
   contentVersion: text.min(1),
   createdAt: z.iso.datetime({ offset: true }),
@@ -96,7 +111,7 @@ export interface RenderedDocumentPdf {
 export function documentContentVersion(sourceVersion: string, documentType?: string): string {
   // The same thermal layout version applies to every supported source type.
   void documentType;
-  return `${sourceVersion}:pdf-thermal-58mm-v3`;
+  return `${sourceVersion}:pdf-thermal-58mm-v4`;
 }
 
 export function documentPdfFilename(source: {
@@ -110,6 +125,8 @@ export function documentPdfFilename(source: {
 
 const labels = {
   es: {
+    CREDIT_RECEIPT: 'Liquidación de crédito',
+    customerName: 'Cliente',
     TICKET: 'Ticket de venta',
     ROUTE_LOAD: 'Carga de ruta',
     ROUTE_RETURN: 'Devolución de ruta',
@@ -158,6 +175,8 @@ const labels = {
     page: 'Página',
   },
   en: {
+    CREDIT_RECEIPT: 'Credit payment receipt',
+    customerName: 'Customer',
     TICKET: 'Sale ticket',
     ROUTE_LOAD: 'Route load',
     ROUTE_RETURN: 'Route return',
@@ -279,7 +298,8 @@ function renderThermalDocument(
     }
   };
   const field = (key: Label, value: string | null | undefined, bold = false) => {
-    if (value !== undefined && value !== null) add(lang[key] + ': ' + value, bold ? 11 : 9, bold);
+    if (value !== undefined && value !== null)
+      add(key === 'saleNumber' ? value : lang[key] + ': ' + value, bold ? 11 : 9, bold);
   };
   add(lang[source.documentType], 12, true);
   add('Warehouse Manager', 9);
@@ -332,7 +352,9 @@ export async function renderDocumentPdf(input: unknown): Promise<RenderedDocumen
   if (source.documentType === 'ROUTE_LOAD' && source.state !== 'CONFIRMED')
     throw new HttpProblem(409, 'ROUTE_LOAD_NOT_CONFIRMED', 'Route load must be confirmed');
   // Validate all fields before opening a PDF stream.
-  const ticket = source.documentType === 'TICKET' ? parse(ticketSchema, source.snapshot) : null;
+  const ticket = ['TICKET', 'CREDIT_RECEIPT'].includes(source.documentType)
+    ? parse(ticketSchema, source.snapshot)
+    : null;
   const load = source.documentType === 'ROUTE_LOAD' ? parse(loadSchema, source.snapshot) : null;
   const returned =
     source.documentType === 'ROUTE_RETURN'
@@ -382,9 +404,32 @@ export async function renderDocumentPdf(input: unknown): Promise<RenderedDocumen
           source.currencyCode,
       );
       if (ticket) {
-        layout.field('ticketNumber', ticket.ticketNumber);
-        layout.field('saleNumber', ticket.saleNumber);
-        layout.field('paymentMethod', ticket.paymentMethod);
+        layout.field('customerName', ticket.customerName);
+        if (ticket.ticketNumber !== ticket.saleNumber)
+          layout.field('ticketNumber', ticket.ticketNumber);
+        layout.field('saleNumber', ticket.saleNumber, true);
+        const paymentLabels: Record<string, string> =
+          source.locale === 'es'
+            ? {
+                CASH: 'Efectivo',
+                BANK_TRANSFER: 'Transferencia',
+                CHECK: 'Cheque',
+                CREDIT: 'Crédito',
+                CARD: 'Tarjeta',
+              }
+            : {
+                CASH: 'Cash',
+                BANK_TRANSFER: 'Bank transfer',
+                CHECK: 'Check',
+                CREDIT: 'Credit',
+                CARD: 'Card',
+              };
+        layout.field(
+          'paymentMethod',
+          ticket.paymentMethod
+            ? (paymentLabels[ticket.paymentMethod] ?? ticket.paymentMethod)
+            : undefined,
+        );
         layout.table(
           [
             { key: 'productName', width: 1 },

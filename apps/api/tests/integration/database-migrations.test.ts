@@ -40,7 +40,7 @@ describe('PostgreSQL 18 migrations', () => {
       .selectAll()
       .executeTakeFirstOrThrow();
     expect(settings).toMatchObject({
-      currency_code: 'MXN',
+      currency_code: 'USD',
       business_timezone: 'America/Hermosillo',
       partner_share_rate: '0.500000',
     });

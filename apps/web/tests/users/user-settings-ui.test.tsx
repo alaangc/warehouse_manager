@@ -39,7 +39,7 @@ const printer = {
 };
 const businessSettings = {
   version: 1,
-  currencyCode: 'MXN',
+  currencyCode: 'USD',
   businessTimezone: 'America/Hermosillo',
   currencyScale: 2,
   partnerShareRate: '0.500000',
@@ -301,7 +301,7 @@ describe('administration UI', () => {
     });
     fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'Updated schedule' } });
     fetcher.mockImplementation(() =>
-      respond({ version: 2, currencyCode: 'MXN', businessTimezone: 'America/Tijuana' }),
+      respond({ version: 2, currencyCode: 'USD', businessTimezone: 'America/Tijuana' }),
     );
     fireEvent.click(screen.getByRole('button', { name: 'Save business settings' }));
     await screen.findByText('Changes saved.');

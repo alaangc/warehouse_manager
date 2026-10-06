@@ -602,7 +602,7 @@ describe('user and settings transactions in PostgreSQL 18', () => {
       (
         await harness.send(admin, 'patch', '/settings/business', {
           expectedVersion: before!.row.version,
-          currencyCode: 'MXN',
+          currencyCode: 'USD',
           businessTimezone: 'America/Tijuana',
           reason,
         })

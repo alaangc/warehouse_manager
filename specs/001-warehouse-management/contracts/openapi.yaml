@@ -5,8 +5,8 @@ info:
   version: 1.0.0
   description: >-
     Authoritative HTTP contract for warehouse, route, sale, reconciliation, reporting, document, user, and
-    printer-profile operations. Money and quantities are decimal strings. All protected authorization and business rules
-    are enforced by the API.
+    printer-profile operations. Money and quantities are decimal strings. All protected authorization and
+    business rules are enforced by the API.
 servers:
   - url: /api/v1
 security:
@@ -1173,9 +1173,10 @@ paths:
       tags: [ Inventory ]
       operationId: listInventoryMovements
       description: >-
-        Administrators may query all permitted inventory movements. Drivers may query movements only for routes assigned
-        to them, including Returned and Closed routes; branch-wide, general-inventory, and unrelated-route movements are
-        forbidden. Query parameters never broaden the authenticated caller's scope.
+        Administrators may query all permitted inventory movements. Drivers may query movements only for
+        routes assigned to them, including Returned and Closed routes; branch-wide, general-inventory, and
+        unrelated-route movements are forbidden. Query parameters never broaden the authenticated caller's
+        scope.
       parameters:
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/Limit'
@@ -1235,7 +1236,8 @@ paths:
       tags: [ Inventory ]
       operationId: createInventoryOperation
       description: >-
-        Administrator-only entry, manual exit, or positive/negative adjustment. Transfers use the dedicated endpoint.
+        Administrator-only entry, manual exit, or positive/negative adjustment. Transfers use the dedicated
+        endpoint.
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -1319,8 +1321,8 @@ paths:
       tags: [ Inventory ]
       operationId: reverseInventoryOperation
       description: >-
-        Appends an administrator-authorized compensating operation and movements; never edits the original operation or
-        ledger rows.
+        Appends an administrator-authorized compensating operation and movements; never edits the original
+        operation or ledger rows.
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -1360,8 +1362,8 @@ paths:
       tags: [ Routes ]
       operationId: listRoutes
       description: >-
-        Administrators may list all routes. Drivers receive every route assigned to them, including Returned and Closed
-        history. A Driver-provided filter cannot expand visibility to another Driver's routes.
+        Administrators may list all routes. Drivers receive every route assigned to them, including Returned
+        and Closed history. A Driver-provided filter cannot expand visibility to another Driver's routes.
       parameters:
         - $ref: "#/components/parameters/Cursor"
         - $ref: "#/components/parameters/Limit"
@@ -1452,8 +1454,8 @@ paths:
       tags: [ Routes ]
       operationId: getRoute
       description: >-
-        Administrators may retrieve any route. Drivers may retrieve only routes assigned to them, in any state; another
-        Driver's route is forbidden.
+        Administrators may retrieve any route. Drivers may retrieve only routes assigned to them, in any
+        state; another Driver's route is forbidden.
       responses:
         '200':
           description: Route with load, balances, movements, sales, return, reconciliation, and closure history
@@ -1646,8 +1648,8 @@ paths:
       tags: [ Routes ]
       operationId: approveRouteReconciliation
       description: >-
-        Administrator records physical returns, provides mandatory reasons for differences, creates adjustments, and
-        returns stock to the origin atomically.
+        Administrator records physical returns, provides mandatory reasons for differences, creates
+        adjustments, and returns stock to the origin atomically.
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -1727,9 +1729,9 @@ paths:
       tags: [ Sales ]
       operationId: listSales
       description: >-
-        Administrators may list all sales. Drivers receive only sales attributed to their authenticated identity,
-        including preserved cancellation status. A Driver-provided filter cannot expand visibility to another Driver's
-        sales.
+        Administrators may list all sales. Drivers receive only sales attributed to their authenticated
+        identity, including preserved cancellation status. A Driver-provided filter cannot expand visibility
+        to another Driver's sales.
       parameters:
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/Limit'
@@ -1784,8 +1786,8 @@ paths:
       tags: [ Sales ]
       operationId: confirmSale
       description: >-
-        Assigned driver confirms a sale against products in an En Route route. Price, totals, sale, sale ticket,
-        movements, and idempotency result commit atomically.
+        Assigned driver confirms a sale against products in an En Route route. Price, totals, sale, sale
+        ticket, movements, and idempotency result commit atomically.
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -1825,8 +1827,8 @@ paths:
       tags: [ Sales ]
       operationId: quoteSale
       description: >-
-        Returns advisory effective prices and current route availability without committing a sale. Sale confirmation
-        recalculates and revalidates everything.
+        Returns advisory effective prices and current route availability without committing a sale. Sale
+        confirmation recalculates and revalidates everything.
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
       requestBody:
@@ -1867,8 +1869,8 @@ paths:
       tags: [ Sales ]
       operationId: getSale
       description: >-
-        Administrators may retrieve any sale. Drivers may retrieve only a sale attributed to them; another Driver's sale
-        is forbidden.
+        Administrators may retrieve any sale. Drivers may retrieve only a sale attributed to them; another
+        Driver's sale is forbidden.
       responses:
         '200':
           description: Preserved sale and sale-ticket detail
@@ -1939,8 +1941,8 @@ paths:
       tags: [ Cash closes ]
       operationId: listCashCloses
       description: >-
-        Lists immutable cash-close versions. Administrators may filter by the calendar period resolved in the configured
-        business timezone and by whether a version is current or superseded.
+        Lists immutable cash-close versions. Administrators may filter by the calendar period resolved in the
+        configured business timezone and by whether a version is current or superseded.
       parameters:
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/Limit'
@@ -2006,8 +2008,9 @@ paths:
           $ref: '#/components/responses/Problem'
         '409':
           description: >-
-            CASH_CLOSE_PERIOD_ALREADY_CURRENT when a different request attempts to create another current close for the
-            exact resolved period, or IDEMPOTENCY_KEY_REUSED when a key is reused with different content.
+            CASH_CLOSE_PERIOD_ALREADY_CURRENT when a different request attempts to create another current
+            close for the exact resolved period, or IDEMPOTENCY_KEY_REUSED when a key is reused with different
+            content.
           content:
             application/problem+json:
               schema:
@@ -2068,8 +2071,9 @@ paths:
       tags: [ Cash closes ]
       operationId: correctCashClose
       description: >-
-        Creates an immutable successor for the current close of the same exact reporting period and atomically makes the
-        successor current. The superseded close remains readable; stale or branching correction attempts conflict.
+        Creates an immutable successor for the current close of the same exact reporting period and atomically
+        makes the successor current. The superseded close remains readable; stale or branching correction
+        attempts conflict.
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -2286,48 +2290,57 @@ paths:
 
   /documents:
     get:
-      tags: [ Documents ]
+      tags:
+        - Documents
       operationId: listDocuments
-      description: >-
-        Administrators see all document history. Drivers see only Tickets sourced from their own Sales and confirmed
-        Route Loads for Routes assigned to them, regardless of who created the output. Filters and opaque cursors only
-        narrow that source-derived scope and never broaden it. Results use stable keyset ordering by createdAt DESC, id
-        DESC.
+      description: Administrators see all document history. Drivers see only Tickets sourced from their own Sales
+        and confirmed Route Loads for Routes assigned to them, regardless of who created the output. Filters
+        and opaque cursors only narrow that source-derived scope and never broaden it. Results use stable
+        keyset ordering by createdAt DESC, id DESC.
       parameters:
-        - $ref: '#/components/parameters/Cursor'
-        - $ref: '#/components/parameters/Limit'
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
         - name: documentType
           in: query
           schema:
-            $ref: '#/components/schemas/DocumentType'
+            $ref: "#/components/schemas/DocumentType"
         - name: state
           in: query
           schema:
             type: string
-            enum: [ PENDING, READY, FAILED ]
+            enum:
+              - PENDING
+              - READY
+              - FAILED
         - name: sourceType
           in: query
           schema:
             type: string
-            enum: [ SALE, ROUTE_LOAD, CASH_CLOSE, REPORT_SNAPSHOT, ROUTE_RETURN ]
+            enum:
+              - SALE
+              - ROUTE_LOAD
+              - CASH_CLOSE
+              - REPORT_SNAPSHOT
+              - ROUTE_RETURN
+              - CREDIT_PAYMENT
         - name: sourceId
           in: query
           schema:
-            $ref: '#/components/schemas/Uuid'
-        - $ref: '#/components/parameters/HistoryFrom'
-        - $ref: '#/components/parameters/HistoryTo'
+            $ref: "#/components/schemas/Uuid"
+        - $ref: "#/components/parameters/HistoryFrom"
+        - $ref: "#/components/parameters/HistoryTo"
       responses:
-        '200':
+        "200":
           description: Source-authorized document history page
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DocumentListResponse'
-        '403':
-          $ref: '#/components/responses/Problem'
+                $ref: "#/components/schemas/DocumentListResponse"
         "400":
           $ref: "#/components/responses/Problem"
         "401":
+          $ref: "#/components/responses/Problem"
+        "403":
           $ref: "#/components/responses/Problem"
         "404":
           $ref: "#/components/responses/Problem"
@@ -2341,40 +2354,41 @@ paths:
           $ref: "#/components/responses/Problem"
       summary: List documents
     post:
-      tags: [ Documents ]
+      tags:
+        - Documents
       operationId: requestDocument
-      description: >-
-        Creates or reuses a canonical PDF from a committed source. Administrators can access all document types. Drivers
-        can access their own sale tickets, assigned confirmed route loads, and assigned route return receipts. Return
-        receipts preserve declared or approved quantities and reasons in separate immutable snapshots. Source
-        authorization precedes generation and reuse. Draft loads return 409 ROUTE_LOAD_NOT_CONFIRMED.
+      description: Creates or reuses a canonical PDF from a committed source. Administrators can access all document
+        types. Drivers can access their own sale tickets, assigned confirmed route loads, and assigned route
+        return receipts. Return receipts preserve declared or approved quantities and reasons in separate
+        immutable snapshots. Source authorization precedes generation and reuse. Draft loads return 409
+        ROUTE_LOAD_NOT_CONFIRMED.
       parameters:
-        - $ref: '#/components/parameters/CsrfToken'
-        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: "#/components/parameters/CsrfToken"
+        - $ref: "#/components/parameters/IdempotencyKey"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DocumentCreateRequest'
+              $ref: "#/components/schemas/DocumentCreateRequest"
       responses:
-        '202':
+        "202":
           description: Document generation accepted or existing output returned
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DocumentResponse'
-        '403':
-          $ref: '#/components/responses/Problem'
-        '404':
-          $ref: '#/components/responses/Problem'
-        '409':
-          $ref: '#/components/responses/Problem'
-        '422':
-          $ref: '#/components/responses/Problem'
+                $ref: "#/components/schemas/DocumentResponse"
         "400":
           $ref: "#/components/responses/Problem"
         "401":
+          $ref: "#/components/responses/Problem"
+        "403":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
           $ref: "#/components/responses/Problem"
         "429":
           $ref: "#/components/responses/Problem"
@@ -2389,9 +2403,9 @@ paths:
       tags: [ Documents ]
       operationId: getDocument
       description: >-
-        Administrators may retrieve any document metadata. Drivers may retrieve only their own Sale Tickets and
-        confirmed route-load documents for assigned Routes, including outputs created by an Administrator. Other direct
-        IDs return 403 without exposing metadata.
+        Administrators may retrieve any document metadata. Drivers may retrieve only their own Sale Tickets
+        and confirmed route-load documents for assigned Routes, including outputs created by an Administrator.
+        Other direct IDs return 403 without exposing metadata.
       responses:
         '200':
           description: Document generation status and source metadata
@@ -2424,9 +2438,10 @@ paths:
       tags: [ Documents, Printers ]
       operationId: getDocumentPrintData
       description: >-
-        Read-only thermal payload from immutable committed snapshots. The same source-derived authorization as metadata
-        applies before capability checks. Returns 409 for non-ready documents or unconfirmed loads and supports
-        Administrator REPORT printing. Does not generate output, record an attempt, or mutate the source.
+        Read-only thermal payload from immutable committed snapshots. The same source-derived authorization as
+        metadata applies before capability checks. Returns 409 for non-ready documents or unconfirmed loads
+        and supports Administrator REPORT printing. Does not generate output, record an attempt, or mutate the
+        source.
       responses:
         '200':
           description: Authorized printable snapshot; private, no-store
@@ -2463,8 +2478,8 @@ paths:
       tags: [ Documents ]
       operationId: downloadDocument
       description: >-
-        Downloads a ready PDF with source-derived authorization, including route return receipts. Drivers can download
-        only their own sale tickets and assigned route load or return receipts.
+        Downloads a ready PDF with source-derived authorization, including route return receipts. Drivers can
+        download only their own sale tickets and assigned route load or return receipts.
       responses:
         '200':
           description: Ready canonical PDF
@@ -2500,10 +2515,11 @@ paths:
       tags: [ Documents, Printers ]
       operationId: listOutputAttempts
       description: >-
-        Administrators see all output-attempt history. Drivers see attempts only when the related document is sourced
-        from their own Sale or from a confirmed Route Load for an assigned Route. OutputAttempt.actorId does not grant
-        access, and TEST_PRINT attempts have no eligible business source and are therefore administrator-only. Filters
-        and cursors only narrow the authorized scope. Results use stable keyset ordering by createdAt DESC, id DESC.
+        Administrators see all output-attempt history. Drivers see attempts only when the related document is
+        sourced from their own Sale or from a confirmed Route Load for an assigned Route.
+        OutputAttempt.actorId does not grant access, and TEST_PRINT attempts have no eligible business source
+        and are therefore administrator-only. Filters and cursors only narrow the authorized scope. Results
+        use stable keyset ordering by createdAt DESC, id DESC.
       parameters:
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/Limit'
@@ -2551,9 +2567,9 @@ paths:
       tags: [ Documents, Printers ]
       operationId: recordOutputAttempt
       description: >-
-        Records output outcomes without repeating the business transaction. PRINT and REPRINT support all document
-        types. Drivers are restricted to their own sale tickets and assigned route load and return receipts; reports and
-        cash closes require an administrator.
+        Records output outcomes without repeating the business transaction. PRINT and REPRINT support all
+        document types. Drivers are restricted to their own sale tickets and assigned route load and return
+        receipts; reports and cash closes require an administrator.
       parameters:
         - $ref: '#/components/parameters/CsrfToken'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -2595,8 +2611,8 @@ paths:
       tags: [ Documents, Printers ]
       operationId: getOutputAttempt
       description: >-
-        Uses the same source-derived authorization as the history list. A direct ID, attempt actor, output creator, or
-        prior cursor cannot broaden Driver access; TEST_PRINT detail is administrator-only.
+        Uses the same source-derived authorization as the history list. A direct ID, attempt actor, output
+        creator, or prior cursor cannot broaden Driver access; TEST_PRINT detail is administrator-only.
       responses:
         '200':
           description: Authorized output-attempt detail
@@ -2983,8 +2999,80 @@ paths:
         "500":
           $ref: "#/components/responses/Problem"
       summary: Declare physical quantities for a returned route
-      description: Assigned driver only. Records an immutable declaration before administrator reconciliation, without
-        changing stock. Supports routes returned before quantity entry was available.
+      description: Assigned driver only. Records an immutable declaration before administrator reconciliation,
+        without changing stock. Supports routes returned before quantity entry was available.
+  /customers/{customerId}/credits:
+    parameters:
+      - $ref: "#/components/parameters/CustomerId"
+      - $ref: "#/components/parameters/Cursor"
+      - $ref: "#/components/parameters/Limit"
+    get:
+      tags:
+        - Customers
+      operationId: getCustomerCredits
+      responses:
+        "200":
+          description: Customer credit balance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerCreditsResponse"
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "403":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+      summary: List outstanding notes and credit payment receipts
+  /customers/{customerId}/credit-payments:
+    parameters:
+      - $ref: "#/components/parameters/CustomerId"
+      - $ref: "#/components/parameters/Cursor"
+      - $ref: "#/components/parameters/Limit"
+    post:
+      tags:
+        - Customers
+      summary: Settle selected credit notes in full
+      operationId: createCreditPayment
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreditPaymentRequest"
+      responses:
+        "201":
+          description: Persisted credit payment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditPaymentResponse"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "403":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
 
 components:
   securitySchemes:
@@ -3375,6 +3463,8 @@ components:
                 total:
                   type: string
                   pattern: ^\d+(?:\.\d+)?$
+                customerName:
+                  type: string
               required:
                 - ticketNumber
                 - saleNumber
@@ -3552,6 +3642,95 @@ components:
                 - grossTotal
                 - partnerShare
                 - ownerShare
+              additionalProperties: false
+          required:
+            - id
+            - documentType
+            - sourceType
+            - sourceId
+            - contentVersion
+            - state
+            - sourceState
+            - snapshot
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+            documentType:
+              type: string
+              const: CREDIT_RECEIPT
+            sourceType:
+              type: string
+            sourceId:
+              type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+            contentVersion:
+              type: string
+            state:
+              type: string
+              enum:
+                - PENDING
+                - READY
+                - FAILED
+            sourceState:
+              type: string
+            snapshot:
+              type: object
+              properties:
+                ticketNumber:
+                  type: string
+                  minLength: 1
+                saleNumber:
+                  type: string
+                  minLength: 1
+                currencyCode:
+                  type: string
+                  pattern: ^[A-Z]{3}$
+                paymentMethod:
+                  type: string
+                lines:
+                  minItems: 1
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      productName:
+                        type: string
+                        minLength: 1
+                      unitCode:
+                        type: string
+                        minLength: 1
+                      quantity:
+                        type: string
+                        pattern: ^\d+(?:\.\d+)?$
+                      unitPrice:
+                        type: string
+                        pattern: ^\d+(?:\.\d+)?$
+                      lineAmount:
+                        type: string
+                        pattern: ^\d+(?:\.\d+)?$
+                    required:
+                      - productName
+                      - unitCode
+                      - quantity
+                      - unitPrice
+                      - lineAmount
+                    additionalProperties: false
+                total:
+                  type: string
+                  pattern: ^\d+(?:\.\d+)?$
+                customerName:
+                  type: string
+              required:
+                - ticketNumber
+                - saleNumber
+                - currencyCode
+                - lines
+                - total
               additionalProperties: false
           required:
             - id
@@ -3790,8 +3969,8 @@ components:
     DriverOverview:
       type: object
       additionalProperties: false
-      description: Only active routes assigned to the authenticated Driver, ordered by ID, and permitted action links. No
-        organization-wide aggregates are queried or exposed.
+      description: Only active routes assigned to the authenticated Driver, ordered by ID, and permitted action
+        links. No organization-wide aggregates are queried or exposed.
       required: [ routes, actions ]
       properties:
         routes:
@@ -3817,13 +3996,14 @@ components:
           items:
             type: string
         grossTotal:
-          description: All-time sum of completed sale totals, excluding cancelled sales, as an exact decimal string. Zero is 0.00.
+          description: All-time sum of completed sale totals, excluding cancelled sales, as an exact decimal string.
+            Zero is 0.00.
           $ref: '#/components/schemas/NonnegativeMoney'
         lowStockCount:
           type: integer
           minimum: 0
-          description: Number of active product and active branch pairs at or below the product threshold. A missing balance is
-            zero. Route stock is excluded.
+          description: Number of active product and active branch pairs at or below the product threshold. A missing
+            balance is zero. Route stock is excluded.
     Location:
       type: object
       additionalProperties: false
@@ -4597,7 +4777,7 @@ components:
       properties:
         currencyCode:
           type: string
-          pattern: '^[A-Z]{3}$'
+          const: USD
         currencyScale:
           const: 2
         businessTimezone:
@@ -4620,7 +4800,7 @@ components:
           minimum: 1
         currencyCode:
           type: string
-          pattern: '^[A-Z]{3}$'
+          const: USD
         businessTimezone:
           type: string
           minLength: 1
@@ -4876,7 +5056,19 @@ components:
     Route:
       type: object
       additionalProperties: false
-      required: [ id, routeNumber, state, originLocationId, driverId, vehicleId, businessDate, createdBy, createdAt, version ]
+      required:
+        [
+          id,
+          routeNumber,
+          state,
+          originLocationId,
+          driverId,
+          vehicleId,
+          businessDate,
+          createdBy,
+          createdAt,
+          version
+        ]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
@@ -5018,7 +5210,15 @@ components:
     RouteReconciliationLine:
       type: object
       additionalProperties: false
-      required: [ productId, loadedQuantity, soldQuantity, expectedReturnQuantity, physicalReturnQuantity, differenceQuantity ]
+      required:
+        [
+          productId,
+          loadedQuantity,
+          soldQuantity,
+          expectedReturnQuantity,
+          physicalReturnQuantity,
+          differenceQuantity
+        ]
       properties:
         productId:
           $ref: '#/components/schemas/Uuid'
@@ -5107,11 +5307,20 @@ components:
 
     PaymentMethod:
       type: string
-      enum: [ CASH, BANK_TRANSFER, CARD ]
+      enum:
+        - CASH
+        - BANK_TRANSFER
+        - CARD
+        - CHECK
+        - CREDIT
     SalePaymentMethod:
       type: string
       description: Payment methods accepted for new sales.
-      enum: [ CASH, BANK_TRANSFER ]
+      enum:
+        - CASH
+        - BANK_TRANSFER
+        - CHECK
+        - CREDIT
     SaleStatus:
       type: string
       enum: [ COMPLETED, CANCELLED ]
@@ -5142,7 +5351,16 @@ components:
     SaleQuoteLine:
       type: object
       additionalProperties: false
-      required: [ productId, requestedQuantity, availableQuantity, available, appliedPriceSource, unitPrice, lineAmount ]
+      required:
+        [
+          productId,
+          requestedQuantity,
+          availableQuantity,
+          available,
+          appliedPriceSource,
+          unitPrice,
+          lineAmount
+        ]
       properties:
         productId:
           $ref: '#/components/schemas/Uuid'
@@ -5265,30 +5483,44 @@ components:
     SaleSummary:
       type: object
       additionalProperties: false
-      required: [ id, saleNumber, status, customerId, driverId, routeId, paymentMethod, total, completedAt ]
+      required:
+        - id
+        - saleNumber
+        - status
+        - customerId
+        - driverId
+        - routeId
+        - paymentMethod
+        - total
+        - completedAt
       properties:
         id:
-          $ref: '#/components/schemas/Uuid'
+          $ref: "#/components/schemas/Uuid"
         saleNumber:
           type: string
         status:
-          $ref: '#/components/schemas/SaleStatus'
+          $ref: "#/components/schemas/SaleStatus"
         customerId:
-          $ref: '#/components/schemas/Uuid'
+          $ref: "#/components/schemas/Uuid"
         driverId:
-          $ref: '#/components/schemas/Uuid'
+          $ref: "#/components/schemas/Uuid"
         routeId:
-          $ref: '#/components/schemas/Uuid'
+          $ref: "#/components/schemas/Uuid"
         paymentMethod:
-          $ref: '#/components/schemas/PaymentMethod'
+          $ref: "#/components/schemas/PaymentMethod"
         total:
-          $ref: '#/components/schemas/NonnegativeMoney'
+          $ref: "#/components/schemas/NonnegativeMoney"
         completedAt:
           type: string
           format: date-time
         cancelledAt:
-          type: [ string, 'null' ]
+          type:
+            - string
+            - "null"
           format: date-time
+        currencyCode:
+          type: string
+          const: USD
     Sale:
       type: object
       additionalProperties: false
@@ -5592,6 +5824,7 @@ components:
         - ROUTE_RETURN
         - CASH_CLOSE
         - REPORT
+        - CREDIT_RECEIPT
     DocumentCreateRequest:
       oneOf:
         - type: object
@@ -5679,6 +5912,23 @@ components:
             - sourceType
             - sourceId
           additionalProperties: false
+        - type: object
+          properties:
+            documentType:
+              type: string
+              const: CREDIT_RECEIPT
+            sourceType:
+              type: string
+              const: CREDIT_PAYMENT
+            sourceId:
+              type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+          required:
+            - documentType
+            - sourceType
+            - sourceId
+          additionalProperties: false
     DocumentOutput:
       type: object
       additionalProperties: false
@@ -5728,9 +5978,9 @@ components:
           $ref: '#/components/schemas/PageInfo'
     OutputAttemptRequest:
       description: >-
-        PRINT/REPRINT require a printer and a ready TICKET, ROUTE_LOAD, CASH_CLOSE, or REPORT document. REPORT printing
-        requires Administrator access. TEST_PRINT has a printer but no document. Cross-resource document-type validation
-        is authoritative in the API and database.
+        PRINT/REPRINT require a printer and a ready TICKET, ROUTE_LOAD, CASH_CLOSE, or REPORT document. REPORT
+        printing requires Administrator access. TEST_PRINT has a printer but no document. Cross-resource
+        document-type validation is authoritative in the API and database.
       oneOf:
         - type: object
           additionalProperties: false
@@ -5935,3 +6185,178 @@ components:
         createdAt:
           type: string
           format: date-time
+    CustomerCreditsResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required:
+            - notes
+            - noteCount
+            - total
+            - currencyCode
+            - payments
+          properties:
+            notes:
+              type: array
+              items:
+                type: object
+                additionalProperties: false
+                required:
+                  - id
+                  - saleNumber
+                  - total
+                  - currencyCode
+                  - completedAt
+                properties:
+                  id: &a2
+                    type: string
+                    format: uuid
+                  saleNumber: &a3
+                    type: string
+                  total: &a1
+                    type: string
+                    pattern: ^\d+\.\d{2}$
+                  currencyCode:
+                    type: string
+                    const: USD
+                  completedAt: &a4
+                    type: string
+                    format: date-time
+            noteCount:
+              type: integer
+            total: *a1
+            currencyCode:
+              type: string
+              const: USD
+            payments:
+              type: array
+              items:
+                type: object
+                additionalProperties: false
+                required:
+                  - id
+                  - receiptNumber
+                  - total
+                  - currencyCode
+                  - createdAt
+                properties:
+                  id: *a2
+                  receiptNumber: *a3
+                  total: *a1
+                  currencyCode:
+                    type: string
+                    const: USD
+                  createdAt: *a4
+    CreditPaymentRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - saleIds
+        - paymentMethod
+      properties:
+        saleIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+          maxItems: 100
+          uniqueItems: true
+        paymentMethod:
+          type: string
+          enum:
+            - CASH
+            - BANK_TRANSFER
+            - CHECK
+    CreditPaymentResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required:
+            - id
+            - receiptNumber
+            - total
+            - currencyCode
+            - createdAt
+            - customerId
+            - snapshot
+          properties:
+            id: &a1
+              type: string
+              format: uuid
+            receiptNumber:
+              type: string
+            total:
+              type: string
+              pattern: ^\d+\.\d{2}$
+            currencyCode:
+              type: string
+              const: USD
+            createdAt:
+              type: string
+              format: date-time
+            customerId: *a1
+            snapshot:
+              type: object
+              properties:
+                ticketNumber:
+                  type: string
+                  minLength: 1
+                saleNumber:
+                  type: string
+                  minLength: 1
+                currencyCode:
+                  type: string
+                  pattern: ^[A-Z]{3}$
+                paymentMethod:
+                  type: string
+                lines:
+                  minItems: 1
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      productName:
+                        type: string
+                        minLength: 1
+                      unitCode:
+                        type: string
+                        minLength: 1
+                      quantity:
+                        type: string
+                        pattern: ^\d+(?:\.\d+)?$
+                      unitPrice:
+                        type: string
+                        pattern: ^\d+(?:\.\d+)?$
+                      lineAmount:
+                        type: string
+                        pattern: ^\d+(?:\.\d+)?$
+                    required:
+                      - productName
+                      - unitCode
+                      - quantity
+                      - unitPrice
+                      - lineAmount
+                    additionalProperties: false
+                total:
+                  type: string
+                  pattern: ^\d+(?:\.\d+)?$
+                customerName:
+                  type: string
+              required:
+                - ticketNumber
+                - saleNumber
+                - currencyCode
+                - lines
+                - total
+              additionalProperties: false

@@ -17,7 +17,7 @@ const environment = loadEnvironment({
   SESSION_SECRET: 'Q7m4W9x2A8c6K3t5R1v0B4n8L6s9D2f5',
   APP_ORIGIN: 'https://warehouse.example.test',
   BUSINESS_TIMEZONE: 'America/Hermosillo',
-  BUSINESS_CURRENCY: 'MXN',
+  BUSINESS_CURRENCY: 'USD',
   DOCUMENT_STORAGE_PATH: '/tmp/security-tests',
 });
 

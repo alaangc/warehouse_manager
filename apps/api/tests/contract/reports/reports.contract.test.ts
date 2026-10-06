@@ -47,7 +47,7 @@ const env: Environment = {
   SESSION_SECRET: 'x'.repeat(32),
   APP_ORIGIN: 'https://warehouse.test',
   BUSINESS_TIMEZONE: 'America/Hermosillo',
-  BUSINESS_CURRENCY: 'MXN',
+  BUSINESS_CURRENCY: 'USD',
   PORT: 3000,
   LOG_LEVEL: 'fatal',
   DOCUMENT_STORAGE_PATH: '/tmp/warehouse-documents-report-contract',
@@ -74,7 +74,7 @@ describe('reporting OpenAPI contract', () => {
     }
     expect(openapi).toContain('name: periodKind');
     expect(openapi).toContain('name: anchorDate');
-    expect(openapi).toContain('enum: [CURRENT, SUPERSEDED]');
+    expect(openapi).toMatch(/enum: \[\s*CURRENT, SUPERSEDED\s*\]/);
     expect(openapi).toContain('CASH_CLOSE_PERIOD_ALREADY_CURRENT');
     expect(openapi).toContain('CASH_CLOSE_NOT_CURRENT');
     expect(openapi).toContain('IDEMPOTENCY_KEY_REUSED');
@@ -204,7 +204,7 @@ describe('reporting HTTP contract', () => {
       supersedesCashCloseId: null,
       supersededByCashCloseId: null,
       correctionReason: null,
-      currencyCode: 'MXN',
+      currencyCode: 'USD',
       grossTotal: '0.00',
       partnerRate: '0.500000',
       partnerAmount: '0.00',

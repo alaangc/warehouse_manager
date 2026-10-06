@@ -180,7 +180,7 @@ export function ProductDetailPage() {
               [t('inventory.totalUnitsShown'), formatDecimal(total)],
               [t('inventory.locationsShown'), String(balanceRows.length)],
               [t('catalog.lowStockThreshold'), formatDecimal(record.lowStockThreshold)],
-              [t('catalog.standardUnitPrice'), `MXN ${formatDecimal(record.standardUnitPrice)}`],
+              [t('catalog.standardUnitPrice'), `USD ${formatDecimal(record.standardUnitPrice)}`],
             ].map(([label, value]) => (
               <Paper key={label} variant="outlined" sx={{ p: 2.5 }}>
                 <Typography color="text.secondary" variant="body2">

@@ -72,7 +72,9 @@ describe('reporting UI', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Run report' }));
     await screen.findByText('No activity matches this period.');
     fireEvent.change(screen.getByLabelText('Anchor date'), { target: { value: '2026-09-05' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Prepare report for printing or download' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Prepare report for printing or download' }),
+    );
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Report snapshot saved: 00000000-0000-4000-8000-000000000130',
     );
@@ -128,7 +130,7 @@ describe('reporting UI', () => {
     expect(screen.getByText(/Sep 7, 2026/)).toBeVisible();
     const table = screen.getByRole('table', { name: 'Sales by driver report' });
     expect(table).toHaveTextContent('Route Driver');
-    expect(table).toHaveTextContent('MXN 125.50');
+    expect(table).toHaveTextContent('USD 125.50');
   });
 
   it('renders exact financial totals and fixed reporting-group rows', async () => {
@@ -172,9 +174,9 @@ describe('reporting UI', () => {
     fireEvent.change(screen.getByLabelText('Anchor date'), { target: { value: '2026-09-04' } });
     fireEvent.click(screen.getByRole('button', { name: 'Run report' }));
 
-    expect(await screen.findByText('MXN 16.11')).toBeVisible();
-    expect(screen.getByText('MXN 8.06')).toBeVisible();
-    expect(screen.getByText('MXN 8.05')).toBeVisible();
+    expect(await screen.findByText('USD 16.11')).toBeVisible();
+    expect(screen.getByText('USD 8.06')).toBeVisible();
+    expect(screen.getByText('USD 8.05')).toBeVisible();
     for (const group of ['Sodas', 'Charcoal', 'Tostadas', 'Other']) {
       expect(screen.getByRole('row', { name: new RegExp(group, 'i') })).toBeVisible();
     }

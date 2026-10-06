@@ -464,6 +464,7 @@ function BusinessSettingsEditor({ settings }: { settings: BusinessSettings }) {
       >
         <Stack spacing={2}>
           <TextField
+            disabled
             label={t('administration.currency')}
             value={currencyCode}
             onChange={(event) => setCurrencyCode(event.target.value)}

@@ -405,7 +405,7 @@ review(
   undefined,
   async (p, w, l) => {
     const section = p.getByRole('region', { name: w.closeRow.closeNumber });
-    await expect(section).toContainText('MXN 1,234.56');
+    await expect(section).toContainText('USD 1,234.56');
     const date = await p.evaluate(
       ({ instant, language }) =>
         new Date(instant).toLocaleString(language === 'es' ? 'es-MX' : 'en-US'),

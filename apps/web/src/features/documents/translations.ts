@@ -1,4 +1,6 @@
 export const documentsEn = {
+  CREDIT_RECEIPT: 'Credit payment receipt',
+  CREDIT_PAYMENT: 'Credit payment',
   title: 'Documents',
   attempts: 'Output attempts',
   generate: 'Generate PDF',
@@ -73,6 +75,8 @@ export const documentsEn = {
   TEST_PRINT: 'Test print',
 };
 export const documentsEs: Record<keyof typeof documentsEn, string> = {
+  CREDIT_RECEIPT: 'Comprobante de liquidación',
+  CREDIT_PAYMENT: 'Pago de crédito',
   title: 'Documentos',
   attempts: 'Intentos de salida',
   generate: 'Generar PDF',

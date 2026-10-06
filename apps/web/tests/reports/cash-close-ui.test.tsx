@@ -29,7 +29,7 @@ function close(overrides: Record<string, unknown> = {}) {
     supersedesCashCloseId: null,
     supersededByCashCloseId: null,
     correctionReason: null,
-    currencyCode: 'MXN',
+    currencyCode: 'USD',
     grossTotal: '101.01',
     partnerRate: '0.500000',
     partnerAmount: '50.51',
@@ -148,9 +148,9 @@ describe('cash-close UI', () => {
     });
     expect(new Headers(mutation[1]?.headers).get('Idempotency-Key')).toMatch(/^[0-9a-f-]{36}$/i);
     expect(await screen.findByText('CC-100')).toBeVisible();
-    expect(screen.getByText('MXN 101.01')).toBeVisible();
-    expect(screen.getByText('MXN 50.51')).toBeVisible();
-    expect(screen.getByText('MXN 50.50')).toBeVisible();
+    expect(screen.getByText('USD 101.01')).toBeVisible();
+    expect(screen.getByText('USD 50.51')).toBeVisible();
+    expect(screen.getByText('USD 50.50')).toBeVisible();
     expect(screen.getByText(/Sep 4, 2026/)).toBeVisible();
     expect(screen.getByText(/Sep 5, 2026/)).toBeVisible();
   });

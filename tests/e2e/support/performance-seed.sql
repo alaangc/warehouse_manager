@@ -47,7 +47,7 @@ select pg_temp.perf_id('operation',n),'SALE','00000000-0000-4000-8000-0000000000
  '2026-01-01T07:00:00Z'::timestamptz + n * interval '1 second' from generate_series(1,100000) n;
 insert into sale (id, sale_number, client_operation_id, customer_id, driver_id, route_id, origin_location_id, payment_method, currency_code, subtotal, total, rounding_mode, completed_at, inventory_operation_id, idempotency_request_id)
 select pg_temp.perf_id('sale',n),'PERF-S-' || lpad(n::text,6,'0'),pg_temp.perf_id('client',n),pg_temp.perf_id('customer',1+(n-1)%10000),
- '00000000-0000-4000-8000-000000000011',pg_temp.perf_id('route',1),'00000000-0000-4000-8000-000000000020','CASH','MXN',10.00,10.00,'HALF_AWAY_FROM_ZERO',
+ '00000000-0000-4000-8000-000000000011',pg_temp.perf_id('route',1),'00000000-0000-4000-8000-000000000020','CASH','USD',10.00,10.00,'HALF_AWAY_FROM_ZERO',
  '2026-01-01T07:00:00Z'::timestamptz + n * interval '1 second',pg_temp.perf_id('operation',n),pg_temp.perf_id('request',n)
 from generate_series(1,100000) n;
 insert into sale_line (sale_id, sequence, product_id, product_name, category_name, reporting_group, unit_code, quantity, unit_price, line_amount, applied_price_source)

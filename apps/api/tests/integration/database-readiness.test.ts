@@ -23,7 +23,7 @@ describe('database schema readiness', () => {
     SESSION_SECRET: 'x'.repeat(32),
     APP_ORIGIN: 'https://warehouse.test',
     BUSINESS_TIMEZONE: 'America/Hermosillo',
-    BUSINESS_CURRENCY: 'MXN',
+    BUSINESS_CURRENCY: 'USD',
     PORT: 0,
     LOG_LEVEL: 'fatal',
     DOCUMENT_STORAGE_PATH: 'var/documents',

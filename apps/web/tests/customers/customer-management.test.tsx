@@ -150,6 +150,8 @@ describe('customer management', () => {
     };
     const fetchMock = vi.fn((input: RequestInfo | URL) => {
       const url = new URL(String(input), 'http://warehouse.test');
+      if (url.pathname.endsWith(`/customers/${customer.id}/credits`))
+        return jsonResponse({ data: { notes: [], noteCount: 0, total: '0.00', payments: [] } });
       if (url.pathname.endsWith(`/customers/${customer.id}/prices`))
         return jsonResponse({ data: [] });
       if (url.pathname.endsWith(`/customers/${customer.id}/sales`))
@@ -201,7 +203,7 @@ describe('customer management', () => {
     expect(await screen.findByRole('heading', { name: 'Test customer' })).toBeVisible();
     expect(screen.getByText('Customer Contact')).toBeVisible();
     expect(await screen.findByText('S-100')).toBeVisible();
-    expect(screen.getByText('MXN 125.50')).toBeVisible();
+    expect(screen.getByText('USD 125.50')).toBeVisible();
     expect(screen.getByText('Cash')).toBeVisible();
   });
 
@@ -223,7 +225,10 @@ describe('customer management', () => {
     const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const url = new URL(String(input), 'http://warehouse.test');
       const method = init?.method ?? 'GET';
-      if (url.pathname === '/api/v1/products') return jsonResponse({ data: [{ id: productId, name: 'Price product', sku: 'PRICE', active: true }] });
+      if (url.pathname === '/api/v1/products')
+        return jsonResponse({
+          data: [{ id: productId, name: 'Price product', sku: 'PRICE', active: true }],
+        });
       if (url.pathname.endsWith(`/customer-prices/${originalId}/deactivation`)) {
         rows = rows.map((price) => ({ ...price, active: false }));
         return jsonResponse({ data: rows[0] });

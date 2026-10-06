@@ -50,7 +50,6 @@ export class CustomerRepository {
       .selectAll()
       .where('customer_id', '=', customerId)
       .orderBy('completed_at desc')
-      .limit(100)
       .execute();
   }
 }

@@ -51,11 +51,12 @@ export function formatEscPos(raw: unknown, options: FormatOptions): Uint8Array<A
     add('*** REIMPRESION ***');
     separator();
   }
-  if (doc.documentType === 'TICKET') {
+  if (doc.documentType === 'TICKET' || doc.documentType === 'CREDIT_RECEIPT') {
     const s = doc.snapshot;
-    add('TICKET DE VENTA');
-    add(`Ticket: ${s.ticketNumber}`);
-    add(`Venta: ${s.saleNumber}`);
+    add(doc.documentType === 'CREDIT_RECEIPT' ? 'LIQUIDACION DE CREDITO' : 'TICKET DE VENTA');
+    if (s.customerName) add(`Cliente: ${s.customerName}`);
+    if (s.ticketNumber !== s.saleNumber) add(`Comprobante: ${s.ticketNumber}`);
+    add(s.saleNumber);
     separator();
     for (const item of s.lines) {
       add(item.productName);
@@ -64,7 +65,10 @@ export function formatEscPos(raw: unknown, options: FormatOptions): Uint8Array<A
     }
     separator();
     add(`TOTAL: ${s.total} ${s.currencyCode}`);
-    if (s.paymentMethod) add(`Pago: ${s.paymentMethod}`);
+    if (s.paymentMethod)
+      add(
+        `Pago: ${({ CASH: 'Efectivo', BANK_TRANSFER: 'Transferencia', CHECK: 'Cheque', CREDIT: 'Credito', CARD: 'Tarjeta' } as Record<string, string>)[s.paymentMethod] ?? s.paymentMethod}`,
+      );
   } else if (doc.documentType === 'ROUTE_LOAD') {
     const s = doc.snapshot;
     add('CARGA DE RUTA');

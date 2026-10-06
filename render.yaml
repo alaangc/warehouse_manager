@@ -28,7 +28,7 @@ services:
       - key: BUSINESS_TIMEZONE
         value: America/Hermosillo
       - key: BUSINESS_CURRENCY
-        value: MXN
+        value: USD
       - key: DOCUMENT_STORAGE_PATH
         value: /tmp/warehouse-demo-documents
       - key: DEMO_MODE

@@ -26,7 +26,7 @@ const common = {
   contentVersion: '1',
   createdAt: '2026-09-11T12:00:00.000Z',
   locale: 'es',
-  currencyCode: 'MXN',
+  currencyCode: 'USD',
   businessTimezone: 'America/Hermosillo',
 };
 const sources = [
@@ -293,7 +293,7 @@ describe('T118/T125 canonical PDF rendering', () => {
       ...sources[2],
       snapshot: {
         closeNumber: 'C-HISTORICO',
-        currencyCode: 'MXN',
+        currencyCode: 'USD',
         grossTotal: '20.01',
         partnerRate: '0.500000',
         partnerShare: '10.01',
@@ -412,4 +412,37 @@ describe('58 mm receipt PDFs', () => {
     expect(documentContentVersion('1', 'TICKET')).not.toBe('1:pdf-ticket-58mm-v2');
     expect(documentContentVersion('2', 'TICKET')).not.toBe(documentContentVersion('1', 'TICKET'));
   });
+});
+
+it('renders credit receipts with paid notes, products, customer and check payment on thermal paper', async () => {
+  const text = vi.spyOn(PDFDocument.prototype, 'text');
+  const result = await render({
+    ...common,
+    documentType: 'CREDIT_RECEIPT',
+    sourceType: 'CREDIT_PAYMENT',
+    state: 'COMPLETED',
+    snapshot: {
+      ticketNumber: 'Pago: 001',
+      saleNumber: 'Nota: 001, Nota: 10601',
+      customerName: 'Cliente prueba',
+      paymentMethod: 'CHECK',
+      currencyCode: 'USD',
+      lines: [{ ...line, productName: 'Nota: 001 - Producto' }],
+      total: '20.01',
+    },
+  });
+  const output = text.mock.calls.map(([value]) => String(value)).join('\n');
+  for (const marker of [
+    'Pago: 001',
+    'Nota: 001, Nota: 10601',
+    'Cliente prueba',
+    'Cheque',
+    'Nota: 001 - Producto',
+    'USD',
+    '20.01',
+  ])
+    expect(output).toContain(marker);
+  expect(
+    Number(result.bytes.toString('latin1').match(/\/MediaBox \[0 0 ([\d.]+)/)?.[1]),
+  ).toBeCloseTo((58 * 72) / 25.4, 4);
 });

@@ -45,6 +45,15 @@ export class CancellationService {
         throw Object.assign(new Error('Sale is already cancelled'), {
           code: 'SALE_ALREADY_CANCELLED',
         });
+      const payment = await transaction
+        .selectFrom('credit_payment_sale')
+        .select('sale_id')
+        .where('sale_id', '=', saleId)
+        .executeTakeFirst();
+      if (payment)
+        throw Object.assign(new Error('A settled credit cannot be cancelled'), {
+          code: 'CREDIT_ALREADY_PAID',
+        });
       const destination =
         sale.state === 'EN_ROUTE'
           ? await transaction

@@ -67,7 +67,7 @@ it('changes future business settings without rewriting a completed sale and roll
     service.update(
       {
         expectedVersion: changed.version,
-        currencyCode: 'MXN',
+        currencyCode: 'USD',
         businessTimezone: 'America/Hermosillo',
         reason: 'Must roll back',
       },

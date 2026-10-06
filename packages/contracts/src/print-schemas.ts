@@ -11,6 +11,7 @@ const ticket = z.object({
   saleNumber: text,
   currencyCode: z.string().regex(/^[A-Z]{3}$/),
   paymentMethod: z.string().optional(),
+  customerName: z.string().optional(),
   lines: z.array(line.extend({ unitPrice: decimal, lineAmount: decimal })).min(1),
   total: decimal,
 });
@@ -39,6 +40,10 @@ const report = z.object({
   result: ReportResourceSchema,
 });
 export const ThermalDocumentSchema = z.discriminatedUnion('documentType', [
+  DocumentPrintMetadataSchema.extend({
+    documentType: z.literal('CREDIT_RECEIPT'),
+    snapshot: ticket,
+  }),
   DocumentPrintMetadataSchema.extend({
     documentType: z.literal('ROUTE_RETURN'),
     snapshot: RouteReturnSnapshotSchema,

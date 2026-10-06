@@ -91,8 +91,8 @@ describe('role-aware dashboard', () => {
   it('shows the administrator real route and inventory summary without requesting sales', async () => {
     const returnedRoute = route('RETURNED', crypto.randomUUID());
     const fetchMock = vi.fn((input: RequestInfo | URL) => {
-      const url = new URL(String(input), 'http://warehouse.test').pathname;
-      if (url.endsWith('/routes'))
+      const url = String(input);
+      if (url.endsWith('/routes?active=true'))
         return jsonResponse({
           data: [route('EN_ROUTE'), returnedRoute],
           page: { hasNextPage: false, nextCursor: null },
@@ -128,8 +128,8 @@ describe('role-aware dashboard', () => {
     vi.stubGlobal(
       'fetch',
       vi.fn((input: RequestInfo | URL) => {
-        const url = new URL(String(input), 'http://warehouse.test').pathname;
-        if (url.endsWith('/routes'))
+        const url = String(input);
+        if (url.endsWith('/routes?active=true'))
           return jsonResponse({
             data: [route('EN_ROUTE')],
             page: { hasNextPage: false, nextCursor: null },

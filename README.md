@@ -201,6 +201,26 @@ T136 and T143.
 
 ## Troubleshooting
 
+### USD, numbered notes and customer credit
+
+Run `pnpm db:migrate` with the migration owner before starting the updated API.
+Migration `011_customer_credit_usd_notes` identifies existing amounts as USD without
+converting or rounding them. It numbers existing sales chronologically as `Nota: 001`,
+`Nota: 002`, etc., retaining old identifiers in `legacy_sale_number` and
+`legacy_ticket_number`. New notes use an atomic counter, also for numbers above 999.
+Previously generated financial PDFs require regeneration to show the corrected labels.
+
+Checkout accepts cash, bank transfer, check and credit. Administrators can open a
+customer to see outstanding note count, balance, purchase details and payment history,
+select up to 100 notes from that customer, and settle them in full with cash, transfer
+or check. Every settlement persists a receipt with customer, original note numbers,
+products, amounts and payment method, available as a 58 mm PDF and thermal reprint.
+Retries do not duplicate payments. Cancelled notes cannot be collected; paid credit
+notes cannot be cancelled. Partial payments and refunds are not part of this flow.
+
+Sales reports include completed credit sales; cash closes include those amounts on
+the settlement date, once only. Currency is fixed to USD in business settings.
+
 ### Windows local setup
 
 If pnpm is available under `.tools/bin`, use `pnpm.cmd` in PowerShell to avoid

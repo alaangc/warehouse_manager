@@ -118,7 +118,7 @@ describe('sale form', () => {
             data: {
               customerId,
               routeId,
-              currencyCode: 'MXN',
+              currencyCode: 'USD',
               lines: [
                 {
                   productId: firstProductId,
@@ -160,7 +160,7 @@ describe('sale form', () => {
                 id: crypto.randomUUID(),
                 saleNumber: 'S-301',
                 ticketNumber: 'T-301',
-                currencyCode: 'MXN',
+                currencyCode: 'USD',
                 total: '100.00',
               },
             },
@@ -204,13 +204,15 @@ describe('sale form', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Review sale' }));
 
     expect(await screen.findByRole('heading', { name: 'Review and confirm' })).toBeVisible();
-    expect(screen.getByText('MXN 100.00')).toBeVisible();
+    expect(screen.getByText('USD 100.00')).toBeVisible();
     expect(screen.getByText('Customer-specific price')).toBeVisible();
     expect(screen.getByRole('combobox', { name: 'Payment method' })).toHaveTextContent('Cash');
     fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Payment method' }));
     expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
       'Cash',
       'Bank transfer',
+      'Check',
+      'Credit',
     ]);
     fireEvent.click(screen.getByRole('option', { name: 'Cash', exact: true }));
     fireEvent.click(screen.getByRole('button', { name: 'Confirm sale' }));
@@ -277,7 +279,7 @@ describe('sale form', () => {
             data: {
               customerId,
               routeId,
-              currencyCode: 'MXN',
+              currencyCode: 'USD',
               lines: [
                 {
                   productId: firstProductId,
@@ -324,7 +326,7 @@ describe('sale form', () => {
                 id: crypto.randomUUID(),
                 saleNumber: 'S-RETRY',
                 ticketNumber: 'T-RETRY',
-                currencyCode: 'MXN',
+                currencyCode: 'USD',
                 total: '32.00',
               },
             },
@@ -345,13 +347,13 @@ describe('sale form', () => {
     fireEvent.click(await screen.findByRole('option', { name: 'Cola 600 ml' }));
     fireEvent.change(screen.getByLabelText(/^Quantity/), { target: { value: '1' } });
     fireEvent.click(screen.getByRole('button', { name: 'Review sale' }));
-    expect((await screen.findAllByText('MXN 16.00')).length).toBeGreaterThan(0);
+    expect((await screen.findAllByText('USD 16.00')).length).toBeGreaterThan(0);
 
     fireEvent.click(screen.getByRole('button', { name: 'Back to products' }));
     fireEvent.change(screen.getByLabelText(/^Quantity/), { target: { value: '2' } });
-    expect(screen.queryAllByText('MXN 16.00')).toHaveLength(0);
+    expect(screen.queryAllByText('USD 16.00')).toHaveLength(0);
     fireEvent.click(screen.getByRole('button', { name: 'Review sale' }));
-    expect((await screen.findAllByText('MXN 32.00')).length).toBeGreaterThan(0);
+    expect((await screen.findAllByText('USD 32.00')).length).toBeGreaterThan(0);
     expect(quoteBodies).toHaveLength(2);
     expect(quoteBodies[1]?.lines).toEqual([{ productId: firstProductId, quantity: '2' }]);
 

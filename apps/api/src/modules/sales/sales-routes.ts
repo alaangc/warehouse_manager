@@ -13,6 +13,7 @@ import { CancellationService } from './cancellation-service.js';
 import { PricingService } from './pricing-service.js';
 import { SaleRepository } from './sale-repository.js';
 import { SaleService } from './sale-service.js';
+import { CreditService } from './credit-service.js';
 
 function requestId(request: Request): string {
   return typeof request.id === 'string' || typeof request.id === 'number'
@@ -42,6 +43,7 @@ function mapSaleError(error: unknown): never {
         'ROUTE_NOT_EN_ROUTE',
         'INSUFFICIENT_INVENTORY',
         'SALE_ALREADY_CANCELLED',
+        'CREDIT_ALREADY_PAID',
         'IDEMPOTENCY_HASH_CONFLICT',
         'IDEMPOTENCY_IN_PROGRESS',
       ].includes(code)
@@ -61,6 +63,39 @@ export function createSalesRouter(database: AppDatabase): Router {
   const sales = new SaleService(database);
   const cancellations = new CancellationService(database);
   router.use(requireAuthenticated);
+  router.get(
+    '/customers/:customerId/credits',
+    requireRole('ADMINISTRATOR'),
+    async (request, response, next) => {
+      try {
+        response.json({
+          data: await new CreditService(database).list(pathId(request.params.customerId)),
+        });
+      } catch (error) {
+        next(error);
+      }
+    },
+  );
+  router.post(
+    '/customers/:customerId/credit-payments',
+    requireRole('ADMINISTRATOR'),
+    async (request, response, next) => {
+      try {
+        const data = await new CreditService(database).pay(
+          pathId(request.params.customerId),
+          request.body,
+          {
+            actorId: request.principal!.id,
+            idempotencyKey: idempotencyKey(request),
+            requestId: requestId(request),
+          },
+        );
+        response.status(201).json({ data });
+      } catch (error) {
+        next(error);
+      }
+    },
+  );
 
   router.post('/sales/quote', requireRole('DRIVER'), async (request, response, next) => {
     try {

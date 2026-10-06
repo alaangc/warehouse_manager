@@ -33,12 +33,12 @@ export function SaleResult({
           <CircleCheck size={36} />
         </Box>
         <Typography variant="h4">{t('sales.ticket')}</Typography>
-        <Typography>
-          {t('sales.sale')}: {text(sale.saleNumber ?? sale.id)}
-        </Typography>
-        <Typography>
-          {t('sales.ticketNumber')}: {text(sale.ticketNumber)}
-        </Typography>
+        <Typography>{text(sale.saleNumber ?? sale.id)}</Typography>
+        {sale.ticketNumber !== sale.saleNumber && (
+          <Typography>
+            {t('sales.ticketNumber')}: {text(sale.ticketNumber)}
+          </Typography>
+        )}
         <Typography>
           {t('common.total')}: {text(sale.currencyCode)} {formatDecimal(text(sale.total))}
         </Typography>

@@ -215,7 +215,7 @@ export interface SaleTable {
   driver_id: string;
   route_id: string;
   origin_location_id: string;
-  payment_method: 'CASH' | 'BANK_TRANSFER' | 'CARD';
+  payment_method: 'CASH' | 'BANK_TRANSFER' | 'CARD' | 'CHECK' | 'CREDIT';
   currency_code: string;
   subtotal: string;
   total: string;
@@ -389,9 +389,10 @@ export interface UserPrinterPreferenceTable {
   created_at: Timestamp;
   updated_at: Timestamp;
 }
-export type DocumentType = 'TICKET' | 'ROUTE_LOAD' | 'ROUTE_RETURN' | 'CASH_CLOSE' | 'REPORT';
+export type DocumentType =
+  'TICKET' | 'CREDIT_RECEIPT' | 'ROUTE_LOAD' | 'ROUTE_RETURN' | 'CASH_CLOSE' | 'REPORT';
 export type DocumentSourceType =
-  'SALE' | 'ROUTE_LOAD' | 'ROUTE_RETURN' | 'CASH_CLOSE' | 'REPORT_SNAPSHOT';
+  'SALE' | 'CREDIT_PAYMENT' | 'ROUTE_LOAD' | 'ROUTE_RETURN' | 'CASH_CLOSE' | 'REPORT_SNAPSHOT';
 export interface DocumentOutputTable {
   id: Generated<string>;
   document_type: DocumentType;
@@ -420,6 +421,19 @@ export interface OutputAttemptTable {
   created_at: Timestamp;
 }
 export interface Database {
+  credit_payment: {
+    id: Generated<string>;
+    customer_id: string;
+    receipt_number: string;
+    payment_method: 'CASH' | 'BANK_TRANSFER' | 'CHECK';
+    currency_code: string;
+    total: string;
+    created_by: string;
+    created_at: Timestamp;
+    idempotency_request_id: string;
+    snapshot: JsonValue;
+  };
+  credit_payment_sale: { sale_id: string; payment_id: string; amount: string };
   route_return: RouteReturnTable;
   document_output: DocumentOutputTable;
   printer_profile: PrinterProfileTable;

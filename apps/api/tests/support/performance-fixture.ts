@@ -109,7 +109,7 @@ export async function createPerformanceFixture(
         SESSION_SECRET: randomBytes(32).toString('hex'),
         APP_ORIGIN: origin,
         BUSINESS_TIMEZONE: 'America/Hermosillo',
-        BUSINESS_CURRENCY: 'MXN',
+        BUSINESS_CURRENCY: 'USD',
         PORT: address.port,
         LOG_LEVEL: 'fatal',
         DOCUMENT_STORAGE_PATH: storage,

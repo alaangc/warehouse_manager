@@ -19,6 +19,7 @@ import { useSession } from '../../app/session.js';
 import { apiRequest } from '../../lib/api/client.js';
 import { localizedErrorMessage } from '../../lib/api/localized-error.js';
 import { CustomerForm } from './customer-form.js';
+import { CustomerCredit } from './customer-credit.js';
 import { CustomerHistory } from './customer-history.js';
 import { CustomerPrices } from './customer-prices.js';
 import type { Customer } from './customer-types.js';
@@ -65,7 +66,9 @@ function CustomerProfile({ customer }: { customer: Customer }) {
               <Typography component="h2" variant="h5" sx={{ fontWeight: 750 }}>
                 {customer.displayName}
               </Typography>
-              <Typography color="text.secondary">{customer.customerNumber}</Typography>
+              <Typography color="text.secondary" sx={{ overflowWrap: 'anywhere' }}>
+                {customer.customerNumber}
+              </Typography>
             </Box>
             <Chip
               color={customer.active ? 'success' : 'default'}
@@ -223,7 +226,10 @@ export function CustomerPages() {
         sx={{
           display: 'grid',
           gap: 3,
-          gridTemplateColumns: { xs: '1fr', lg: 'minmax(300px, 0.7fr) minmax(0, 1.3fr)' },
+          gridTemplateColumns: {
+            xs: 'minmax(0, 1fr)',
+            lg: 'minmax(300px, 0.7fr) minmax(0, 1.3fr)',
+          },
         }}
       >
         <Stack
@@ -277,7 +283,11 @@ export function CustomerPages() {
                 </Box>
                 <Box sx={{ flexGrow: 1, minWidth: 0 }}>
                   <Typography sx={{ fontWeight: 700 }}>{customer.displayName}</Typography>
-                  <Typography color="text.secondary" variant="body2">
+                  <Typography
+                    color="text.secondary"
+                    variant="body2"
+                    sx={{ overflowWrap: 'anywhere' }}
+                  >
                     {customer.customerNumber} · {customer.city}
                   </Typography>
                 </Box>
@@ -303,6 +313,16 @@ export function CustomerPages() {
             </Paper>
           )}
           {selected && <CustomerProfile customer={selected} />}
+          {administrator && selected && (
+            <>
+              <Paper variant="outlined" sx={{ p: { xs: 2.5, md: 3 }, minWidth: 0 }}>
+                <CustomerCredit key={selected.id} customerId={selected.id} />
+              </Paper>
+              <Paper variant="outlined" sx={{ p: { xs: 2.5, md: 3 }, minWidth: 0 }}>
+                <CustomerHistory key={selected.id} customerId={selected.id} />
+              </Paper>
+            </>
+          )}
           {!administrator && selected && (
             <Alert severity="info">{t('customers.driverReadOnly')}</Alert>
           )}
@@ -321,9 +341,6 @@ export function CustomerPages() {
             <>
               <Paper variant="outlined" sx={{ p: { xs: 2.5, md: 3 } }}>
                 <CustomerPrices customerId={selected.id} />
-              </Paper>
-              <Paper variant="outlined" sx={{ p: { xs: 2.5, md: 3 } }}>
-                <CustomerHistory customerId={selected.id} />
               </Paper>
             </>
           )}

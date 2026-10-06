@@ -67,7 +67,7 @@ describe('inventory and catalog HTTP contract', () => {
     SESSION_SECRET: 'x'.repeat(32),
     APP_ORIGIN: 'https://warehouse.test',
     BUSINESS_TIMEZONE: 'America/Hermosillo',
-    BUSINESS_CURRENCY: 'MXN',
+    BUSINESS_CURRENCY: 'USD',
     PORT: 3000,
     LOG_LEVEL: 'fatal',
     DOCUMENT_STORAGE_PATH: '/tmp/warehouse-documents-contract',

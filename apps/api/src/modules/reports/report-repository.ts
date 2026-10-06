@@ -87,16 +87,21 @@ export class ReportRepository {
     return result.rows;
   }
 
-  async financialGroups(period: PeriodBounds): Promise<FinancialGroupRow[]> {
+  async financialGroups(period: PeriodBounds, collections = false): Promise<FinancialGroupRow[]> {
+    const recognizedAt = collections
+      ? sql`case when sale.payment_method = 'CREDIT' then cp.created_at else sale.completed_at end`
+      : sql`sale.completed_at`;
     const result = await sql<FinancialGroupRow>`
       select
         sale_line.reporting_group as "reportingGroup",
         sum(sale_line.line_amount)::numeric(19,2)::text as total
       from sale_line
       join sale on sale.id = sale_line.sale_id
+      left join credit_payment_sale cps on cps.sale_id = sale.id
+      left join credit_payment cp on cp.id = cps.payment_id
       where sale.status = 'COMPLETED'
-        and sale.completed_at >= ${new Date(period.periodStart)}
-        and sale.completed_at < ${new Date(period.periodEnd)}
+        and ${recognizedAt} >= ${new Date(period.periodStart)}
+        and ${recognizedAt} < ${new Date(period.periodEnd)}
       group by sale_line.reporting_group
       order by array_position(
         array['SODAS','CHARCOAL','TOSTADAS','OTHER']::text[],
@@ -127,13 +132,21 @@ export class ReportRepository {
     return result.rows;
   }
 
-  async contributingSales(period: PeriodBounds): Promise<ContributingSaleRow[]> {
+  async contributingSales(
+    period: PeriodBounds,
+    collections = false,
+  ): Promise<ContributingSaleRow[]> {
+    const recognizedAt = collections
+      ? sql`case when sale.payment_method = 'CREDIT' then cp.created_at else sale.completed_at end`
+      : sql`sale.completed_at`;
     const result = await sql<ContributingSaleRow>`
       select sale.id as "saleId", sale.total::numeric(19,2)::text as "includedAmount"
       from sale
+      left join credit_payment_sale cps on cps.sale_id = sale.id
+      left join credit_payment cp on cp.id = cps.payment_id
       where sale.status = 'COMPLETED'
-        and sale.completed_at >= ${new Date(period.periodStart)}
-        and sale.completed_at < ${new Date(period.periodEnd)}
+        and ${recognizedAt} >= ${new Date(period.periodStart)}
+        and ${recognizedAt} < ${new Date(period.periodEnd)}
       order by sale.completed_at, sale.id
     `.execute(this.database);
     return result.rows;

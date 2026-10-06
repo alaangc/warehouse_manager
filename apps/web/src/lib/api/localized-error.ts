@@ -28,6 +28,7 @@ const translatedCodes = new Set([
   'ROUTE_SCOPE_REQUIRED',
   'DIFFERENCE_REASON_REQUIRED',
   'SALE_ALREADY_CANCELLED',
+  'CREDIT_ALREADY_PAID',
 ]);
 
 export function localizedErrorMessage(error: unknown, t: TFunction): string {

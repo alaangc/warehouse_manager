@@ -144,8 +144,8 @@ export class CashCloseService {
     reason: string | null,
   ) {
     const reports = new ReportRepository(transaction);
-    const groups = await reports.financialGroups(period);
-    const sales = await reports.contributingSales(period);
+    const groups = await reports.financialGroups(period, true);
+    const sales = await reports.contributingSales(period, true);
     const lines = REPORTING_GROUPS.map((reportingGroup) => ({
       reportingGroup,
       total: groups.find((row) => row.reportingGroup === reportingGroup)?.total ?? '0.00',

@@ -134,7 +134,7 @@ export const printData = {
   snapshot: {
     ticketNumber: 'T-1',
     saleNumber: 'S-1',
-    currencyCode: 'MXN',
+    currencyCode: 'USD',
     total: '12.50',
     lines: [
       {

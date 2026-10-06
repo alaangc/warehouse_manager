@@ -34,7 +34,7 @@ export async function seedFoundation<DB>(database: Kysely<DB>): Promise<void> {
       id, currency_code, currency_scale, business_timezone, partner_share_rate,
       money_rounding_mode, updated_by
     ) values (
-      ${SETTINGS_ID}::uuid, 'MXN', 2, 'America/Hermosillo', 0.500000,
+      ${SETTINGS_ID}::uuid, 'USD', 2, 'America/Hermosillo', 0.500000,
       'HALF_AWAY_FROM_ZERO', ${ADMIN_ID}::uuid
     ) on conflict (id) do nothing
   `.execute(database);
