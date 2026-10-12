@@ -32,6 +32,7 @@ function allowed(source: DocumentSource, user: SessionUser): boolean {
   if (source.documentType === 'ROUTE_RETURN' && source.sourceState !== 'READY') return false;
   return (
     user.role === 'ADMINISTRATOR' ||
+    source.documentType === 'CREDIT_RECEIPT' ||
     (['TICKET', 'ROUTE_LOAD', 'ROUTE_RETURN'].includes(source.documentType) &&
       source.driverId === user.id)
   );

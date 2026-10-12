@@ -241,3 +241,19 @@ it.each(['TICKET', 'ROUTE_LOAD', 'ROUTE_RETURN', 'CASH_CLOSE', 'REPORT'])(
     expect(s.calls.some((call) => call.url.pathname.includes('printer-profiles'))).toBe(false);
   },
 );
+
+it('lets drivers prepare and download credit receipts', async () => {
+  const receipt = { ...document, documentType: 'CREDIT_RECEIPT', sourceType: 'CREDIT_PAYMENT' };
+  network(() => json({ data: receipt }, 202));
+  await mount('DocumentCenter', {
+    source: {
+      documentType: 'CREDIT_RECEIPT',
+      sourceType: 'CREDIT_PAYMENT',
+      sourceId: receipt.sourceId,
+      sourceState: 'COMPLETED',
+    },
+  });
+  fireEvent.click(await screen.findByRole('button', { name: 'Generate PDF' }));
+  expect(await screen.findByRole('button', { name: /download/i })).toBeEnabled();
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+});

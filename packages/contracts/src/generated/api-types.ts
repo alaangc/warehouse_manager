@@ -662,7 +662,7 @@ export interface paths {
     };
     /**
      * Get sale
-     * @description Administrators may retrieve any sale. Drivers may retrieve only a sale attributed to them; another Driver's sale is forbidden.
+     * @description Administrators may retrieve any sale. Drivers may retrieve their own sales and completed credit sales for collection; another Driver's sale is forbidden.
      */
     get: operations['getSale'];
     put?: never;
@@ -1144,7 +1144,10 @@ export interface paths {
       };
       cookie?: never;
     };
-    /** List outstanding notes and credit payment receipts */
+    /**
+     * List outstanding notes and credit payment receipts
+     * @description Administrators and drivers may view customer credit balances and receipts.
+     */
     get: operations['getCustomerCredits'];
     put?: never;
     post?: never;
@@ -1168,7 +1171,10 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    /** Settle selected credit notes in full */
+    /**
+     * Settle selected credit notes in full
+     * @description Administrators and drivers may collect customer credit; the authenticated collector is recorded.
+     */
     post: operations['createCreditPayment'];
     delete?: never;
     options?: never;

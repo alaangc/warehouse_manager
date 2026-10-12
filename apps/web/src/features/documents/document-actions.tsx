@@ -19,7 +19,9 @@ export function DocumentActions(props: Props) {
   if (
     !user?.active ||
     (user.role === 'DRIVER' &&
-      !['TICKET', 'ROUTE_LOAD', 'ROUTE_RETURN'].includes(props.document.documentType))
+      !['TICKET', 'CREDIT_RECEIPT', 'ROUTE_LOAD', 'ROUTE_RETURN'].includes(
+        props.document.documentType,
+      ))
   )
     return null;
   return (

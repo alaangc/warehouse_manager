@@ -65,7 +65,13 @@ export class SaleRepository {
       .selectAll('sale')
       .select('sale_ticket.ticket_number')
       .where('sale.id', '=', id);
-    if (principal.role === 'DRIVER') query = query.where('sale.driver_id', '=', principal.id);
+    if (principal.role === 'DRIVER')
+      query = query.where((eb) =>
+        eb.or([
+          eb('sale.driver_id', '=', principal.id),
+          eb.and([eb('sale.payment_method', '=', 'CREDIT'), eb('sale.status', '=', 'COMPLETED')]),
+        ]),
+      );
     const sale = await query.executeTakeFirst();
     if (!sale) {
       if (principal.role === 'DRIVER') {

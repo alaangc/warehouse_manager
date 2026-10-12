@@ -288,7 +288,7 @@ export const es: DeepTranslation<typeof en> = {
     search: 'Buscar clientes',
     newCustomer: 'Nuevo cliente',
     driverReadOnly:
-      'El acceso del conductor es de solo lectura. Selecciona este cliente al crear una venta.',
+      'Los datos del cliente son de solo lectura. Puedes consultar sus créditos y cobrar las notas pendientes.',
     specialPrices: 'Precios especiales',
     exactUnitPrice: 'Precio unitario exacto',
     validFrom: 'Válido desde',

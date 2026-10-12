@@ -1869,7 +1869,7 @@ paths:
       tags: [ Sales ]
       operationId: getSale
       description: >-
-        Administrators may retrieve any sale. Drivers may retrieve only a sale attributed to them; another
+        Administrators may retrieve any sale. Drivers may retrieve their own sales and completed credit sales for collection; another
         Driver's sale is forbidden.
       responses:
         '200':
@@ -3034,6 +3034,7 @@ paths:
         "500":
           $ref: "#/components/responses/Problem"
       summary: List outstanding notes and credit payment receipts
+      description: Administrators and drivers may view customer credit balances and receipts.
   /customers/{customerId}/credit-payments:
     parameters:
       - $ref: "#/components/parameters/CustomerId"
@@ -3043,6 +3044,7 @@ paths:
       tags:
         - Customers
       summary: Settle selected credit notes in full
+      description: Administrators and drivers may collect customer credit; the authenticated collector is recorded.
       operationId: createCreditPayment
       security:
         - sessionCookie: []

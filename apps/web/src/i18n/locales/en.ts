@@ -277,7 +277,8 @@ export const en = {
     noPurchaseHistory: 'This customer has no recorded purchases.',
     search: 'Search customers',
     newCustomer: 'New customer',
-    driverReadOnly: 'Driver access is read only. Select this customer while creating a sale.',
+    driverReadOnly:
+      'Customer details are read only. You can review credit and collect outstanding notes.',
     specialPrices: 'Special prices',
     exactUnitPrice: 'Exact unit price',
     validFrom: 'Valid from',

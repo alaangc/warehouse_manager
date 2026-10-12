@@ -173,20 +173,56 @@ describe('USD notes, checks and customer credit', () => {
       ),
     ).toEqual(expect.arrayContaining([{ saleId: note.id, includedAmount: '4.25' }]));
   });
-  it('restricts credit collection and receipts to administrators', async () => {
-    const f = await scenario(),
-      note = await f.create();
+  it('allows drivers to collect another drivers credit and download its receipt without accessing unrelated sales', async () => {
+    const f = await scenario();
+    const note = await f.create();
+    const cashSale = await f.create('CHECK');
     const driver = await h.login('driver');
-    expect((await h.send(driver, 'get', `/customers/${f.customer.id}/credits`)).status).toBe(403);
+    expect(driver.id).not.toBe(f.driver.id);
+    const balance = await h.send(driver, 'get', `/customers/${f.customer.id}/credits`);
+    expect(balance.status).toBe(200);
+    expect(balance.body.data).toMatchObject({ noteCount: 1, total: '4.25' });
+    expect((await h.send(driver, 'get', `/sales/${note.id}`)).status).toBe(200);
+    expect((await h.send(driver, 'get', `/sales/${cashSale.id}`)).status).toBe(403);
+    const key = crypto.randomUUID();
+    const pay = () =>
+      h
+        .send(driver, 'post', `/customers/${f.customer.id}/credit-payments`, {
+          saleIds: [note.id],
+          paymentMethod: 'CASH',
+        })
+        .set('Idempotency-Key', key);
+    const payment = await pay();
+    expect(payment.status).toBe(201);
+    expect((await pay()).body).toEqual(payment.body);
+    const persisted = await h.database
+      .selectFrom('credit_payment')
+      .select('created_by')
+      .where('id', '=', payment.body.data.id)
+      .executeTakeFirstOrThrow();
+    expect(persisted.created_by).toBe(driver.id);
     expect(
-      (
-        await h
-          .send(driver, 'post', `/customers/${f.customer.id}/credit-payments`, {
-            saleIds: [note.id],
-            paymentMethod: 'CASH',
-          })
-          .set('Idempotency-Key', crypto.randomUUID())
-      ).status,
-    ).toBe(403);
+      (await h.send(driver, 'get', `/customers/${f.customer.id}/credits`)).body.data.noteCount,
+    ).toBe(0);
+    const generated = await h
+      .send(driver, 'post', '/documents', {
+        documentType: 'CREDIT_RECEIPT',
+        sourceType: 'CREDIT_PAYMENT',
+        sourceId: payment.body.data.id,
+      })
+      .set('Idempotency-Key', crypto.randomUUID());
+    expect(generated.status).toBe(202);
+    const id = generated.body.data.id;
+    expect((await h.send(driver, 'get', `/documents/${id}`)).status).toBe(200);
+    expect((await h.send(driver, 'get', `/documents/${id}/content`)).status).toBe(200);
+    expect((await h.send(driver, 'get', `/documents/${id}/print-data`)).status).toBe(200);
+    const history = await h.send(
+      driver,
+      'get',
+      `/documents?documentType=CREDIT_RECEIPT&sourceType=CREDIT_PAYMENT&sourceId=${payment.body.data.id}`,
+    );
+    expect(history.status).toBe(200);
+    expect(history.body.data.map((doc: { id: string }) => doc.id)).toContain(id);
+    expect((await h.send(driver, 'get', '/documents?documentType=CASH_CLOSE')).status).toBe(403);
   });
 });

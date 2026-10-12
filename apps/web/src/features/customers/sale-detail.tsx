@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { useSession } from '../../app/session.js';
 import { apiRequest } from '../../lib/api/client.js';
 import { formatDecimal } from '../../i18n/format.js';
 import { DocumentCenter } from '../documents/document-center.js';
@@ -34,6 +35,7 @@ interface SaleDetail {
 }
 export function SaleDetailDialog({ saleId, onClose }: { saleId: string; onClose: () => void }) {
   const { t } = useTranslation();
+  const { user } = useSession();
   const query = useQuery({
     queryKey: ['sale-detail', saleId],
     queryFn: () => apiRequest<{ data: SaleDetail }>(`/sales/${saleId}`),
@@ -64,15 +66,17 @@ export function SaleDetailDialog({ saleId, onClose }: { saleId: string; onClose:
               <Typography variant="h6">
                 {t('common.total')}: {formatDecimal(sale.total)} {sale.currencyCode}
               </Typography>
-              <DocumentCenter
-                source={{
-                  documentType: 'TICKET',
-                  sourceType: 'SALE',
-                  sourceId: sale.id,
-                  sourceState: sale.status,
-                  driverId: sale.driverId,
-                }}
-              />
+              {(user?.role === 'ADMINISTRATOR' || user?.id === sale.driverId) && (
+                <DocumentCenter
+                  source={{
+                    documentType: 'TICKET',
+                    sourceType: 'SALE',
+                    sourceId: sale.id,
+                    sourceState: sale.status,
+                    driverId: sale.driverId,
+                  }}
+                />
+              )}
             </>
           )}
         </Stack>

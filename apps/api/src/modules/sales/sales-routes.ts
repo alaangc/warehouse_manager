@@ -65,7 +65,7 @@ export function createSalesRouter(database: AppDatabase): Router {
   router.use(requireAuthenticated);
   router.get(
     '/customers/:customerId/credits',
-    requireRole('ADMINISTRATOR'),
+    requireRole('ADMINISTRATOR', 'DRIVER'),
     async (request, response, next) => {
       try {
         response.json({
@@ -78,7 +78,7 @@ export function createSalesRouter(database: AppDatabase): Router {
   );
   router.post(
     '/customers/:customerId/credit-payments',
-    requireRole('ADMINISTRATOR'),
+    requireRole('ADMINISTRATOR', 'DRIVER'),
     async (request, response, next) => {
       try {
         const data = await new CreditService(database).pay(

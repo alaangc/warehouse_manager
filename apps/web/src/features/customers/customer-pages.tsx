@@ -313,14 +313,16 @@ export function CustomerPages() {
             </Paper>
           )}
           {selected && <CustomerProfile customer={selected} />}
-          {administrator && selected && (
+          {selected && (
             <>
               <Paper variant="outlined" sx={{ p: { xs: 2.5, md: 3 }, minWidth: 0 }}>
                 <CustomerCredit key={selected.id} customerId={selected.id} />
               </Paper>
-              <Paper variant="outlined" sx={{ p: { xs: 2.5, md: 3 }, minWidth: 0 }}>
-                <CustomerHistory key={selected.id} customerId={selected.id} />
-              </Paper>
+              {administrator && (
+                <Paper variant="outlined" sx={{ p: { xs: 2.5, md: 3 }, minWidth: 0 }}>
+                  <CustomerHistory key={selected.id} customerId={selected.id} />
+                </Paper>
+              )}
             </>
           )}
           {!administrator && selected && (

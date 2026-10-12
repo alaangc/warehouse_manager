@@ -50,7 +50,7 @@ export function documentScope(principal: HistoryPrincipal, alias = 'd'): RawBuil
   const type = sql.ref(`${alias}.document_type`);
   const source = sql.ref(`${alias}.source_id`);
   return sql<boolean>`(
-    (${type} = 'TICKET' and exists (
+    (${type} = 'CREDIT_RECEIPT' and exists (select 1 from credit_payment p where p.id = ${source})) or (${type} = 'TICKET' and exists (
       select 1 from sale s where s.id = ${source} and s.driver_id = ${principal.id}
     )) or (${type} = 'ROUTE_LOAD' and exists (
       select 1 from route_load l join route r on r.id = l.route_id
@@ -167,7 +167,7 @@ export class DocumentRepository {
     }
     if (
       principal.role === 'DRIVER' &&
-      !['TICKET', 'ROUTE_LOAD', 'ROUTE_RETURN'].includes(source.documentType)
+      !['TICKET', 'CREDIT_RECEIPT', 'ROUTE_LOAD', 'ROUTE_RETURN'].includes(source.documentType)
     )
       documentForbidden();
     return inTransaction(this.database, async (db) => {
@@ -354,20 +354,25 @@ export class DocumentRepository {
     if (principal.role === 'DRIVER') {
       if (
         (filters.documentType &&
-          !['TICKET', 'ROUTE_LOAD', 'ROUTE_RETURN'].includes(filters.documentType)) ||
-        (filters.sourceType && !['SALE', 'ROUTE_LOAD', 'ROUTE_RETURN'].includes(filters.sourceType))
+          !['TICKET', 'CREDIT_RECEIPT', 'ROUTE_LOAD', 'ROUTE_RETURN'].includes(
+            filters.documentType,
+          )) ||
+        (filters.sourceType &&
+          !['SALE', 'CREDIT_PAYMENT', 'ROUTE_LOAD', 'ROUTE_RETURN'].includes(filters.sourceType))
       )
         documentForbidden();
       if (filters.sourceId) {
         const type =
           filters.documentType ??
-          (filters.sourceType === 'SALE'
-            ? 'TICKET'
-            : filters.sourceType === 'ROUTE_LOAD'
-              ? 'ROUTE_LOAD'
-              : filters.sourceType === 'ROUTE_RETURN'
-                ? 'ROUTE_RETURN'
-                : undefined);
+          (filters.sourceType === 'CREDIT_PAYMENT'
+            ? 'CREDIT_RECEIPT'
+            : filters.sourceType === 'SALE'
+              ? 'TICKET'
+              : filters.sourceType === 'ROUTE_LOAD'
+                ? 'ROUTE_LOAD'
+                : filters.sourceType === 'ROUTE_RETURN'
+                  ? 'ROUTE_RETURN'
+                  : undefined);
         if (type)
           await this.loadSource(principal, {
             documentType: type,
@@ -378,6 +383,7 @@ export class DocumentRepository {
           // A bare ID still cannot be used to probe an unrelated source.
           const owned = (
             await sql<{ allowed: boolean }>`select (
+            exists(select 1 from credit_payment where id = ${filters.sourceId}::uuid) or
             exists(select 1 from sale where id = ${filters.sourceId}::uuid and driver_id = ${principal.id}) or
             exists(select 1 from route_load l join route r on r.id = l.route_id where l.id = ${filters.sourceId}::uuid and l.state = 'CONFIRMED' and r.driver_id = ${principal.id}) or
             exists(select 1 from route_return rr join route r on r.id = rr.route_id where rr.id = ${filters.sourceId}::uuid and r.driver_id = ${principal.id})

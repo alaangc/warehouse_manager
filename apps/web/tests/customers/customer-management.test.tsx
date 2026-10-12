@@ -339,7 +339,7 @@ describe('customer management', () => {
     });
   });
 
-  it('keeps the driver customer directory read only and active-only', async () => {
+  it('allows drivers to view credit while keeping customer editing restricted', async () => {
     const driver: SessionUser = {
       ...administrator,
       id: crypto.randomUUID(),
@@ -350,6 +350,8 @@ describe('customer management', () => {
     const fetchMock = vi.fn((input: RequestInfo | URL) => {
       const url = new URL(String(input), 'http://warehouse.test');
       if (url.pathname.endsWith('/customers')) return jsonResponse({ data: [customer] });
+      if (url.pathname.endsWith('/credits'))
+        return jsonResponse({ data: { notes: [], noteCount: 0, total: '0.00', payments: [] } });
       throw new Error(`Unexpected request: ${url.pathname}${url.search}`);
     });
     vi.stubGlobal('fetch', fetchMock);
@@ -359,7 +361,9 @@ describe('customer management', () => {
     expect(await screen.findByText(/existing active customers available for sales/i)).toBeVisible();
     fireEvent.click(await screen.findByRole('button', { name: /C-100/ }));
     expect(await screen.findByRole('heading', { name: 'Test customer' })).toBeVisible();
-    expect(screen.getByText(/access is read only/i)).toBeVisible();
+    expect(screen.getByText(/Customer details are read only/i)).toBeVisible();
+    expect(await screen.findByRole('heading', { name: 'Customer credit' })).toBeVisible();
+    expect(await screen.findByText('No outstanding notes.')).toBeVisible();
     expect(screen.queryByRole('button', { name: 'New customer' })).not.toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Edit customer' })).not.toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Special prices' })).not.toBeInTheDocument();
