@@ -58,6 +58,7 @@ const driverLinks: ReadonlyArray<readonly [string, string]> = [
   ['/sales/new', 'nav.newSale'],
   ['/routes', 'nav.myRoute'],
   ['/sales', 'nav.mySales'],
+  ['/customers', 'nav.customers'],
   ['/documents', 'documents.title'],
   ['/settings', 'nav.settings'],
 ];

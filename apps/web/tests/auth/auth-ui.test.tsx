@@ -193,6 +193,30 @@ describe('authentication UI', () => {
     expect(logoutHeaders.get('X-CSRF-Token')).toBe('restored-csrf');
   });
 
+  it('lets drivers reach customer credit from the compact navigation menu', async () => {
+    renderApp(
+      <MemoryRouter initialEntries={['/']}>
+        <Routes>
+          <Route path="/" element={<AppLayout />}>
+            <Route index element={<div>Overview content</div>} />
+            <Route path="customers" element={<div>Customer credit destination</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+      { user: { ...administrator, role: 'DRIVER' }, loading: false, error: null },
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Open navigation menu' }));
+    const link = await screen.findByRole('link', { name: 'Customers' });
+    expect(link).toHaveAttribute('href', '/customers');
+    fireEvent.click(link);
+    expect(await screen.findByText('Customer credit destination')).toBeVisible();
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('button', { name: 'Close navigation menu' }),
+      ).not.toBeInTheDocument(),
+    );
+  });
+
   it('opens the compact navigation menu and closes it after navigation', async () => {
     renderApp(
       <MemoryRouter initialEntries={['/']}>
