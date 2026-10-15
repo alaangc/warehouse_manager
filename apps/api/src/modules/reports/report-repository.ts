@@ -88,16 +88,22 @@ export class ReportRepository {
   }
 
   async financialGroups(period: PeriodBounds, collections = false): Promise<FinancialGroupRow[]> {
+    const recognizedAmount = collections
+      ? sql`case when sale.payment_method = 'CREDIT' then
+          round(cps.amount * sale_line.running_amount / nullif(sale.total, 0), 2) -
+          round(cps.amount * (sale_line.running_amount - sale_line.line_amount) / nullif(sale.total, 0), 2)
+        else sale_line.line_amount end`
+      : sql`sale_line.line_amount`;
     const recognizedAt = collections
       ? sql`case when sale.payment_method = 'CREDIT' then cp.created_at else sale.completed_at end`
       : sql`sale.completed_at`;
     const result = await sql<FinancialGroupRow>`
       select
         sale_line.reporting_group as "reportingGroup",
-        sum(sale_line.line_amount)::numeric(19,2)::text as total
-      from sale_line
+        sum(${recognizedAmount})::numeric(19,2)::text as total
+      from (select *, sum(line_amount) over (partition by sale_id order by sequence) as running_amount from sale_line) sale_line
       join sale on sale.id = sale_line.sale_id
-      left join credit_payment_sale cps on cps.sale_id = sale.id
+      left join credit_payment_sale cps on cps.sale_id = sale.id and ${collections}
       left join credit_payment cp on cp.id = cps.payment_id
       where sale.status = 'COMPLETED'
         and ${recognizedAt} >= ${new Date(period.periodStart)}
@@ -140,13 +146,14 @@ export class ReportRepository {
       ? sql`case when sale.payment_method = 'CREDIT' then cp.created_at else sale.completed_at end`
       : sql`sale.completed_at`;
     const result = await sql<ContributingSaleRow>`
-      select sale.id as "saleId", sale.total::numeric(19,2)::text as "includedAmount"
+      select sale.id as "saleId", ${collections ? sql`sum(case when sale.payment_method = 'CREDIT' then cps.amount else sale.total end)` : sql`sale.total`}::numeric(19,2)::text as "includedAmount"
       from sale
-      left join credit_payment_sale cps on cps.sale_id = sale.id
+      left join credit_payment_sale cps on cps.sale_id = sale.id and ${collections}
       left join credit_payment cp on cp.id = cps.payment_id
       where sale.status = 'COMPLETED'
         and ${recognizedAt} >= ${new Date(period.periodStart)}
         and ${recognizedAt} < ${new Date(period.periodEnd)}
+      group by sale.id
       order by sale.completed_at, sale.id
     `.execute(this.database);
     return result.rows;

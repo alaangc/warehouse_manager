@@ -7,7 +7,7 @@ import { HttpProblem } from '../../http/problem-handler.js';
 import { AuditWriter } from '../../shared/audit/audit-service.js';
 import { IdempotencyRepository } from '../../shared/idempotency/idempotency-repository.js';
 import { canonicalRequestHash } from '../../shared/idempotency/idempotency-service.js';
-import { sumMoney } from '../../shared/money.js';
+import { parseExactDecimal, sumMoney } from '../../shared/money.js';
 import type { SaleContext } from './sale-service.js';
 
 export const CreditPaymentSchema = z
@@ -18,8 +18,14 @@ export const CreditPaymentSchema = z
       .max(100)
       .refine((ids) => new Set(ids).size === ids.length),
     paymentMethod: z.enum(['CASH', 'BANK_TRANSFER', 'CHECK']),
+    amount: z
+      .string()
+      .regex(/^(0|[1-9]\d{0,16})\.\d{2}$/)
+      .refine((v) => parseExactDecimal(v).gt(0))
+      .optional(),
   })
-  .strict();
+  .strict()
+  .refine((input) => input.amount === undefined || input.saleIds.length === 1);
 
 export class CreditService {
   constructor(private readonly database: AppDatabase) {}
@@ -27,18 +33,21 @@ export class CreditService {
   async list(customerId: string) {
     const notes = await this.database
       .selectFrom('sale as s')
-      .leftJoin('credit_payment_sale as p', 'p.sale_id', 's.id')
       .select([
         's.id',
         's.sale_number as saleNumber',
-        's.total',
+        sql<string>`(s.total - coalesce((select sum(p.amount) from credit_payment_sale p where p.sale_id = s.id), 0))::numeric(19,2)::text`.as(
+          'total',
+        ),
         's.currency_code as currencyCode',
         's.completed_at as completedAt',
       ])
       .where('s.customer_id', '=', customerId)
       .where('s.payment_method', '=', 'CREDIT')
       .where('s.status', '=', 'COMPLETED')
-      .where('p.sale_id', 'is', null)
+      .where(
+        sql<boolean>`s.total > coalesce((select sum(p.amount) from credit_payment_sale p where p.sale_id = s.id), 0)`,
+      )
       .orderBy('s.completed_at')
       .orderBy('s.id')
       .execute();
@@ -73,7 +82,8 @@ export class CreditService {
         key: context.idempotencyKey,
         requestHash: canonicalRequestHash({
           customerId,
-          ...input,
+          paymentMethod: input.paymentMethod,
+          ...(input.amount === undefined ? {} : { amount: input.amount }),
           saleIds: [...input.saleIds].sort(),
         }),
       });
@@ -86,7 +96,7 @@ export class CreditService {
         .where('id', '=', customerId)
         .executeTakeFirst();
       if (!customer) throw new HttpProblem(404, 'CUSTOMER_NOT_FOUND', 'Not Found');
-      // Lock in a stable order, shared with cancellation. The unique allocation is a second guard.
+      // Serialize payments and cancellation on the same notes in a stable order.
       const notes = await transaction
         .selectFrom('sale')
         .selectAll()
@@ -97,18 +107,34 @@ export class CreditService {
         .execute();
       const paid = await transaction
         .selectFrom('credit_payment_sale')
-        .select('sale_id')
+        .select(['sale_id', 'amount'])
         .where('sale_id', 'in', input.saleIds)
         .execute();
       if (
         notes.length !== input.saleIds.length ||
-        paid.length ||
         notes.some(
           (n) =>
             n.payment_method !== 'CREDIT' || n.status !== 'COMPLETED' || n.currency_code !== 'USD',
         )
       )
         throw new HttpProblem(409, 'CREDIT_NOT_PAYABLE', 'Selected notes are no longer payable');
+      const allocations = notes.map((note) => {
+        const balance = parseExactDecimal(note.total).minus(
+          sumMoney(paid.filter((p) => p.sale_id === note.id).map((p) => p.amount)),
+        );
+        const amount = input.amount === undefined ? balance : parseExactDecimal(input.amount);
+        if (balance.lte(0) || amount.gt(balance))
+          throw new HttpProblem(
+            409,
+            'CREDIT_NOT_PAYABLE',
+            'Payment exceeds the outstanding balance',
+          );
+        return {
+          sale_id: note.id,
+          amount: amount.toFixed(2),
+          balance: balance.minus(amount).toFixed(2),
+        };
+      });
       const lines = await transaction
         .selectFrom('sale_line')
         .selectAll()
@@ -123,7 +149,7 @@ export class CreditService {
         transaction,
       );
       const receiptNumber = `Pago: ${counter.rows[0]!.value.padStart(3, '0')}`;
-      const total = sumMoney(notes.map((n) => n.total));
+      const total = sumMoney(allocations.map((n) => n.amount));
       const snapshot = {
         ticketNumber: receiptNumber,
         saleNumber: notes.map((n) => n.sale_number).join(', '),
@@ -131,13 +157,22 @@ export class CreditService {
         currencyCode: 'USD',
         paymentMethod: input.paymentMethod,
         total,
-        lines: lines.map((line) => ({
-          productName: `${notes.find((n) => n.id === line.sale_id)!.sale_number} - ${line.product_name}`,
-          unitCode: line.unit_code,
-          quantity: line.quantity,
-          unitPrice: line.unit_price,
-          lineAmount: line.line_amount,
-        })),
+        lines:
+          allocations.some((a) => a.balance !== '0.00') || paid.length
+            ? allocations.map((a) => ({
+                productName: `${notes.find((n) => n.id === a.sale_id)!.sale_number} - Pago / Payment; saldo / balance USD ${a.balance}`,
+                unitCode: 'PZA',
+                quantity: '1.000',
+                unitPrice: a.amount,
+                lineAmount: a.amount,
+              }))
+            : lines.map((line) => ({
+                productName: `${notes.find((n) => n.id === line.sale_id)!.sale_number} - ${line.product_name}`,
+                unitCode: line.unit_code,
+                quantity: line.quantity,
+                unitPrice: line.unit_price,
+                lineAmount: line.line_amount,
+              })),
       };
       const payment = await transaction
         .insertInto('credit_payment')
@@ -157,10 +192,10 @@ export class CreditService {
       await transaction
         .insertInto('credit_payment_sale')
         .values(
-          notes.map((n) => ({
-            sale_id: n.id,
+          allocations.map((n) => ({
+            sale_id: n.sale_id,
             payment_id: id,
-            amount: n.total,
+            amount: n.amount,
           })),
         )
         .execute();

@@ -1172,7 +1172,7 @@ export interface paths {
     get?: never;
     put?: never;
     /**
-     * Settle selected credit notes in full
+     * Make a partial payment on one note or settle selected credit notes
      * @description Administrators and drivers may collect customer credit; the authenticated collector is recorded.
      */
     post: operations['createCreditPayment'];
@@ -2400,6 +2400,8 @@ export interface components {
       };
     };
     CreditPaymentRequest: {
+      /** @description Optional payment amount for exactly one selected note; omission settles outstanding balances. */
+      amount?: string;
       saleIds: string[];
       /** @enum {string} */
       paymentMethod: 'CASH' | 'BANK_TRANSFER' | 'CHECK';

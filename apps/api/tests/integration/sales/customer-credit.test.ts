@@ -130,6 +130,78 @@ describe('USD notes, checks and customer credit', () => {
       service.pay(f.customer.id, { saleIds: [one.id], paymentMethod: 'CASH' }, context(f.admin.id)),
     ).rejects.toMatchObject({ code: 'CREDIT_NOT_PAYABLE' });
   });
+  it('records partial payments, rejects excess amounts and settles only the remaining balance', async () => {
+    const f = await scenario(),
+      note = await f.create();
+    const service = new CreditService(h.database);
+    const reports = new ReportRepository(h.database);
+    const period = { periodStart: '2021-01-01T00:00:00Z', periodEnd: '2099-01-01T00:00:00Z' };
+    const collected = async () =>
+      (await reports.financialGroups(period, true)).reduce(
+        (sum, row) => sum + Math.round(Number(row.total) * 100),
+        0,
+      );
+    const before = await collected();
+    const input = { saleIds: [note.id], paymentMethod: 'CASH', amount: '1.25' };
+    const ctx = context(f.admin.id);
+    const first = await service.pay(f.customer.id, input, ctx);
+    expect(await collected()).toBe(before + 125);
+    expect(await service.pay(f.customer.id, input, ctx)).toEqual(first);
+    expect(await service.list(f.customer.id)).toMatchObject({
+      noteCount: 1,
+      total: '3.00',
+      notes: [{ id: note.id, total: '3.00' }],
+    });
+    await expect(
+      service.pay(f.customer.id, { ...input, amount: '3.01' }, context(f.admin.id)),
+    ).rejects.toMatchObject({ code: 'CREDIT_NOT_PAYABLE' });
+    for (const amount of ['0.00', '-1.00', '1.001']) {
+      expect(() => service.pay(f.customer.id, { ...input, amount }, context(f.admin.id))).toThrow();
+    }
+    await expect(
+      new CancellationService(h.database).cancel(
+        note.id,
+        'Has partial payment',
+        context(f.admin.id),
+      ),
+    ).rejects.toMatchObject({ code: 'CREDIT_ALREADY_PAID' });
+    await service.pay(
+      f.customer.id,
+      { saleIds: [note.id], paymentMethod: 'CHECK' },
+      context(f.admin.id),
+    );
+    expect(await service.list(f.customer.id)).toMatchObject({
+      noteCount: 0,
+      total: '0.00',
+      payments: expect.arrayContaining([
+        expect.objectContaining({ total: '1.25' }),
+        expect.objectContaining({ total: '3.00' }),
+      ]),
+    });
+    expect(await collected()).toBe(before + 425);
+    expect((await reports.contributingSales(period)).filter((s) => s.saleId === note.id)).toEqual([
+      { saleId: note.id, includedAmount: '4.25' },
+    ]);
+    expect(
+      (await reports.contributingSales(period, true)).filter((s) => s.saleId === note.id),
+    ).toEqual([{ saleId: note.id, includedAmount: '4.25' }]);
+  });
+  it('serializes concurrent partial payments without overpaying', async () => {
+    const f = await scenario(),
+      note = await f.create();
+    const service = new CreditService(h.database);
+    const results = await Promise.allSettled(
+      [1, 2].map(() =>
+        service.pay(
+          f.customer.id,
+          { saleIds: [note.id], paymentMethod: 'CASH', amount: '3.00' },
+          context(f.admin.id),
+        ),
+      ),
+    );
+    expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+    expect(await service.list(f.customer.id)).toMatchObject({ total: '1.25' });
+  });
   it('allows only one concurrent settlement of the same note', async () => {
     const f = await scenario(),
       note = await f.create();

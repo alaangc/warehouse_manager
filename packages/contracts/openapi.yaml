@@ -3043,7 +3043,7 @@ paths:
     post:
       tags:
         - Customers
-      summary: Settle selected credit notes in full
+      summary: Make a partial payment on one note or settle selected credit notes
       description: Administrators and drivers may collect customer credit; the authenticated collector is recorded.
       operationId: createCreditPayment
       security:
@@ -6261,6 +6261,10 @@ components:
         - saleIds
         - paymentMethod
       properties:
+        amount:
+          type: string
+          description: Optional payment amount for exactly one selected note; omission settles outstanding balances.
+          pattern: "^(0|[1-9]\\d{0,16})\\.\\d{2}$"
         saleIds:
           type: array
           items:

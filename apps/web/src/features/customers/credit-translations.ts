@@ -1,4 +1,10 @@
 export const creditEs = {
+  partial: 'Abonar a la nota seleccionada',
+  partialHelp: 'Selecciona una nota para abonar o varias notas para liquidar su saldo pendiente.',
+  partialBalance: 'Saldo pendiente de la nota: {{total}} USD.',
+  amount: 'Importe del abono (USD)',
+  amountHelp: 'Ingresa un importe mayor que cero y no mayor al saldo, con hasta dos decimales.',
+  confirmPartial: 'Confirmar abono',
   title: 'Crédito del cliente',
   count: 'Notas a crédito: {{count}}',
   debt: 'Adeudo total',
@@ -19,6 +25,14 @@ export const creditEs = {
   refreshed: 'Actualizar adeudos',
 };
 export const creditEn = {
+  partial: 'Make a payment on selected note',
+  partialHelp:
+    'Select one note for a partial payment or multiple notes to settle their outstanding balance.',
+  partialBalance: 'Outstanding note balance: {{total}} USD.',
+  amount: 'Payment amount (USD)',
+  amountHelp:
+    'Enter an amount greater than zero and no more than the balance, with up to two decimals.',
+  confirmPartial: 'Confirm payment',
   title: 'Customer credit',
   count: 'Credit notes: {{count}}',
   debt: 'Outstanding balance',

@@ -34,6 +34,8 @@ export function CustomerCredit({ customerId }: { customerId: string }) {
   const [detail, setDetail] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<string | null>(null);
   const [confirm, setConfirm] = useState(false);
+  const [partial, setPartial] = useState(false);
+  const [amount, setAmount] = useState('');
   const request = useRef<{ body: string; key: string } | null>(null);
   const query = useQuery({
     queryKey: ['credits', customerId],
@@ -43,9 +45,22 @@ export function CustomerCredit({ customerId }: { customerId: string }) {
   const notes = data?.notes.filter((n) => selected.includes(n.id)) ?? [];
   const cents = notes.reduce((sum, n) => sum + BigInt(n.total.replace('.', '')), 0n);
   const total = `${cents / 100n}.${String(cents % 100n).padStart(2, '0')}`;
+  const validAmount = /^(0|[1-9]\d{0,16})(\.\d{1,2})?$/.test(amount);
+  const amountCents = validAmount
+    ? BigInt(amount.split('.')[0]!) * 100n + BigInt((amount.split('.')[1] ?? '').padEnd(2, '0'))
+    : 0n;
+  const paymentTotal = partial
+    ? `${amountCents / 100n}.${String(amountCents % 100n).padStart(2, '0')}`
+    : total;
+  const invalidPartial =
+    partial && (notes.length !== 1 || !validAmount || amountCents <= 0n || amountCents > cents);
   const payment = useMutation({
     mutationFn: () => {
-      const body = { saleIds: notes.map((n) => n.id).sort(), paymentMethod };
+      const body = {
+        saleIds: notes.map((n) => n.id).sort(),
+        paymentMethod,
+        ...(partial ? { amount: paymentTotal } : {}),
+      };
       const serialized = JSON.stringify(body);
       if (request.current?.body !== serialized)
         request.current = { body: serialized, key: crypto.randomUUID() };
@@ -59,6 +74,8 @@ export function CustomerCredit({ customerId }: { customerId: string }) {
       setReceipt(result.data.id);
       setSelected([]);
       setConfirm(false);
+      setAmount('');
+      setPartial(false);
       request.current = null;
       void client.invalidateQueries({ queryKey: ['credits', customerId] });
       void client.invalidateQueries({ queryKey: ['customers', customerId, 'sales'] });
@@ -104,6 +121,22 @@ export function CustomerCredit({ customerId }: { customerId: string }) {
               <Typography>
                 {t('credit.selected')}: USD {formatDecimal(total)}
               </Typography>
+              <Typography color="text.secondary">{t('credit.partialHelp')}</Typography>
+              <Button
+                disabled={
+                  notes.length !== 1 ||
+                  payment.isPending ||
+                  query.isFetching ||
+                  Boolean(query.error)
+                }
+                onClick={() => {
+                  setPartial(true);
+                  setAmount('');
+                  setConfirm(true);
+                }}
+              >
+                {t('credit.partial')}
+              </Button>
               <TextField
                 select
                 label={t('sales.paymentMethod')}
@@ -126,7 +159,10 @@ export function CustomerCredit({ customerId }: { customerId: string }) {
                   query.isFetching ||
                   Boolean(query.error)
                 }
-                onClick={() => setConfirm(true)}
+                onClick={() => {
+                  setPartial(false);
+                  setConfirm(true);
+                }}
               >
                 {t('credit.pay')}
               </Button>
@@ -150,10 +186,26 @@ export function CustomerCredit({ customerId }: { customerId: string }) {
           if (!payment.isPending) setConfirm(false);
         }}
       >
-        <DialogTitle>{t('credit.confirm')}</DialogTitle>
+        <DialogTitle>{t(partial ? 'credit.partial' : 'credit.confirm')}</DialogTitle>
         <DialogContent>
           <Stack spacing={1}>
-            <Typography>{t('credit.confirmHelp', { total: formatDecimal(total) })}</Typography>
+            <Typography>
+              {t(partial ? 'credit.partialBalance' : 'credit.confirmHelp', {
+                total: formatDecimal(total),
+              })}
+            </Typography>
+            {partial && (
+              <TextField
+                autoFocus
+                label={t('credit.amount')}
+                value={amount}
+                disabled={payment.isPending}
+                onChange={(event) => setAmount(event.target.value)}
+                slotProps={{ htmlInput: { inputMode: 'decimal' } }}
+                error={amount !== '' && invalidPartial}
+                helperText={t('credit.amountHelp')}
+              />
+            )}
             {notes.map((n) => (
               <Typography key={n.id}>{n.saleNumber}</Typography>
             ))}
@@ -165,8 +217,23 @@ export function CustomerCredit({ customerId }: { customerId: string }) {
           <Button disabled={payment.isPending} onClick={() => setConfirm(false)}>
             {t('credit.cancel')}
           </Button>
-          <Button disabled={payment.isPending || !notes.length} onClick={() => payment.mutate()}>
-            {t(payment.isPending ? 'credit.paying' : 'credit.confirm')}
+          <Button
+            disabled={
+              payment.isPending ||
+              !notes.length ||
+              invalidPartial ||
+              query.isFetching ||
+              Boolean(query.error)
+            }
+            onClick={() => payment.mutate()}
+          >
+            {t(
+              payment.isPending
+                ? 'credit.paying'
+                : partial
+                  ? 'credit.confirmPartial'
+                  : 'credit.confirm',
+            )}
           </Button>
         </DialogActions>
       </Dialog>

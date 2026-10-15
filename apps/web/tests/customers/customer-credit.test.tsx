@@ -43,6 +43,38 @@ function show() {
     </QueryClientProvider>,
   );
 }
+it('requires one note and a valid amount for a partial payment', async () => {
+  const posts: RequestInit[] = [];
+  vi.stubGlobal(
+    'fetch',
+    vi.fn((_url, init: RequestInit) => {
+      if (init.method === 'POST') {
+        posts.push(init);
+        return Promise.resolve(Response.json({ data: { id: 'partial-receipt' } }));
+      }
+      return Promise.resolve(Response.json({ data: initial }));
+    }),
+  );
+  show();
+  const partial = await screen.findByRole('button', { name: 'Make a payment on selected note' });
+  expect(partial).toBeDisabled();
+  fireEvent.click(screen.getByRole('checkbox', { name: 'Select Nota: 001' }));
+  fireEvent.click(partial);
+  const amount = screen.getByRole('textbox', { name: 'Payment amount (USD)' });
+  const submit = screen.getByRole('button', { name: 'Confirm payment' });
+  for (const value of ['0', '-1', '0.11', '0.001']) {
+    fireEvent.change(amount, { target: { value } });
+    expect(submit).toBeDisabled();
+  }
+  fireEvent.change(amount, { target: { value: '0.05' } });
+  fireEvent.click(submit);
+  expect(await screen.findByText('Receipt partial-receipt')).toBeVisible();
+  expect(JSON.parse(String(posts[0]!.body))).toEqual({
+    saleIds: [notes[0]!.id],
+    paymentMethod: 'CASH',
+    amount: '0.05',
+  });
+});
 it('selects notes, totals exact cents, submits check payment and opens its persisted receipt', async () => {
   let paid = false;
   const posts: RequestInit[] = [];
